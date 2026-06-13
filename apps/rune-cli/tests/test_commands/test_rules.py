@@ -16,6 +16,11 @@ def test_rules_add(tmp_path, mock_git_repo):
     repo_url = str(mock_git_repo).replace('\\', '/')
     result = runner.invoke(app, ["rules", "add", repo_url, "--agent", ".roo"])
     
+    if result.exit_code != 0:
+        print(result.stdout)
+        if result.exception:
+            print(result.exception)
+            
     assert result.exit_code == 0
     assert "Installed rule 'test-rule'" in result.stdout
     assert (tmp_path / ".roo" / "rules" / "test-rule").exists()
