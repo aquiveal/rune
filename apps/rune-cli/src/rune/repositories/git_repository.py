@@ -41,10 +41,10 @@ def sparse_checkout_init(cwd: Path):
     run_git(["sparse-checkout", "init"], cwd=cwd)
 
 def sparse_checkout_set(cwd: Path, paths: List[str]):
-    run_git(["sparse-checkout", "set"] + paths, cwd=cwd)
+    run_git(["sparse-checkout", "set", "--skip-checks"] + paths, cwd=cwd)
 
 def sparse_checkout_add(cwd: Path, paths: List[str]):
-    run_git(["sparse-checkout", "add"] + paths, cwd=cwd)
+    run_git(["sparse-checkout", "add", "--skip-checks"] + paths, cwd=cwd)
 
 def is_git_repo(cwd: Path) -> bool:
     try:
