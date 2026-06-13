@@ -1,0 +1,11 @@
+[tool.bumpver]
+current_version = "26.6.0"
+version_pattern = "YY.MM.INC0"
+commit = false
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"apps/rune-cli/pyproject.toml" = [
+    'version = "{version}"',
+]
