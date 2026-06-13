@@ -38,7 +38,7 @@ def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
     run_git(args, cwd=cwd)
 
 def sparse_checkout_init(cwd: Path):
-    run_git(["sparse-checkout", "init", "--cone"], cwd=cwd)
+    run_git(["sparse-checkout", "init"], cwd=cwd)
 
 def sparse_checkout_set(cwd: Path, paths: List[str]):
     run_git(["sparse-checkout", "set"] + paths, cwd=cwd)
