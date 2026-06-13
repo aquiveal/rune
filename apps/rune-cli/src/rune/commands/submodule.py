@@ -27,7 +27,12 @@ def add(
     # Determine context
     if cwd.name == "skills":
         context = "skills_root"
-        target_dir = cwd / (target_name or repo_name)
+        raw_name = target_name or repo_name
+        sanitized_name = skill_service.sanitize_skill_name(raw_name)
+        if not sanitized_name:
+            typer.echo(f"Error: Invalid skill name '{raw_name}'.", err=True)
+            raise typer.Exit(1)
+        target_dir = cwd / sanitized_name
     elif cwd.parent.name == "skills":
         context = "inside_skill"
         target_dir = cwd
