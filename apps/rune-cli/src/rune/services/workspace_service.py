@@ -47,9 +47,6 @@ def update_gitignore(root_dir: Path):
         f"!{RUNE_DIR}/{RUNE_CONFIG}",
         f"!{RUNE_DIR}/{RUNE_INDEX}"
     ]
-    agents = config_repository.get_agent_names(root_dir)
-    for agent in agents:
-        entries.append(f"{agent}/")
         
     missing = [e for e in entries if e not in lines and e.strip('/') not in lines]
     

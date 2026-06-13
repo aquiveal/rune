@@ -1,12 +1,10 @@
-# Agent Rules
+# Rules
 
 ## language-python
 
-### anti-patterns.md
+### Anti-Patterns Standards
 
-# Anti-Patterns Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - NEVER violate the Law of Least Surprise; if a function's behavior or implementation is surprising, it MUST be refactored or heavily documented.
 - NEVER use mutable objects (`list`, `dict`, `set`) as default arguments in function signatures.
 - NEVER use `time.sleep()` to wait for UI or asynchronous state changes; ALWAYS use explicit polling/wait loops.
@@ -65,28 +63,27 @@
 - NEVER organize code by types (e.g., `exceptions.py`, `functions.py`); ALWAYS organize by features.
 - NEVER perform a `SELECT` to check for existence before an `INSERT` to enforce uniqueness; ALWAYS rely on database `UNIQUE` constraints and catch the exception to avoid race conditions.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 def add_item(item, items=[]):
     items.append(item)
     return items
 ```
 
-### ✅ DO
+##### ✅ DO
 ```python
 def add_item(item, items: list[str] | None = None) -> list[str]:
     if items is None:
         items = []
     items.append(item)
     return items
+```
 
-### architecture-and-structure.md
+### Architecture and Structure Standards
 
-# Architecture and Structure Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS follow the standard FastAPI project structure with separated `api`, `core`, `database`, `services`, `repositories`, `utils`, and `schemas` directories, or use a modular `src/modules` layout.
 - ALWAYS separate domain logic from infrastructure concerns (Domain-Driven Design).
 - ALWAYS distinguish between Entities (identity equality, mutable) and Value Objects (value equality, immutable).
@@ -122,9 +119,9 @@ def add_item(item, items: list[str] | None = None) -> list[str]:
 - NEVER allow the Domain Model to import or invoke infrastructure code (e.g., ORMs, email clients).
 - NEVER couple Domain Models to ORM classes (e.g., inheriting from `db.Model` or `Base`). ALWAYS use classical mapping or separate ORM models to ensure the ORM depends on the model, not the other way around.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 def allocate(orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork) -> str:
     line = OrderLine(orderid, sku, qty)
@@ -206,7 +203,7 @@ project_name/
 │               └── user.py
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 @app.route("/allocate", methods=['POST'])
 def allocate_endpoint():
@@ -216,12 +213,11 @@ def allocate_endpoint():
     model.allocate(line, batches)
     session.commit()
     return jsonify({'status': 'ok'})
+```
 
-### code-style-and-formatting.md
+### Code Style and Formatting Standards
 
-# Code Style and Formatting Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS choose the collection type that explicitly communicates your intent: `list` for mutable sequences, `tuple` for fixed-size immutable records, `set` for uniqueness, and `dict` for key-value mapping.
 - ALWAYS use specialized collections (`collections.Counter`, `collections.defaultdict`, `frozenset`) when they match the domain problem to reduce boilerplate and communicate intent.
 - ALWAYS use `for` loops for side effects, `while` loops for condition-based iteration, and comprehensions for transforming collections without side effects.
@@ -251,9 +247,9 @@ def allocate_endpoint():
 - ALWAYS group imports in three alphabetical sections: standard library, third-party, and local modules.
 - ALWAYS design sequence constructors to take data as an iterable argument, matching the behavior of built-in sequence types.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 for rank, (name, calories) in enumerate(snacks, 1):
     print(f'#{rank}: {name} has {calories} calories')
@@ -262,7 +258,7 @@ if (count := fresh_fruit.get('banana', 0)) >= 2:
     make_smoothies(count)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 for i in range(len(snacks)):
     item = snacks[i]
@@ -271,12 +267,11 @@ for i in range(len(snacks)):
 count = fresh_fruit.get('banana', 0)
 if count >= 2:
     make_smoothies(count)
+```
 
-### configuration-and-environment.md
+### Configuration and Environment Standards
 
-# Configuration and Environment Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS follow the 12-Factor App methodology: store configuration that varies between environments in environment variables.
 - ALWAYS implement "fail hard" logic for secrets in production. Raise `KeyError` if a required secret is missing when `DEBUG=False`.
 - ALWAYS use a `requirements.txt` (or `pyproject.toml`/`uv.lock`) to explicitly declare production dependencies.
@@ -290,9 +285,9 @@ if count >= 2:
 - ALWAYS use `WhiteNoise` or a reverse proxy (Nginx) to serve static files in production.
 - ALWAYS use declarative Infrastructure as Code (IaC) tools like Ansible for server provisioning and deployment.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 import os
 
@@ -306,17 +301,16 @@ else:
     ALLOWED_HOSTS = []
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
-# Fails silently and runs insecurely in production
+### Fails silently and runs insecurely in production
 DEBUG = os.environ.get("DEBUG", False)
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+```
 
-### dependency-management.md
+### Dependency Management Standards
 
-# Dependency Management Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS pin external package dependencies to specific versions to ensure reproducibility.
 - ALWAYS use isolated virtual environments (`venv`, `poetry`, `uv`) to prevent dependency conflicts.
 - ALWAYS use `pdm config use_uv true` when using PDM to leverage uv for faster dependency resolution and installation.
@@ -329,11 +323,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 - ALWAYS use PEP 440 compliant version numbering (e.g., `1.2.0`, `2.3.1b2`).
 - ALWAYS use declarative configuration (`setup.cfg` or `pyproject.toml`) for package metadata instead of complex `setup.py` scripts.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
-# db_wrapper.py
+### db_wrapper.py
 import external_orm_library
 
 class DatabaseAPI:
@@ -341,19 +335,18 @@ class DatabaseAPI:
         return external_orm_library.fetch(user_id)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
-# business_logic.py
+### business_logic.py
 import external_orm_library # Leaking external dependency into core logic
 
 def process_user(user_id: int):
     user = external_orm_library.fetch(user_id)
+```
 
-### documentation-and-comments.md
+### Documentation and Comments Standards
 
-# Documentation and Comments Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS write PEP 257 compliant docstrings for EVERY module, class, and public function/method.
 - ALWAYS ensure the first line of a docstring is a concise summary. Subsequent paragraphs MUST detail arguments, return values, and raised exceptions.
 - ALWAYS document class invariants explicitly in the class-level docstring.
@@ -366,9 +359,9 @@ def process_user(user_id: int):
 - NEVER duplicate type information in the docstring if it is already provided via `typing` annotations in the function signature.
 - NEVER write comments that merely repeat what the code is doing. Comments MUST explain the *why* or the business context.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 import warnings
 
@@ -391,17 +384,16 @@ def old_calculate(d: float, t: float) -> float:
     return calculate_velocity(d, t)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 def calc(d, t):
     # divide d by t
     return d / t
+```
 
-### error-handling.md
+### Error Handling Standards
 
-# Error Handling Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS use `Optional[T]` or `Union[T, ErrorType]` for expected failure modes (e.g., not finding an element) because return types can be statically checked, whereas exceptions cannot.
 - ALWAYS use exceptions for truly exceptional, unexpected use cases (e.g., network failures, database down) that you wish to guard against.
 - NEVER use exceptions for normal control flow or expected business logic failures.
@@ -417,9 +409,9 @@ def calc(d, t):
 - ALWAYS consider `contextlib` and `with` statements for reusable `try/finally` behavior.
 - ALWAYS use `else` blocks in `try/except` constructs to isolate the code that should only run if no exception occurred, keeping the `try` block as small as possible.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 class MyModuleError(Exception):
     pass
@@ -439,7 +431,7 @@ def process_data(data: str) -> dict:
         return enrich_data(parsed)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 def process_data(data: str):
     try:
@@ -447,12 +439,11 @@ def process_data(data: str):
         return enrich_data(parsed)
     except Exception:
         return None # Silent failure, returns None
+```
 
-### logging-and-observability.md
+### Logging and Observability Standards
 
-# Logging and Observability Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS use the standard `logging` module. NEVER use `print()` for application logs in production code.
 - ALWAYS use `logging.exception("message")` inside `except` blocks to automatically log the full stack trace of the caught exception.
 - ALWAYS configure a `StreamHandler` outputting to the console (stdout/stderr) in containerized environments (Docker) so logs are captured by the container runtime.
@@ -461,9 +452,9 @@ def process_data(data: str):
 - ALWAYS configure appropriate log levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). Use `INFO` for normal operational milestones and `DEBUG` for detailed tracing.
 - ALWAYS capture warnings in the logging system using `logging.captureWarnings(True)` in production configurations.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 import logging
 
@@ -478,7 +469,7 @@ def process_payment(order_id: str, amount: float) -> None:
         raise
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 def process_payment(order_id: str, amount: float) -> None:
     print(f"Processing payment for {order_id}")
@@ -486,12 +477,11 @@ def process_payment(order_id: str, amount: float) -> None:
         charge_card(amount)
     except PaymentGatewayError as e:
         print(f"Error: {e}") # Loses the stack trace
+```
 
-### naming-conventions.md
+### Naming Conventions Standards
 
-# Naming Conventions Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS use `lowercase_underscore` (snake_case) for functions, variables, methods, and module names.
 - ALWAYS use `CapitalizedWord` (PascalCase) for classes and exception names.
 - ALWAYS use `ALL_CAPS_WITH_UNDERSCORES` for module-level constants.
@@ -505,9 +495,9 @@ def process_payment(order_id: str, amount: float) -> None:
 - ALWAYS suffix mixin classes with `Mixin` (e.g., `JSONSerializableMixin`).
 - ALWAYS use language-agnostic, kebab-case, lowercase filenames for markdown/documentation files (e.g., `naming-conventions.md`).
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 MAX_RETRIES = 3
 
@@ -523,7 +513,7 @@ class OrderCreated(Event):
     order_id: str
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 MaxRetries = 3
 
@@ -534,12 +524,11 @@ class order_processor:
 @dataclass
 class CreateOrderEvent(Event): # Imperative mood for an event
     order_id: str
+```
 
-### performance-and-optimization.md
+### Performance and Optimization Standards
 
-# Performance and Optimization Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - NEVER optimize prematurely. ALWAYS profile first using `cProfile`, `memory_profiler`, or `Scalene` to identify actual bottlenecks.
 - ALWAYS use `__slots__` for classes that will have millions of instances to prevent `__dict__` memory overhead.
 - ALWAYS use `collections.deque` for FIFO queues to achieve O(1) appends and pops. NEVER use `list.pop(0)`.
@@ -575,9 +564,9 @@ class CreateOrderEvent(Event): # Imperative mood for an event
 - ALWAYS consider using the `dis` module to disassemble and understand Python bytecode for micro-optimizations.
 - NEVER run performance-critical loops at the global module scope; ALWAYS wrap them in a function to avoid `LOAD_GLOBAL` overhead.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 import collections
 
@@ -586,14 +575,14 @@ queue.append(item)
 processed = queue.popleft() # O(1)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 queue = []
 queue.append(item)
 processed = queue.pop(0) # O(N)
 ```
 
-### ✅ DO
+##### ✅ DO
 ```python
 import functools
 
@@ -607,21 +596,20 @@ def process_items(items: list[str]) -> str:
     return "".join(item for item in items if item in valid_items)
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
-# Global scope loop is slow due to LOAD_GLOBAL
+### Global scope loop is slow due to LOAD_GLOBAL
 result = ""
 valid_items = ["apple", "banana", "orange"] # O(N) lookup
 
 for item in items:
     if item in valid_items:
         result += item # Quadratic memory reallocation
+```
 
-### security-and-validation.md
+### Security and Validation Standards
 
-# Security and Validation Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS use `pydantic` for runtime validation of external or dynamic data (e.g., JSON, YAML, API payloads).
 - ALWAYS use `pandera` to validate Pandas/Polars dataframe schemas at runtime.
 - ALWAYS enforce data integrity constraints at the lowest possible level (e.g., database `UNIQUE`, `NOT NULL`, `CHECK` constraints).
@@ -633,9 +621,9 @@ for item in items:
 - ALWAYS use `dodgy` or similar tools to scan for hardcoded secrets or credentials.
 - ALWAYS escape HTML characters in tests when asserting against rendered templates (e.g., `django.utils.html.escape`).
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 from pydantic.dataclasses import dataclass
 from pydantic import PositiveInt, constr
@@ -645,25 +633,24 @@ class UserProfile:
     username: constr(min_length=3, max_length=30)
     age: PositiveInt
 
-# Safe SQL execution
+### Safe SQL execution
 cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 class UserProfile:
     def __init__(self, username: str, age: int):
         self.username = username
         self.age = age # No runtime validation
 
-# SQL Injection vulnerability
+### SQL Injection vulnerability
 cursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
+```
 
-### testing-standards.md
+### Testing Standards
 
-# Testing Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS follow Double-Loop Test-Driven Development (TDD): Use an outer loop of Functional Tests (FTs) to drive high-level requirements, and an inner loop of Unit Tests (Red, Green, Refactor) to drive implementation details.
 - ALWAYS use High Gear vs Low Gear TDD: Write the bulk of your tests against the Service Layer (edge-to-edge) using primitives and fakes to decouple tests from domain implementation details. Maintain a small core of tests against the Domain Model for complex logic.
 - ALWAYS structure tests using the AAA pattern (Arrange, Act, Assert) or Given-When-Then. Keep the Act phase to 1-2 lines.
@@ -692,7 +679,7 @@ cursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
 - ALWAYS mirror the structure of the rest of the source tree within the `tests` directory (e.g., code in `src/app/services/auth.py` MUST be tested in `tests/unit/app/services/test_auth.py`).
 - ALWAYS ensure tests are stored inside a `tests` subpackage of your application/library so they can be shipped and reused, and to prevent them from being accidentally installed as a top-level `tests` module.
 
-## 📁 Test Directory Structure
+#### 📁 Test Directory Structure
 ```text
 my-python-project/
 ├── src/                        # Source code
@@ -732,9 +719,9 @@ my-python-project/
 └── pyproject.toml
 ```
 
-##  Examples
+####  Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 import pytest
 from unittest.mock import patch, call
@@ -757,7 +744,7 @@ def test_user_registration_sends_email(mock_send_email, db_session):
     assert mock_send_email.call_args == call("test@example.com", "Welcome!")
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 def test_user_registration():
     # Missing isolation, manual teardown, no spec on mock
@@ -766,12 +753,11 @@ def test_user_registration():
         register_user({"email": "test@example.com"}, db)
         mock_send.assert_called_with("test@example.com", "Welcome!")
     db.teardown() # Skipped if assert fails
+```
 
-### type-safety.md
+### Type Safety Standards
 
-# Type Safety Standards
-
-## 🎯 Directives
+#### 🎯 Directives
 - ALWAYS annotate function parameters and return types for all public APIs and cross-module interfaces.
 - ALWAYS use `Optional[T]` (or `T | None` in Python 3.10+) when a value can be `None`. NEVER rely on implicit optionals.
 - ALWAYS use `Union[A, B]` (or `A | B`) to define Sum Types, restricting state spaces and making illegal states unrepresentable.
@@ -786,9 +772,9 @@ def test_user_registration():
 - NEVER use `typing.cast()` except as an absolute last resort to silence false positives from external stubs.
 - NEVER use `TypedDict` for runtime validation; it is strictly for static analysis. Use `pydantic` for runtime checks.
 
-## 📝 Examples
+#### 📝 Examples
 
-### ✅ DO
+##### ✅ DO
 ```python
 from typing import Optional, Protocol
 
@@ -802,14 +788,14 @@ def notify_user(user_id: int, sender: EmailSender) -> Optional[str]:
     return "Success"
 ```
 
-### ❌ DON'T
+##### ❌ DON'T
 ```python
 from typing import Any
 
-# Missing return type, implicit None, uses Any, tightly coupled to concrete class
+### Missing return type, implicit None, uses Any, tightly coupled to concrete class
 def notify_user(user_id, sender: Any):
     if user_id < 0:
         return None
     sender.send("user@example.com", "Hello")
     return "Success"
-
+```

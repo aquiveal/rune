@@ -1,0 +1,6 @@
+[runemodule "\".agents/rules/language-python\""]
+	url = https://github.com/aquiveal/rune/tree/main/rules/language-python https://github.com/aquiveal/rune
+	path = .agents/rules/language-python
+[runemodule ".agents/rules/language-python"]
+	url = https://github.com/aquiveal/rune/tree/main/rules/language-python https://github.com/aquiveal/rune
+	path = .agents/rules/language-python
