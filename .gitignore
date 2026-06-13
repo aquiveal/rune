@@ -217,3 +217,7 @@ __marimo__/
 
 # Rune
 skills/
+.rune/*
+!.rune/config
+!.rune/index
+.agents/
