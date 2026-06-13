@@ -32,24 +32,18 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
     agents = [".roo"]
     
     # Act
-    with patch("rune.services.module_service.os.symlink") as mock_symlink:
-        # Mock source path existence so it doesn't fail
-        with patch("pathlib.Path.exists") as mock_exists:
-            # Make submodule_path.exists() return False, but source_path.exists() return True
-            mock_exists.side_effect = lambda: True if "my-rule" in str(mock_exists.call_args) else False
-            # Actually, side_effect without args is hard. Let's just mock the specific path object.
-            # Better: don't mock Path.exists. Just create the source_path directory.
-            pass
-            
-    # Let's rewrite the test without mocking Path.exists globally
-    submodule_path = root_dir / ".rune" / "modules" / type / "repo"
-    source_path = submodule_path / path
-    source_path.parent.mkdir(parents=True, exist_ok=True)
-    source_path.mkdir(parents=True, exist_ok=True)
-    
-    with patch("rune.services.module_service.os.symlink") as mock_symlink:
-        module_service.add_module(root_dir, url, path, name, type, agents)
+    original_exists = Path.exists
+    def mock_exists(self):
+        if "my-rule" in str(self):
+            return True
+        if "repo" in str(self) and "modules" in str(self):
+            return False
+        return original_exists(self)
         
+    with patch("pathlib.Path.exists", new=mock_exists):
+        with patch("rune.services.module_service.os.symlink") as mock_symlink:
+            module_service.add_module(root_dir, url, path, name, type, agents)
+            
     # Assert
     mock_git_repo.is_git_repo.assert_called_once_with(root_dir)
     mock_git_repo.add_submodule.assert_called_once()
@@ -76,16 +70,18 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
     agents = [".roo"]
     
     # Act
-    from rune.config.main import get_global_rune_dir
-    base_dir = get_global_rune_dir()
-    submodule_path = base_dir / ".rune" / "modules" / type / "repo"
-    source_path = submodule_path / path
-    source_path.parent.mkdir(parents=True, exist_ok=True)
-    source_path.mkdir(parents=True, exist_ok=True)
-    
-    with patch("rune.services.module_service.os.symlink") as mock_symlink:
-        module_service.add_module(root_dir, url, path, name, type, agents, global_scope=True)
+    original_exists = Path.exists
+    def mock_exists(self):
+        if "my-rule" in str(self):
+            return True
+        if "repo" in str(self) and "modules" in str(self):
+            return False
+        return original_exists(self)
         
+    with patch("pathlib.Path.exists", new=mock_exists):
+        with patch("rune.services.module_service.os.symlink") as mock_symlink:
+            module_service.add_module(root_dir, url, path, name, type, agents, global_scope=True)
+            
     # Assert
     mock_git_repo.clone.assert_called_once()
     mock_git_repo.add_submodule.assert_not_called()
