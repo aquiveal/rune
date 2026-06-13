@@ -1,4 +1,3 @@
-<!-- 
 🤖 SYSTEM INSTRUCTIONS (DO NOT INCLUDE IN FINAL OUTPUT)
 You are an expert software engineer generating a Pull Request description. 
 You MUST strictly adhere to the following rules when filling out this template. Failure to comply will break the CI pipeline.
@@ -12,7 +11,6 @@ You MUST strictly adhere to the following rules when filling out this template. 
 7. MARKDOWN RULES: All markdown bullet lists MUST strictly use `-` instead of `*`.
 8. CLEANUP: You MUST delete all inline helper comments starting with an exclamation mark and the entire Example PR `<details>` block at the bottom.
 Output ONLY the final, fully formatted Markdown.
--->
 
 <!--
 PR Title MUST follow the Conventional Commits standard:
