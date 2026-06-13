@@ -12,11 +12,15 @@ class ModuleSchema(BaseModel):
 
     @property
     def base_url(self) -> str:
-        return self.url.split(' ')[1] if ' ' in self.url else self.url
+        if ' ' in self.url:
+            return self.url.split(' ')[1]
+        if '/tree/' in self.url:
+            return self.url.split('/tree/')[0]
+        return self.url
 
     @property
     def source_path(self) -> str:
-        if ' ' in self.url and '/tree/' in self.specific_url:
+        if '/tree/' in self.specific_url:
             parts = self.specific_url.split('/tree/')
             if len(parts) > 1:
                 path_parts = parts[1].split('/', 1)
