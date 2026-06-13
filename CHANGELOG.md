@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.14] - 2026-06-13
+
+### 🚀 Features
+
+- Add helper properties to module schema
+
+### 🐛 Bug Fixes
+
+- Update module filtering logic
+- Quote module names and add branch detection
+
+### 🚜 Refactor
+
+- Simplify module management and cache logic
+- Replace git submodules with clone logic
+
 ## [26.6.13] - 2026-06-13
 
 ### 🚀 Features
@@ -15,6 +31,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Update module service test mocks
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.13
 
 ## [26.6.12] - 2026-06-13
 
