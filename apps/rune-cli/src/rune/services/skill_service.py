@@ -5,6 +5,14 @@ from typing import List, Tuple, Optional, Dict
 from rune.schemas.skill_schema import SkillSchema, SkillMetadata
 from rune.config.exceptions import ValidationError
 
+def sanitize_skill_name(name: str) -> str:
+    """Sanitize a string to be a valid skill name."""
+    name = name.lower()
+    name = re.sub(r'[^a-z0-9]+', '-', name)
+    name = name.strip('-')
+    name = re.sub(r'-+', '-', name)
+    return name
+
 def validate_skill_file(path: Path) -> SkillSchema:
     if not path.exists():
         raise ValidationError(f"SKILL.md not found at {path}")

@@ -3,6 +3,16 @@ from pathlib import Path
 from rune.services import skill_service
 from rune.config.exceptions import ValidationError
 
+def test_sanitize_skill_name():
+    assert skill_service.sanitize_skill_name("My Skill") == "my-skill"
+    assert skill_service.sanitize_skill_name("skill_name") == "skill-name"
+    assert skill_service.sanitize_skill_name("Skill@Name!") == "skill-name"
+    assert skill_service.sanitize_skill_name("---skill---") == "skill"
+    assert skill_service.sanitize_skill_name("a") == "a"
+    assert skill_service.sanitize_skill_name("  spaces  ") == "spaces"
+    assert skill_service.sanitize_skill_name("multiple---hyphens") == "multiple-hyphens"
+    assert skill_service.sanitize_skill_name("!@#$%^&*()") == ""
+
 def test_validate_skill_valid(tmp_path):
     skill_dir = tmp_path / "test-skill"
     skill_dir.mkdir()
