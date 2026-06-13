@@ -4,6 +4,7 @@ from typing import List, Optional
 from pathlib import Path
 from rune.services import rule_service, module_service, workspace_service
 from rune.repositories import config_repository, git_repository
+from rune.config.main import DEFAULT_AGENTS
 from rune.config.exceptions import RuneError
 
 app = typer.Typer(no_args_is_help=True, help="Manage agent context and guidelines")
