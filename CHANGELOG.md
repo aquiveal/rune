@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.5] - 2026-06-13
+
+### 🚀 Features
+
+- Add comprehensive Python development standards
+- Add comprehensive Python development standards
+
+### ⚙️ Miscellaneous Tasks
+
+- [**breaking**] Update documentation and standards
+
 ## [26.6.4] - 2026-06-13
 
 ### 🚀 Features
@@ -14,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Release 26.6.3
 - Update dependencies and python version
 - Remove all git submodules
+- Release 26.6.4
 
 ### Build
 
