@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.22] - 2026-06-13
+
+### 🚀 Features
+
+- Sanitize skill names during initialization
+
+### 🐛 Bug Fixes
+
+- Sanitize skill names before directory creation
+
 ## [26.6.21] - 2026-06-13
 
 ### 🐛 Bug Fixes
 
 - Retry submodule add on index error
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.21
 
 ## [26.6.20] - 2026-06-13
 
