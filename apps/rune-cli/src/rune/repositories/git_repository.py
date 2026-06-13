@@ -22,8 +22,12 @@ def clone(url: str, target_path: Path, depth: Optional[int] = None):
     args += [url, str(target_path)]
     run_git(args)
 
-def add_submodule(url: str, path: str, cwd: Path):
-    run_git(["-c", "protocol.file.allow=always", "submodule", "add", url, path], cwd=cwd)
+def add_submodule(url: str, path: str, cwd: Path, force: bool = False):
+    args = ["-c", "protocol.file.allow=always", "submodule", "add"]
+    if force:
+        args.append("-f")
+    args.extend([url, path])
+    run_git(args, cwd=cwd)
 
 def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
     args = ["submodule", "update"]
@@ -32,6 +36,22 @@ def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
     if recursive:
         args.append("--recursive")
     run_git(args, cwd=cwd)
+
+def sparse_checkout_init(cwd: Path):
+    run_git(["sparse-checkout", "init", "--cone"], cwd=cwd)
+
+def sparse_checkout_set(cwd: Path, paths: List[str]):
+    run_git(["sparse-checkout", "set"] + paths, cwd=cwd)
+
+def sparse_checkout_add(cwd: Path, paths: List[str]):
+    run_git(["sparse-checkout", "add"] + paths, cwd=cwd)
+
+def is_git_repo(cwd: Path) -> bool:
+    try:
+        run_git(["rev-parse", "--is-inside-work-tree"], cwd=cwd)
+        return True
+    except GitError:
+        return False
 
 def get_config(key: str, file_path: Path) -> Optional[str]:
     try:
