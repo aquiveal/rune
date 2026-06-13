@@ -170,8 +170,13 @@ def scaffold_skill(name: str, base_dir: Path) -> Path:
 @app.command("init")
 def init(name: str = typer.Argument(..., help="Name of the skill")):
     """Scaffold a new skill with standard folder structure."""
-    skill_dir = scaffold_skill(name, Path.cwd())
-    typer.echo(f"Created skill '{name}' with standard structure at {skill_dir}")
+    sanitized_name = skill_service.sanitize_skill_name(name)
+    if not sanitized_name:
+        typer.echo(f"Error: Invalid skill name '{name}'.", err=True)
+        raise typer.Exit(1)
+        
+    skill_dir = scaffold_skill(sanitized_name, Path.cwd())
+    typer.echo(f"Created skill '{sanitized_name}' with standard structure at {skill_dir}")
 
 @app.command("update")
 def update(global_scope: bool = typer.Option(False, "--global", "-g")):
