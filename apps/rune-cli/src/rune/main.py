@@ -1,5 +1,5 @@
 import typer
-from rune.commands import init, config, remote, status, update, skills, rules
+from rune.commands import init, config, remote, status, update, skills, rules, submodule
 
 app = typer.Typer(
     name="rune",
@@ -22,6 +22,7 @@ app.command(name="update")(update.update_cmd)
 app.add_typer(remote.app, name="remote")
 app.add_typer(skills.app, name="skills")
 app.add_typer(rules.app, name="rules")
+app.add_typer(submodule.app, name="submodule")
 
 def main():
     app()

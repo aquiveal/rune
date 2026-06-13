@@ -13,7 +13,7 @@ def resolve_url(source: str, root_dir: Path) -> str:
         return str(Path(source).absolute())
     url = config_repository.get_remote_url(root_dir, source)
     if url: return url
-    if "/" in source and not source.startswith(("http://", "https://", "git@")):
+    if "/" in source and not source.startswith(("http://", "https://", "git@", "file://")):
         return f"https://github.com/{source}.git"
     return source
 
@@ -77,16 +77,6 @@ def add(
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-@app.command("develop")
-def develop(url: str = typer.Argument(..., help="URL of the rules repository")):
-    """Add rules as a git submodule for local development."""
-    try:
-        module_service.add_git_submodule(Path.cwd(), url, target_dir="rules")
-        typer.echo(f"Added rules submodule for development.")
-    except RuneError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(1)
-
 @app.command("list")
 def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
     """List installed rules."""
@@ -106,21 +96,26 @@ def remove(
         typer.echo(f"Removed rule '{name}'")
 
 @app.command("update")
-def update():
-    """Update submodules for rules and merge them into AGENTS.md."""
+def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+    """Update installed rules and merge them into AGENTS.md."""
     root_dir = Path.cwd()
-    rule_dirs = rule_service.discover_rule_dirs(root_dir)
     
-    if not rule_dirs:
-        typer.echo("No rule directories found.", err=True)
-        raise typer.Exit(1)
+    try:
+        module_service.update_modules(root_dir, type="rules", global_scope=global_scope)
+        typer.echo("Updated installed rule submodules.")
+    except Exception as e:
+        typer.echo(f"Failed to update rule submodules: {e}", err=True)
         
-    for rule_dir in rule_dirs:
-        try:
-            git_repository.update_submodules(rule_dir)
-            typer.echo(f"Updated submodules in {rule_dir}")
-        except Exception as e:
-            typer.echo(f"Failed to update submodules in {rule_dir}: {e}", err=True)
+    # Also update any nested submodules inside rule directories (for authors)
+    rule_dirs = rule_service.discover_rule_dirs(root_dir)
+    if rule_dirs:
+        for rule_dir in rule_dirs:
+            try:
+                if (rule_dir / ".git").exists():
+                    git_repository.update_submodules(rule_dir)
+                    typer.echo(f"Updated nested submodules in {rule_dir}")
+            except Exception as e:
+                typer.echo(f"Failed to update nested submodules in {rule_dir}: {e}", err=True)
             
     try:
         rule_service.merge_rules_to_agents_md(root_dir)
