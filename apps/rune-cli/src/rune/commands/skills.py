@@ -117,10 +117,9 @@ def remove(
         module_service.remove_module(Path.cwd(), name, "skills", global_scope=global_scope)
         typer.echo(f"Removed skill '{name}'")
 
-@app.command("init")
-def init(name: str = typer.Argument(..., help="Name of the skill")):
+def scaffold_skill(name: str, base_dir: Path) -> Path:
     """Scaffold a new skill with standard folder structure."""
-    skill_dir = Path.cwd() / name
+    skill_dir = base_dir / name
     skill_dir.mkdir(exist_ok=True)
     
     # Create standard directories
@@ -132,8 +131,15 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
     # Create SKILL.md
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():
-        skill_md.write_text(f"---\nname: {name}\ndescription: {name} skill\n---\n# {name}\n")
-    
+        description = f"Provides specialized context, rules, and tools for implementing, configuring, and debugging {name}. Use this skill whenever modifying {name} configurations or adding related functionality."
+        skill_md.write_text(f"---\nname: {name}\ndescription: {description}\n---\n# {name}\n")
+        
+    return skill_dir
+
+@app.command("init")
+def init(name: str = typer.Argument(..., help="Name of the skill")):
+    """Scaffold a new skill with standard folder structure."""
+    skill_dir = scaffold_skill(name, Path.cwd())
     typer.echo(f"Created skill '{name}' with standard structure at {skill_dir}")
 
 @app.command("update")

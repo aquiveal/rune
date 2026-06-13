@@ -117,8 +117,9 @@ def update():
         
     for rule_dir in rule_dirs:
         try:
-            git_repository.update_submodules(rule_dir)
-            typer.echo(f"Updated submodules in {rule_dir}")
+            if (rule_dir / ".git").exists():
+                git_repository.update_submodules(rule_dir)
+                typer.echo(f"Updated submodules in {rule_dir}")
         except Exception as e:
             typer.echo(f"Failed to update submodules in {rule_dir}: {e}", err=True)
             
