@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.4] - 2026-06-13
+
+### 🚀 Features
+
+- Add rules update command
+- Add skills update command and file tree sync
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.3
+- Update dependencies and python version
+- Remove all git submodules
+
+### Build
+
+- Add pdm.lock file
+
 ## [26.6.1] - 2026-06-13
 
 ### 🚀 Features
