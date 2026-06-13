@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.21] - 2026-06-13
+
+### 🐛 Bug Fixes
+
+- Retry submodule add on index error
+
 ## [26.6.20] - 2026-06-13
 
 ### 🐛 Bug Fixes
@@ -11,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - Remove redundant space-separated URL logic
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.20
 
 ## [26.6.19] - 2026-06-13
 
