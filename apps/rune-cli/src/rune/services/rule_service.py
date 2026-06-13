@@ -47,6 +47,17 @@ def discover_rules(repo_path: Path) -> List[RuleSchema]:
         except ValidationError:
             continue
             
+    # Also discover directories inside 'rules/'
+    rules_dir = repo_path / "rules"
+    if rules_dir.exists() and rules_dir.is_dir():
+        for child in rules_dir.iterdir():
+            if child.is_dir():
+                abs_path = child.absolute()
+                if abs_path not in seen_paths:
+                    seen_paths.add(abs_path)
+                    rule = RuleSchema(name=child.name, description=f"Rule directory {child.name}", path=f"rules/{child.name}")
+                    rules.append(rule)
+            
     return rules
 
 def discover_rule_dirs(repo_path: Path) -> List[Path]:
