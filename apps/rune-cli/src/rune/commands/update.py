@@ -1,8 +1,13 @@
 import typer
 from pathlib import Path
-from rune.services import module_service
+from rune.commands import rules, skills
 
 def update_cmd(global_scope: bool = typer.Option(False, "--global", "-g")):
     """Update installed skills and rules."""
-    module_service.update_modules(Path.cwd(), global_scope=global_scope)
-    typer.echo("Updated all modules.")
+    typer.echo("Updating rules...")
+    rules.update(global_scope=global_scope)
+    
+    typer.echo("\nUpdating skills...")
+    skills.update(global_scope=global_scope)
+    
+    typer.echo("\nUpdated all modules.")
