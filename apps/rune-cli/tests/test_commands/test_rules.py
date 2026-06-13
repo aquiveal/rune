@@ -15,3 +15,21 @@ def test_rules_add(tmp_path, mock_git_repo):
     assert result.exit_code == 0
     assert "Installed rule 'test-rule'" in result.stdout
     assert (tmp_path / ".roo" / "rules" / "test-rule").exists()
+
+def test_rules_update(tmp_path):
+    os.chdir(tmp_path)
+    
+    # Create a mock rule directory
+    rule_dir = tmp_path / ".roo" / "rules" / "my-rule"
+    rule_dir.mkdir(parents=True)
+    (rule_dir / "test.md").write_text("Test rule content")
+    
+    result = runner.invoke(app, ["rules", "update"])
+    assert result.exit_code == 0
+    
+    agents_md = tmp_path / "AGENTS.md"
+    assert agents_md.exists()
+    content = agents_md.read_text()
+    assert "## my-rule" in content
+    assert "### test.md" in content
+    assert "Test rule content" in content

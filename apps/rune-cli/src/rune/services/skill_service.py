@@ -1,4 +1,5 @@
 import yaml
+import re
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict
 from rune.schemas.skill_schema import SkillSchema, SkillMetadata
@@ -72,3 +73,40 @@ def discover_skills(repo_path: Path) -> List[SkillSchema]:
             continue
             
     return skills
+
+def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) -> str:
+    if ignore is None:
+        ignore = [".git", "__pycache__", "node_modules", ".venv", "venv", ".env"]
+    
+    tree_str = ""
+    paths = sorted(dir_path.iterdir(), key=lambda p: (p.is_file(), p.name))
+    paths = [p for p in paths if p.name not in ignore]
+    
+    for i, path in enumerate(paths):
+        is_last = i == len(paths) - 1
+        connector = "└── " if is_last else "├── "
+        tree_str += f"{prefix}{connector}{path.name}\n"
+        
+        if path.is_dir():
+            extension = "    " if is_last else "│   "
+            tree_str += generate_tree(path, prefix + extension, ignore)
+            
+    return tree_str
+
+def update_skill_tree(skill_dir: Path):
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return
+        
+    tree = generate_tree(skill_dir)
+    content = skill_md.read_text(encoding="utf-8")
+    
+    tree_block = f"## File Tree\n\n```text\n{skill_dir.name}/\n{tree}```\n"
+    
+    if "## File Tree" in content:
+        pattern = re.compile(r"## File Tree.*?(?=\n## |\Z)", re.DOTALL)
+        content = pattern.sub(tree_block.strip(), content)
+    else:
+        content += f"\n{tree_block}"
+        
+    skill_md.write_text(content, encoding="utf-8")
