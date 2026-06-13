@@ -48,10 +48,22 @@ def add(
         submodule_path = f"modules/{repo_name}"
         
         typer.echo(f"Adding submodule {url} to {submodule_path}...")
-        git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=force)
+        try:
+            git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=force)
+        except Exception as e:
+            if "already exists in the index" in str(e):
+                typer.echo(f"Error: Submodule path '{submodule_path}' already exists in the index.", err=True)
+                typer.echo("This can happen if a previous add operation failed or was interrupted.", err=True)
+                typer.echo("Try running the command again with the --force flag.", err=True)
+                raise typer.Exit(1)
+            raise
         
         typer.echo("Updating submodules...")
-        git_repository.update_submodules(target_dir)
+        try:
+            git_repository.update_submodules(target_dir)
+        except Exception as e:
+            typer.echo(f"Warning: Failed to update submodules recursively: {e}", err=True)
+            typer.echo("Continuing with skill tree sync...")
         
         typer.echo("Syncing skill tree...")
         skill_service.update_skill_tree(target_dir)
