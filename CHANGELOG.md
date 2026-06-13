@@ -93,6 +93,7 @@ All notable changes to this project will be documented in this file.
 - Add release workflow and pull request template
 - Move bumpver configuration to root
 - Update release workflow permissions
+- Release 26.6.1
 
 ### Build
 
