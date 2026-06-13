@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.15] - 2026-06-13
+
+### 🚜 Refactor
+
+- Update rules block injection in AGENTS.md
+- Update regex to only match # Rules block
+- Improve rule content formatting
+
 ## [26.6.14] - 2026-06-13
 
 ### 🚀 Features
@@ -17,6 +25,10 @@ All notable changes to this project will be documented in this file.
 
 - Simplify module management and cache logic
 - Replace git submodules with clone logic
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.14
 
 ## [26.6.13] - 2026-06-13
 
