@@ -84,8 +84,12 @@ def add(
         if global_scope or cwd == git_root:
             target_agents = agents or workspace_service.detect_agents(git_root or cwd)
             if not target_agents:
-                target_agents = questionary.checkbox("Select target agents:", choices=[".roo", ".claude", ".cursor", ".cline"]).ask()
+                target_agents = questionary.checkbox("Select target agents:", choices=[".agents", ".roo", ".claude", ".cursor", ".cline"]).ask()
                 if not target_agents: return
+                
+                # Save selected agents to config
+                for agent in target_agents:
+                    config_repository.add_agent_name(git_root or cwd, agent)
 
         for rule in to_install:
             module_service.add_module(
