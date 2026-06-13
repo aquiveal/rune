@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.17] - 2026-06-13
+
+### 🚀 Features
+
+- Add .agents to default agents list
+- Use default agents for skill target selection
+- Auto-update gitignore on command execution
+
+### 🐛 Bug Fixes
+
+- Remove quotes from module config sections
+- Refine directory handling and gitignore rules
+
+### 🚜 Refactor
+
+- Use constant for default agents list
+- Use default agents list for rule discovery
+
+### ⚙️ Miscellaneous Tasks
+
+- Import default agents for rule command
+
 ## [26.6.16] - 2026-06-13
 
 ### 🚀 Features
@@ -14,6 +36,10 @@ All notable changes to this project will be documented in this file.
 - Update rule content verification
 - Add test cases for module schema properties
 - Add unit tests for rule service merge logic
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.16
 
 ## [26.6.15] - 2026-06-13
 
