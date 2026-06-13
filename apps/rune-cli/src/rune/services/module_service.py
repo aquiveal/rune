@@ -41,7 +41,6 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         
     default_branch = git_repository.get_default_branch(url)
     specific_url = f"{url.rstrip('.git')}/tree/{default_branch}/{path}"
-    space_separated_url = f"{specific_url} {url}"
         
     for agent_path in target_paths:
         agent_path.parent.mkdir(parents=True, exist_ok=True)
@@ -58,7 +57,7 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
                 
         # Update registry for each target path
         rel_path = str(agent_path.relative_to(base_dir)).replace('\\', '/')
-        module_repository.add_module(base_dir, ModuleSchema(name=rel_path, url=space_separated_url, path=rel_path))
+        module_repository.add_module(base_dir, ModuleSchema(name=rel_path, url=specific_url, path=rel_path))
 
 def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
     base_dir = get_global_rune_dir() if global_scope else git_root
