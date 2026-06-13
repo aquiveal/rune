@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.7] - 2026-06-13
+
+### 🚀 Features
+
+- Add get_git_root helper function
+- Add git repository awareness to skill commands
+- Support deep linking for github subdirectories
+- Support adding skills from subdirectories
+
+### 🐛 Bug Fixes
+
+- Resolve rule management relative to git root
+- Update add_module method signature in tests
+
+### 🚜 Refactor
+
+- Improve module path resolution and deployment
+
+### 🧪 Testing
+
+- Update add_module call in module service tests
+
 ## [26.6.6] - 2026-06-13
 
 ### 🚀 Features
@@ -34,6 +56,10 @@ All notable changes to this project will be documented in this file.
 - Refactor module service tests to avoid mocks
 - Improve local skill path resolution and debugging
 - Fix module service test mocking strategy
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.6
 
 ## [26.6.5] - 2026-06-13
 
