@@ -41,8 +41,9 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
         return original_exists(self)
         
     with patch("pathlib.Path.exists", new=mock_exists):
-        with patch("rune.services.module_service.os.symlink") as mock_symlink:
-            module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
+        with patch("rune.services.module_service.shutil.copytree") as mock_copytree:
+            with patch("rune.services.module_service.shutil.copy2") as mock_copy2:
+                module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
             
     # Assert
     mock_git_repo.is_git_repo.assert_called_once_with(root_dir)
@@ -50,7 +51,7 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
     mock_git_repo.sparse_checkout_init.assert_called_once()
     mock_git_repo.sparse_checkout_set.assert_called_once()
     mock_module_repo.add_module.assert_called_once()
-    mock_symlink.assert_called_once()
+    assert mock_copytree.called or mock_copy2.called
 
 def test_add_module_not_git_repo(tmp_path, mock_git_repo):
     # Arrange
@@ -79,14 +80,16 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
         return original_exists(self)
         
     with patch("pathlib.Path.exists", new=mock_exists):
-        with patch("rune.services.module_service.os.symlink") as mock_symlink:
-            module_service.add_module(root_dir, root_dir, url, path, name, type, agents, global_scope=True)
+        with patch("rune.services.module_service.shutil.copytree") as mock_copytree:
+            with patch("rune.services.module_service.shutil.copy2") as mock_copy2:
+                module_service.add_module(root_dir, root_dir, url, path, name, type, agents, global_scope=True)
             
     # Assert
     mock_git_repo.clone.assert_called_once()
     mock_git_repo.add_submodule.assert_not_called()
     mock_git_repo.sparse_checkout_init.assert_called_once()
     mock_git_repo.sparse_checkout_set.assert_called_once()
+    assert mock_copytree.called or mock_copy2.called
 
 def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo, mock_config_repo):
     # Arrange

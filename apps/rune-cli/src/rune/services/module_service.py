@@ -56,19 +56,11 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
             elif agent_path.is_dir(): shutil.rmtree(agent_path)
             else: agent_path.unlink(missing_ok=True)
         
-        if copy_mode:
-            if source_path.is_dir():
-                shutil.copytree(source_path, agent_path, symlinks=True)
-            else:
-                shutil.copy2(source_path, agent_path)
+        # Always copy instead of symlink to avoid cross-OS issues (Windows + WSL)
+        if source_path.is_dir():
+            shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
         else:
-            try:
-                os.symlink(source_path.absolute(), agent_path.absolute(), target_is_directory=source_path.is_dir())
-            except OSError:
-                if source_path.is_dir():
-                    shutil.copytree(source_path, agent_path, symlinks=True)
-                else:
-                    shutil.copy2(source_path, agent_path)
+            shutil.copy2(source_path, agent_path)
                 
     # Update registry
     module_repository.add_module(base_dir, ModuleSchema(name=name, url=url, path=path, type=type))
@@ -132,17 +124,21 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
                 git_repository.run_git(["submodule", "update", "--remote", str(submodule_path.relative_to(git_root))], cwd=git_root)
             updated_repos.add(submodule_path)
             
-        # Re-verify symlinks (only for agent paths, custom cwd paths are not tracked for updates)
+        # Re-verify and copy (only for agent paths, custom cwd paths are not tracked for updates)
         source_path = submodule_path / mod.path
         if source_path.exists():
             for agent in agents:
                 agent_path = base_dir / agent / mod.type / mod.name
                 if not agent_path.exists():
                     agent_path.parent.mkdir(parents=True, exist_ok=True)
-                    try:
-                        os.symlink(source_path.absolute(), agent_path.absolute(), target_is_directory=source_path.is_dir())
-                    except OSError:
-                        if source_path.is_dir():
-                            shutil.copytree(source_path, agent_path, symlinks=True)
-                        else:
-                            shutil.copy2(source_path, agent_path)
+                
+                # Always copy instead of symlink
+                if agent_path.exists():
+                    if agent_path.is_symlink(): agent_path.unlink(missing_ok=True)
+                    elif agent_path.is_dir(): shutil.rmtree(agent_path)
+                    else: agent_path.unlink(missing_ok=True)
+                    
+                if source_path.is_dir():
+                    shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(source_path, agent_path)
