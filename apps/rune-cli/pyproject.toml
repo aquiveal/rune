@@ -1,6 +1,6 @@
 [project]
 name = "rune-cli"
-version = "26.6.17"
+version = "26.6.18"
 description = "Rune CLI"
 authors = [
     {name = "Aryan Singh", email = "aquiveal@gmail.com"},

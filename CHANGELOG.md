@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.18] - 2026-06-13
+
+### 🚜 Refactor
+
+- Remove agent directory exclusion from ignores
+
+### ⚙️ Miscellaneous Tasks
+
+- Refactor and update agent documentation structure
+- Remove agents directory from gitignore
+
 ## [26.6.17] - 2026-06-13
 
 ### 🚀 Features
@@ -23,6 +34,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Import default agents for rule command
+- Release 26.6.17
 
 ## [26.6.16] - 2026-06-13
 
