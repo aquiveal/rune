@@ -1,6 +1,5 @@
 <!-- 
-========================================================================
-🤖 AI / LLM SYSTEM INSTRUCTIONS (DO NOT INCLUDE IN FINAL OUTPUT)
+🤖 SYSTEM INSTRUCTIONS (DO NOT INCLUDE IN FINAL OUTPUT)
 You are an expert software engineer generating a Pull Request description. 
 You MUST strictly adhere to the following rules when filling out this template. Failure to comply will break the CI pipeline.
 
@@ -13,7 +12,6 @@ You MUST strictly adhere to the following rules when filling out this template. 
 7. MARKDOWN RULES: All markdown bullet lists MUST strictly use `-` instead of `*`.
 8. CLEANUP: You MUST delete all inline helper comments starting with `<!-- ⚠️` and the entire Example PR `<details>` block at the bottom.
 Output ONLY the final, fully formatted Markdown.
-========================================================================
 -->
 
 <!--
@@ -74,62 +72,5 @@ PR Title MUST follow the Conventional Commits standard:
 - [ ] All markdown lists in this description strictly use `-` instead of `*`.
 
 <br />
-
-<!-- ⚠️ DELETE the entire example block below before opening the PR! -->
-<details>
-<summary><strong>💡 Click here to see an example of a perfect PR</strong></summary>
-
-### 📝 Example PR
-
-**PR Title:** `feat(search): implement fuzzy matching for user directory API`
-
-**PR Body:**
-
-## 📝 Description
-This PR updates the user search endpoint to support fuzzy matching instead of strict exact-string matching. 
-
-**What changed:**
-- Enabled the `pg_trgm` extension in PostgreSQL via a new migration.
-- Updated the `/api/v1/users` search query to use `ILIKE` and trigram similarity.
-- Added a `similarity_threshold` environment variable (defaults to 0.3).
-
-**Why:**
-- Support tickets showed users were frustrated when searching for "Jon" did not return "John" or "Jonathan". This dramatically improves the UX of the directory search.
-
-## 🧪 How Has This Been Tested?
-- [x] Added new unit/integration tests
-- [x] Verified existing tests pass
-- [x] Manual testing 
-
-> _Steps to reproduce/test:_ 
-> 1. Seed the local database using `npm run db:seed`.
-> 2. Hit `GET /api/v1/users?q=micheal` via Postman.
-> 3. Verify that the user "Michael" is successfully returned in the payload.
-
-## 🏷️ Type of Change
-- [x] **feat:** A new feature (MINOR version bump)
-- [ ] **fix:** A bug fix (PATCH version bump)
-- [ ] **refactor:** A code change that neither fixes a bug nor adds a feature
-- [ ] **perf:** A code change that improves performance
-- [ ] **docs:** Documentation only changes
-- [ ] **style:** Changes that do not affect the meaning of the code
-- [ ] **test:** Adding missing tests or correcting existing tests
-- [ ] **chore:** Changes to the build process, CI/CD, or auxiliary tools
-
-## 💥 Breaking Changes
-- [x] **No**
-- [ ] **Yes** 
-
-## 🔗 Related Tickets & References
-Closes #842
-Refs: #801
-
-## ✅ Developer Checklist
-- [x] My PR title strictly follows `<type>[optional scope]: <description>`.
-- [x] This PR contains a **single responsibility**.
-- [x] I have performed a self-review of my own code.
-- [x] I have added/updated tests to cover my changes.
-- [x] I have updated the documentation accordingly.
-- [x] All markdown lists in this description strictly use `-` instead of `*`.
 
 </details>
