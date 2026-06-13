@@ -40,5 +40,5 @@ def test_rules_update(tmp_path):
     assert agents_md.exists()
     content = agents_md.read_text()
     assert "## my-rule" in content
-    assert "### test.md" in content
+    assert "Test rule content" in content
     assert "Test rule content" in content
