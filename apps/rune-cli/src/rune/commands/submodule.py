@@ -52,11 +52,10 @@ def add(
             git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=force)
         except Exception as e:
             if "already exists in the index" in str(e):
-                typer.echo(f"Error: Submodule path '{submodule_path}' already exists in the index.", err=True)
-                typer.echo("This can happen if a previous add operation failed or was interrupted.", err=True)
-                typer.echo("Try running the command again with the --force flag.", err=True)
-                raise typer.Exit(1)
-            raise
+                typer.echo(f"Submodule path '{submodule_path}' already exists in the index. Retrying with force...", err=True)
+                git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=True)
+            else:
+                raise
         
         typer.echo("Updating submodules...")
         try:
@@ -70,6 +69,8 @@ def add(
         
         typer.echo(f"Successfully added submodule and updated skill '{target_dir.name}'")
         
+    except typer.Exit:
+        raise
     except Exception as e:
         typer.echo(f"Failed to add submodule: {e}", err=True)
         raise typer.Exit(1)
