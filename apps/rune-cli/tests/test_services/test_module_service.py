@@ -99,8 +99,9 @@ def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo, mock_co
     
     # Act
     with patch("pathlib.Path.exists", return_value=True):
-        with patch("rune.services.module_service.os.symlink"):
-            module_service.update_modules(tmp_path, type="rules")
+        with patch("rune.services.module_service.shutil.copytree"):
+            with patch("rune.services.module_service.shutil.copy2"):
+                module_service.update_modules(tmp_path, type="rules")
             
     # Assert
     mock_git_repo.run_git.assert_called_once()
