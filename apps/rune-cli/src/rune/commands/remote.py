@@ -1,19 +1,12 @@
 import typer
 from pathlib import Path
-from rune.services import config
+from rune.repositories import config_repository
 
-def add_cmd(
-    name: str = typer.Argument(...),
-    url: str = typer.Argument(...)
-):
-    """
-    Add a new remote repository to .rune/config.
-    """
-    cwd = Path.cwd()
-    rune_config_path = cwd / ".rune" / "config"
-    
-    if not rune_config_path.exists():
-        typer.echo("Error: .rune/config not found. Run `rune init` first.", err=True)
-        raise typer.Exit(1)
-        
-    config.set_value(rune_config_path, f"remote.{name}.url", url)
+app = typer.Typer(no_args_is_help=True, help="Manage remote repositories")
+
+@app.command("add")
+def add(name: str = typer.Argument(...), url: str = typer.Argument(...)):
+    """Add a new remote repository alias."""
+    root_dir = Path.cwd()
+    config_repository.set_remote_url(root_dir, name, url)
+    typer.echo(f"Added remote '{name}' -> {url}")
