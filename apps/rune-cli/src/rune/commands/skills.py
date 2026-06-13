@@ -24,6 +24,20 @@ def resolve_url(source: str, root_dir: Path) -> str:
     
     return source
 
+def parse_github_url(url: str) -> tuple[str, Optional[str]]:
+    """Parse a GitHub URL into base repo URL and optional path."""
+    if "github.com" in url and "/tree/" in url:
+        parts = url.split("/tree/")
+        base_url = parts[0]
+        if not base_url.endswith(".git"):
+            base_url += ".git"
+        
+        # Extract path after the branch name
+        path_parts = parts[1].split("/", 1)
+        path = path_parts[1] if len(path_parts) > 1 else None
+        return base_url, path
+    return url, None
+
 @app.command("add")
 def add(
     source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
@@ -40,7 +54,8 @@ def add(
         typer.echo("Error: Must be run inside a git repository.", err=True)
         raise typer.Exit(1)
         
-    url = resolve_url(source, git_root or cwd)
+    raw_url = resolve_url(source, git_root or cwd)
+    url, extracted_path = parse_github_url(raw_url)
     
     # Temp clone for discovery
     import uuid
@@ -60,6 +75,11 @@ def add(
         to_install = []
         if skills:
             to_install = [s for s in discovered if s.name in skills]
+        elif extracted_path:
+            to_install = [s for s in discovered if s.path == extracted_path or s.path.startswith(extracted_path + "/")]
+            if not to_install:
+                typer.echo(f"No skills found at path '{extracted_path}'.", err=True)
+                raise typer.Exit(1)
         elif len(discovered) == 1:
             to_install = discovered
         else:
