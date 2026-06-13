@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.20] - 2026-06-13
+
+### 🐛 Bug Fixes
+
+- Handle GitHub tree URLs in module schema
+
+### 🚜 Refactor
+
+- Remove redundant space-separated URL logic
+
 ## [26.6.19] - 2026-06-13
 
 ### 🐛 Bug Fixes
 
 - Handle submodule addition and update errors
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.19
 
 ## [26.6.18] - 2026-06-13
 
