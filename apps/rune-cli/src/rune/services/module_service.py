@@ -31,7 +31,7 @@ def add_module(root_dir: Path, url: str, path: str, name: str, type: str, agents
             
         if not submodule_path.exists():
             submodule_path.parent.mkdir(parents=True, exist_ok=True)
-            git_repository.add_submodule(url, str(submodule_path.relative_to(root_dir)), root_dir)
+            git_repository.add_submodule(url, str(submodule_path.relative_to(root_dir)), root_dir, force=True)
             git_repository.sparse_checkout_init(submodule_path)
             git_repository.sparse_checkout_set(submodule_path, [path])
         else:
