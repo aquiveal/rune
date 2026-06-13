@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.8] - 2026-06-13
+
+### 📚 Documentation
+
+- Update pull request template instructions
+
 ## [26.6.7] - 2026-06-13
 
 ### 🚀 Features
@@ -23,6 +29,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Update add_module call in module service tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.7
 
 ## [26.6.6] - 2026-06-13
 
