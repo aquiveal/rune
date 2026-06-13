@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.16] - 2026-06-13
+
+### 🚀 Features
+
+- Add agent selection persistence to config
+- Add selected agents to configuration
+
+### 🧪 Testing
+
+- Update rule content verification
+- Add test cases for module schema properties
+- Add unit tests for rule service merge logic
+
 ## [26.6.15] - 2026-06-13
 
 ### 🚜 Refactor
@@ -9,6 +22,10 @@ All notable changes to this project will be documented in this file.
 - Update rules block injection in AGENTS.md
 - Update regex to only match # Rules block
 - Improve rule content formatting
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.15
 
 ## [26.6.14] - 2026-06-13
 
