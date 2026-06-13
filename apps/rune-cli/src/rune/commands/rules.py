@@ -26,12 +26,18 @@ def add(
     copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink")
 ):
     """Install rules from a repository."""
-    root_dir = Path.cwd()
-    url = resolve_url(source, root_dir)
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd)
+    
+    if not global_scope and not git_root:
+        typer.echo("Error: Must be run inside a git repository.", err=True)
+        raise typer.Exit(1)
+        
+    url = resolve_url(source, git_root or cwd)
     
     import uuid
     import shutil
-    tmp_dir = root_dir / ".rune" / "tmp" / str(uuid.uuid4())
+    tmp_dir = (git_root or cwd) / ".rune" / "tmp" / str(uuid.uuid4())
     tmp_dir.mkdir(parents=True, exist_ok=True)
     
     try:
@@ -53,14 +59,17 @@ def add(
             if not selected: return
             to_install = [r for r in discovered if r.name in selected]
             
-        target_agents = agents or workspace_service.detect_agents(root_dir)
-        if not target_agents:
-            target_agents = questionary.checkbox("Select target agents:", choices=[".roo", ".claude", ".cursor", ".cline"]).ask()
-            if not target_agents: return
+        target_agents = []
+        if global_scope or cwd == git_root:
+            target_agents = agents or workspace_service.detect_agents(git_root or cwd)
+            if not target_agents:
+                target_agents = questionary.checkbox("Select target agents:", choices=[".roo", ".claude", ".cursor", ".cline"]).ask()
+                if not target_agents: return
 
         for rule in to_install:
             module_service.add_module(
-                root_dir=root_dir,
+                git_root=git_root or cwd,
+                cwd=cwd,
                 url=url,
                 path=rule.path,
                 name=rule.name,
@@ -69,7 +78,10 @@ def add(
                 global_scope=global_scope,
                 copy_mode=copy_mode
             )
-            typer.echo(f"Installed rule '{rule.name}' to {', '.join(target_agents)}")
+            if target_agents:
+                typer.echo(f"Installed rule '{rule.name}' to {', '.join(target_agents)}")
+            else:
+                typer.echo(f"Installed rule '{rule.name}' to {cwd}")
             
     except RuneError as e:
         typer.echo(f"Error: {e}", err=True)
@@ -80,7 +92,9 @@ def add(
 @app.command("list")
 def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
     """List installed rules."""
-    status = module_service.get_status(Path.cwd(), global_scope=global_scope)
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
+    status = module_service.get_status(git_root, global_scope=global_scope)
     for mod, stat in status.items():
         if mod.startswith("rules/"):
             typer.echo(f"{mod}: {stat}")
@@ -91,23 +105,26 @@ def remove(
     global_scope: bool = typer.Option(False, "--global", "-g")
 ):
     """Remove installed rules."""
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
     for name in names:
-        module_service.remove_module(Path.cwd(), name, "rules", global_scope=global_scope)
+        module_service.remove_module(git_root, name, "rules", global_scope=global_scope)
         typer.echo(f"Removed rule '{name}'")
 
 @app.command("update")
 def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     """Update installed rules and merge them into AGENTS.md."""
-    root_dir = Path.cwd()
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
     
     try:
-        module_service.update_modules(root_dir, type="rules", global_scope=global_scope)
+        module_service.update_modules(git_root, type="rules", global_scope=global_scope)
         typer.echo("Updated installed rule submodules.")
     except Exception as e:
         typer.echo(f"Failed to update rule submodules: {e}", err=True)
         
     # Also update any nested submodules inside rule directories (for authors)
-    rule_dirs = rule_service.discover_rule_dirs(root_dir)
+    rule_dirs = rule_service.discover_rule_dirs(git_root)
     if rule_dirs:
         for rule_dir in rule_dirs:
             try:
@@ -118,7 +135,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
                 typer.echo(f"Failed to update nested submodules in {rule_dir}: {e}", err=True)
             
     try:
-        rule_service.merge_rules_to_agents_md(root_dir)
+        rule_service.merge_rules_to_agents_md(git_root)
         typer.echo(f"Successfully merged rules into AGENTS.md")
     except Exception as e:
         typer.echo(f"Failed to merge rules: {e}", err=True)
