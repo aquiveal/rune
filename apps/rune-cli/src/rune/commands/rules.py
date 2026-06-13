@@ -103,6 +103,13 @@ def add(
                 typer.echo(f"Installed rule '{rule.name}' to {', '.join(target_agents)}")
             else:
                 typer.echo(f"Installed rule '{rule.name}' to {cwd}")
+                
+        # Merge rules into AGENTS.md after adding
+        try:
+            rule_service.merge_rules_to_agents_md(git_root or cwd)
+            typer.echo(f"Successfully merged rules into AGENTS.md")
+        except Exception as e:
+            typer.echo(f"Failed to merge rules: {e}", err=True)
             
     except RuneError as e:
         typer.echo(f"Error: {e}", err=True)
