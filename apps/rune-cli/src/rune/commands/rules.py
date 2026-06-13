@@ -124,7 +124,7 @@ def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
     git_root = git_repository.get_git_root(cwd) or cwd
     status = module_service.get_status(git_root, global_scope=global_scope)
     for mod, stat in status.items():
-        if mod.startswith("rules/"):
+        if "/rules/" in mod or mod.startswith("rules/"):
             typer.echo(f"{mod}: {stat}")
 
 @app.command("remove")

@@ -85,3 +85,13 @@ def unset_config_section(section: str, file_path: Path):
         run_git(["config", "--file", str(file_path), "--remove-section", section])
     except GitError:
         pass # Section might not exist
+
+def get_default_branch(url: str) -> str:
+    try:
+        result = run_git(["ls-remote", "--symref", url, "HEAD"])
+        for line in result.stdout.splitlines():
+            if line.startswith("ref: refs/heads/"):
+                return line.split()[1].replace("refs/heads/", "")
+        return "main"
+    except GitError:
+        return "main"
