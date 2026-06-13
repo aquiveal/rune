@@ -127,6 +127,7 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
     (skill_dir / "scripts").mkdir(exist_ok=True)
     (skill_dir / "references").mkdir(exist_ok=True)
     (skill_dir / "assets").mkdir(exist_ok=True)
+    (skill_dir / "modules").mkdir(exist_ok=True)
     
     # Create SKILL.md
     skill_md = skill_dir / "SKILL.md"
@@ -134,6 +135,34 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
         skill_md.write_text(f"---\nname: {name}\ndescription: {name} skill\n---\n# {name}\n")
     
     typer.echo(f"Created skill '{name}' with standard structure at {skill_dir}")
+
+@app.command("update")
+def update():
+    """Update submodules and sync SKILL.md for skills in the current context."""
+    root_dir = Path.cwd()
+    discovered = skill_service.discover_skills(root_dir)
+    
+    if not discovered:
+        typer.echo("No skills found in the current context.", err=True)
+        raise typer.Exit(1)
+        
+    updated_count = 0
+    for skill in discovered:
+        skill_dir = (root_dir / skill.path).resolve() if skill.path else root_dir
+        
+        try:
+            # Update submodules
+            git_repository.update_submodules(skill_dir)
+            
+            # Update SKILL.md tree
+            skill_service.update_skill_tree(skill_dir)
+            
+            updated_count += 1
+            typer.echo(f"Updated skill '{skill.name}' at {skill_dir}")
+        except Exception as e:
+            typer.echo(f"Failed to update skill '{skill.name}': {e}", err=True)
+            
+    typer.echo(f"Successfully updated {updated_count} skill(s).")
 
 @app.command("validate")
 def validate(path: Path = typer.Argument(Path.cwd(), help="Path to the skill directory or SKILL.md")):

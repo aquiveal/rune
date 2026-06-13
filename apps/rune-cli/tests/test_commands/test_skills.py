@@ -55,3 +55,26 @@ def test_skills_validate(tmp_path):
     result = runner.invoke(app, ["skills", "validate", str(skill_dir)])
     assert result.exit_code == 1
     assert "Validation failed" in result.stderr
+
+def test_skills_init(tmp_path):
+    os.chdir(tmp_path)
+    result = runner.invoke(app, ["skills", "init", "my-skill"])
+    assert result.exit_code == 0
+    assert (tmp_path / "my-skill" / "modules").exists()
+    assert (tmp_path / "my-skill" / "scripts").exists()
+    assert (tmp_path / "my-skill" / "SKILL.md").exists()
+
+def test_skills_update(tmp_path):
+    os.chdir(tmp_path)
+    # Create a skill
+    runner.invoke(app, ["skills", "init", "my-skill"])
+    
+    # Run update inside the skill
+    os.chdir(tmp_path / "my-skill")
+    subprocess.run(["git", "init"], check=True)
+    result = runner.invoke(app, ["skills", "update"])
+    assert result.exit_code == 0
+    
+    skill_md = (tmp_path / "my-skill" / "SKILL.md").read_text()
+    assert "## File Tree" in skill_md
+    assert "modules" in skill_md
