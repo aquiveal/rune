@@ -1,9 +1,9 @@
 [project]
 name = "rune-workspace"
-version = "26.6.11"
+version = "26.6.12"
 
 [tool.bumpver]
-current_version = "26.6.11"
+current_version = "26.6.12"
 version_pattern = "YY.MM.INC0"
 commit = false
 tag = false

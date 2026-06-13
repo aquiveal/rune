@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.12] - 2026-06-13
+
+### 🚀 Features
+
+- Discover rule directories in rules folder
+
+## [26.6.11] - 2026-06-13
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.11
+
 ## [26.6.10] - 2026-06-13
 
 ### ⚙️ Miscellaneous Tasks
