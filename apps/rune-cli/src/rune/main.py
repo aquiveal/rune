@@ -10,7 +10,13 @@ app = typer.Typer(
 
 @app.callback()
 def callback():
-    pass
+    from pathlib import Path
+    from rune.repositories import git_repository
+    from rune.services import workspace_service
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd)
+    if git_root and workspace_service.is_initialized(git_root):
+        workspace_service.update_gitignore(git_root)
 
 # Base commands
 app.command(name="init")(init.init_cmd)
