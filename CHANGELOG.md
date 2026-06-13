@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Update pull request template instructions
 
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.8
+
 ## [26.6.7] - 2026-06-13
 
 ### 🚀 Features
