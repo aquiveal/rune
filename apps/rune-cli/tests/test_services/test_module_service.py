@@ -42,7 +42,7 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
         
     with patch("pathlib.Path.exists", new=mock_exists):
         with patch("rune.services.module_service.os.symlink") as mock_symlink:
-            module_service.add_module(root_dir, url, path, name, type, agents)
+            module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
             
     # Assert
     mock_git_repo.is_git_repo.assert_called_once_with(root_dir)
