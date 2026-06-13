@@ -53,6 +53,13 @@ def is_git_repo(cwd: Path) -> bool:
     except GitError:
         return False
 
+def get_git_root(cwd: Path) -> Optional[Path]:
+    try:
+        result = run_git(["rev-parse", "--show-toplevel"], cwd=cwd)
+        return Path(result.stdout.strip())
+    except GitError:
+        return None
+
 def get_config(key: str, file_path: Path) -> Optional[str]:
     try:
         result = run_git(["config", "--file", str(file_path), key])

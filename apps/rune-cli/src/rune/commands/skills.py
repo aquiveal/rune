@@ -24,6 +24,20 @@ def resolve_url(source: str, root_dir: Path) -> str:
     
     return source
 
+def parse_github_url(url: str) -> tuple[str, Optional[str]]:
+    """Parse a GitHub URL into base repo URL and optional path."""
+    if "github.com" in url and "/tree/" in url:
+        parts = url.split("/tree/")
+        base_url = parts[0]
+        if not base_url.endswith(".git"):
+            base_url += ".git"
+        
+        # Extract path after the branch name
+        path_parts = parts[1].split("/", 1)
+        path = path_parts[1] if len(path_parts) > 1 else None
+        return base_url, path
+    return url, None
+
 @app.command("add")
 def add(
     source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
@@ -33,13 +47,20 @@ def add(
     copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink")
 ):
     """Install skills from a repository."""
-    root_dir = Path.cwd()
-    url = resolve_url(source, root_dir)
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd)
+    
+    if not global_scope and not git_root:
+        typer.echo("Error: Must be run inside a git repository.", err=True)
+        raise typer.Exit(1)
+        
+    raw_url = resolve_url(source, git_root or cwd)
+    url, extracted_path = parse_github_url(raw_url)
     
     # Temp clone for discovery
     import uuid
     import shutil
-    tmp_dir = root_dir / ".rune" / "tmp" / str(uuid.uuid4())
+    tmp_dir = (git_root or cwd) / ".rune" / "tmp" / str(uuid.uuid4())
     tmp_dir.mkdir(parents=True, exist_ok=True)
     
     try:
@@ -54,6 +75,11 @@ def add(
         to_install = []
         if skills:
             to_install = [s for s in discovered if s.name in skills]
+        elif extracted_path:
+            to_install = [s for s in discovered if s.path == extracted_path or s.path.startswith(extracted_path + "/")]
+            if not to_install:
+                typer.echo(f"No skills found at path '{extracted_path}'.", err=True)
+                raise typer.Exit(1)
         elif len(discovered) == 1:
             to_install = discovered
         else:
@@ -64,15 +90,18 @@ def add(
             to_install = [s for s in discovered if s.name in selected]
             
         # Detect agents
-        target_agents = agents or workspace_service.detect_agents(root_dir)
-        if not target_agents:
-            target_agents = questionary.checkbox("Select target agents:", choices=[".roo", ".claude", ".cursor", ".cline"]).ask()
+        target_agents = []
+        if global_scope or cwd == git_root:
+            target_agents = agents or workspace_service.detect_agents(git_root or cwd)
             if not target_agents:
-                return
+                target_agents = questionary.checkbox("Select target agents:", choices=[".roo", ".claude", ".cursor", ".cline"]).ask()
+                if not target_agents:
+                    return
 
         for skill in to_install:
             module_service.add_module(
-                root_dir=root_dir,
+                git_root=git_root or cwd,
+                cwd=cwd,
                 url=url,
                 path=skill.path,
                 name=skill.name,
@@ -81,7 +110,10 @@ def add(
                 global_scope=global_scope,
                 copy_mode=copy_mode
             )
-            typer.echo(f"Installed skill '{skill.name}' to {', '.join(target_agents)}")
+            if target_agents:
+                typer.echo(f"Installed skill '{skill.name}' to {', '.join(target_agents)}")
+            else:
+                typer.echo(f"Installed skill '{skill.name}' to {cwd}")
             
     except RuneError as e:
         typer.echo(f"Error: {e}", err=True)
@@ -92,7 +124,9 @@ def add(
 @app.command("list")
 def list_skills(global_scope: bool = typer.Option(False, "--global", "-g")):
     """List installed skills."""
-    status = module_service.get_status(Path.cwd(), global_scope=global_scope)
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
+    status = module_service.get_status(git_root, global_scope=global_scope)
     for mod, stat in status.items():
         if mod.startswith("skills/"):
             typer.echo(f"{mod}: {stat}")
@@ -103,8 +137,10 @@ def remove(
     global_scope: bool = typer.Option(False, "--global", "-g")
 ):
     """Remove installed skills."""
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
     for name in names:
-        module_service.remove_module(Path.cwd(), name, "skills", global_scope=global_scope)
+        module_service.remove_module(git_root, name, "skills", global_scope=global_scope)
         typer.echo(f"Removed skill '{name}'")
 
 def scaffold_skill(name: str, base_dir: Path) -> Path:
@@ -135,15 +171,16 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
 @app.command("update")
 def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     """Update installed skills and sync SKILL.md for skills in the current context."""
-    root_dir = Path.cwd()
+    cwd = Path.cwd()
+    git_root = git_repository.get_git_root(cwd) or cwd
     
     try:
-        module_service.update_modules(root_dir, type="skills", global_scope=global_scope)
+        module_service.update_modules(git_root, type="skills", global_scope=global_scope)
         typer.echo("Updated installed skill submodules.")
     except Exception as e:
         typer.echo(f"Failed to update skill submodules: {e}", err=True)
         
-    discovered = skill_service.discover_skills(root_dir)
+    discovered = skill_service.discover_skills(git_root)
     
     if not discovered:
         typer.echo("No skills found in the current context to compile.", err=True)
@@ -151,7 +188,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         
     updated_count = 0
     for skill in discovered:
-        skill_dir = (root_dir / skill.path).resolve() if skill.path else root_dir
+        skill_dir = (git_root / skill.path).resolve() if skill.path else git_root
         
         try:
             # Update nested submodules (for authors)

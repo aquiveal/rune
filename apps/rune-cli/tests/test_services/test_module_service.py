@@ -42,7 +42,7 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
         
     with patch("pathlib.Path.exists", new=mock_exists):
         with patch("rune.services.module_service.os.symlink") as mock_symlink:
-            module_service.add_module(root_dir, url, path, name, type, agents)
+            module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
             
     # Assert
     mock_git_repo.is_git_repo.assert_called_once_with(root_dir)
@@ -58,7 +58,7 @@ def test_add_module_not_git_repo(tmp_path, mock_git_repo):
     
     # Act & Assert
     with pytest.raises(ModuleError, match="Must be run inside a git repository"):
-        module_service.add_module(tmp_path, "url", "path", "name", "rules", [".roo"])
+        module_service.add_module(tmp_path, tmp_path, "url", "path", "name", "rules", [".roo"])
 
 def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
     # Arrange
@@ -80,7 +80,7 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
         
     with patch("pathlib.Path.exists", new=mock_exists):
         with patch("rune.services.module_service.os.symlink") as mock_symlink:
-            module_service.add_module(root_dir, url, path, name, type, agents, global_scope=True)
+            module_service.add_module(root_dir, root_dir, url, path, name, type, agents, global_scope=True)
             
     # Assert
     mock_git_repo.clone.assert_called_once()
