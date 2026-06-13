@@ -4,6 +4,7 @@ from typing import List, Optional
 from pathlib import Path
 from rune.services import skill_service, module_service, workspace_service
 from rune.repositories import config_repository, git_repository
+from rune.config.main import DEFAULT_AGENTS
 from rune.config.exceptions import RuneError, ValidationError
 
 app = typer.Typer(no_args_is_help=True, help="Manage executable agent skills")
@@ -94,7 +95,7 @@ def add(
         if global_scope or cwd == git_root:
             target_agents = agents or workspace_service.detect_agents(git_root or cwd)
             if not target_agents:
-                target_agents = questionary.checkbox("Select target agents:", choices=[".agents", ".roo", ".claude", ".cursor", ".cline"]).ask()
+                target_agents = questionary.checkbox("Select target agents:", choices=DEFAULT_AGENTS).ask()
                 if not target_agents:
                     return
                     

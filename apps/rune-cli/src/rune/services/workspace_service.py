@@ -35,7 +35,18 @@ def update_gitignore(root_dir: Path):
     content = gitignore_file.read_text() if gitignore_file.exists() else ""
     lines = content.splitlines()
     
-    entries = [f"{RUNE_DIR}/"]
+    # Remove old .rune/ entry if it exists
+    if f"{RUNE_DIR}/" in lines:
+        lines.remove(f"{RUNE_DIR}/")
+        content = "\n".join(lines)
+        if content and not content.endswith("\n"):
+            content += "\n"
+    
+    entries = [
+        f"{RUNE_DIR}/*",
+        f"!{RUNE_DIR}/{RUNE_CONFIG}",
+        f"!{RUNE_DIR}/{RUNE_INDEX}"
+    ]
     agents = config_repository.get_agent_names(root_dir)
     for agent in agents:
         entries.append(f"{agent}/")

@@ -2,6 +2,7 @@ import yaml
 from pathlib import Path
 from typing import List, Optional
 from rune.schemas.rule_schema import RuleSchema
+from rune.config.main import DEFAULT_AGENTS
 from rune.config.exceptions import ValidationError
 
 def validate_rule_file(path: Path) -> RuleSchema:
@@ -63,7 +64,7 @@ def discover_rules(repo_path: Path) -> List[RuleSchema]:
 def discover_rule_dirs(repo_path: Path) -> List[Path]:
     rule_dirs = []
     # Search for directories named 'rules' inside agent folders
-    agent_folders = [".roo", ".claude", ".cursor", ".cline", ".agents"]
+    agent_folders = DEFAULT_AGENTS
     
     for folder in agent_folders:
         rules_dir = repo_path / folder / "rules"

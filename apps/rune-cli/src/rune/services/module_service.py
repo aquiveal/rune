@@ -34,7 +34,10 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         for agent in agents:
             target_paths.append(base_dir / agent / type / name)
     else:
-        target_paths.append(cwd / type / name)
+        if cwd.name == type:
+            target_paths.append(cwd / name)
+        else:
+            target_paths.append(cwd / type / name)
         
     default_branch = git_repository.get_default_branch(url)
     specific_url = f"{url.rstrip('.git')}/tree/{default_branch}/{path}"
