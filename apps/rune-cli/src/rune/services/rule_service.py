@@ -80,14 +80,14 @@ def merge_rules_to_agents_md(repo_path: Path):
     if not rule_dirs:
         return
         
-    merged_content = "# Agent Rules\n\n"
+    rules_block = "# Rules\n\n"
     
     for rule_dir in rule_dirs:
         md_files = sorted(rule_dir.glob("*.md"))
         if not md_files:
             continue
             
-        merged_content += f"## {rule_dir.name}\n\n"
+        rules_block += f"## {rule_dir.name}\n\n"
         
         for md_file in md_files:
             content = md_file.read_text(encoding="utf-8")
@@ -97,7 +97,31 @@ def merge_rules_to_agents_md(repo_path: Path):
                 if len(parts) >= 3:
                     content = parts[2].strip()
             
-            merged_content += f"### {md_file.name}\n\n{content}\n\n"
+            # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_dir.name}
+            # e.g., # Heading -> ### Heading
+            import re
+            content = re.sub(r'^(#+)\s', r'##\1 ', content, flags=re.MULTILINE)
+            
+            # Handle unclosed code blocks
+            code_block_count = len(re.findall(r'^\s*```', content, flags=re.MULTILINE))
+            if code_block_count % 2 != 0:
+                content += "\n```"
+            
+            rules_block += f"{content}\n\n"
             
     agents_md = repo_path / "AGENTS.md"
-    agents_md.write_text(merged_content, encoding="utf-8")
+    
+    if agents_md.exists():
+        content = agents_md.read_text(encoding="utf-8")
+        # Try to find existing # Rules block
+        import re
+        # Match from # Rules until the next # (h1) or end of file
+        pattern = re.compile(r'# Rules\b.*?(?=\n# |\Z)', re.DOTALL)
+        if pattern.search(content):
+            new_content = pattern.sub(rules_block.strip(), content)
+        else:
+            # If no block found, append it
+            new_content = content.rstrip() + "\n\n" + rules_block.strip() + "\n"
+        agents_md.write_text(new_content, encoding="utf-8")
+    else:
+        agents_md.write_text(rules_block, encoding="utf-8")
