@@ -97,7 +97,17 @@ def merge_rules_to_agents_md(repo_path: Path):
                 if len(parts) >= 3:
                     content = parts[2].strip()
             
-            rules_block += f"### {md_file.name}\n\n{content}\n\n"
+            # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_dir.name}
+            # e.g., # Heading -> ### Heading
+            import re
+            content = re.sub(r'^(#+)\s', r'##\1 ', content, flags=re.MULTILINE)
+            
+            # Handle unclosed code blocks
+            code_block_count = len(re.findall(r'^\s*```', content, flags=re.MULTILINE))
+            if code_block_count % 2 != 0:
+                content += "\n```"
+            
+            rules_block += f"{content}\n\n"
             
     agents_md = repo_path / "AGENTS.md"
     
