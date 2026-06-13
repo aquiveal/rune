@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.19] - 2026-06-13
+
+### 🐛 Bug Fixes
+
+- Handle submodule addition and update errors
+
 ## [26.6.18] - 2026-06-13
 
 ### 🚜 Refactor
@@ -12,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Refactor and update agent documentation structure
 - Remove agents directory from gitignore
+- Release 26.6.18
 
 ## [26.6.17] - 2026-06-13
 
