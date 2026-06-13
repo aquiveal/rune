@@ -22,7 +22,7 @@ def mock_config_repo():
         mock.get_agent_names.return_value = [".roo"]
         yield mock
 
-def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
+def test_add_module_local_clone(tmp_path, mock_git_repo, mock_module_repo):
     # Arrange
     root_dir = tmp_path
     url = "https://github.com/owner/repo.git"
@@ -30,6 +30,8 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
     name = "my-rule"
     type = "rules"
     agents = [".roo"]
+    
+    mock_git_repo.get_default_branch.return_value = "main"
     
     # Act
     original_exists = Path.exists
@@ -46,20 +48,11 @@ def test_add_module_local_submodule(tmp_path, mock_git_repo, mock_module_repo):
                 module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
             
     # Assert
-    mock_git_repo.is_git_repo.assert_called_once_with(root_dir)
-    mock_git_repo.add_submodule.assert_called_once()
+    mock_git_repo.clone.assert_called_once()
     mock_git_repo.sparse_checkout_init.assert_called_once()
     mock_git_repo.sparse_checkout_set.assert_called_once()
     mock_module_repo.add_module.assert_called_once()
     assert mock_copytree.called or mock_copy2.called
-
-def test_add_module_not_git_repo(tmp_path, mock_git_repo):
-    # Arrange
-    mock_git_repo.is_git_repo.return_value = False
-    
-    # Act & Assert
-    with pytest.raises(ModuleError, match="Must be run inside a git repository"):
-        module_service.add_module(tmp_path, tmp_path, "url", "path", "name", "rules", [".roo"])
 
 def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
     # Arrange
@@ -69,6 +62,8 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
     name = "my-rule"
     type = "rules"
     agents = [".roo"]
+    
+    mock_git_repo.get_default_branch.return_value = "main"
     
     # Act
     original_exists = Path.exists
@@ -86,7 +81,6 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
             
     # Assert
     mock_git_repo.clone.assert_called_once()
-    mock_git_repo.add_submodule.assert_not_called()
     mock_git_repo.sparse_checkout_init.assert_called_once()
     mock_git_repo.sparse_checkout_set.assert_called_once()
     assert mock_copytree.called or mock_copy2.called
@@ -94,8 +88,9 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
 def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo, mock_config_repo):
     # Arrange
     mock_module_repo.list_modules.return_value = [
-        ModuleSchema(name="my-rule", url="https://github.com/owner/repo.git", path="rules/my-rule", type="rules")
+        ModuleSchema(name=".roo/rules/my-rule", url="https://github.com/owner/repo/tree/main/rules/my-rule https://github.com/owner/repo.git", path=".roo/rules/my-rule")
     ]
+    mock_git_repo.is_git_repo.return_value = True
     
     # Act
     with patch("pathlib.Path.exists", return_value=True):
@@ -104,8 +99,7 @@ def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo, mock_co
                 module_service.update_modules(tmp_path, type="rules")
             
     # Assert
-    mock_git_repo.run_git.assert_called_once()
+    assert mock_git_repo.run_git.call_count == 1
     args = mock_git_repo.run_git.call_args[0][0]
-    assert args[0] == "submodule"
-    assert args[1] == "update"
-    assert args[2] == "--remote"
+    assert args[0] == "pull"
+    mock_git_repo.update_submodules.assert_called_once_with(tmp_path)
