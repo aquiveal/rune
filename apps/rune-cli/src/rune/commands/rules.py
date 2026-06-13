@@ -85,7 +85,7 @@ def add(
         if global_scope or cwd == git_root:
             target_agents = agents or workspace_service.detect_agents(git_root or cwd)
             if not target_agents:
-                target_agents = questionary.checkbox("Select target agents:", choices=[".agents", ".roo", ".claude", ".cursor", ".cline"]).ask()
+                target_agents = questionary.checkbox("Select target agents:", choices=DEFAULT_AGENTS).ask()
                 if not target_agents: return
                 
                 # Save selected agents to config
