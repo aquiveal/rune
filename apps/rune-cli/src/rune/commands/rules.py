@@ -105,6 +105,30 @@ def remove(
         module_service.remove_module(Path.cwd(), name, "rules", global_scope=global_scope)
         typer.echo(f"Removed rule '{name}'")
 
+@app.command("update")
+def update():
+    """Update submodules for rules and merge them into AGENTS.md."""
+    root_dir = Path.cwd()
+    rule_dirs = rule_service.discover_rule_dirs(root_dir)
+    
+    if not rule_dirs:
+        typer.echo("No rule directories found.", err=True)
+        raise typer.Exit(1)
+        
+    for rule_dir in rule_dirs:
+        try:
+            git_repository.update_submodules(rule_dir)
+            typer.echo(f"Updated submodules in {rule_dir}")
+        except Exception as e:
+            typer.echo(f"Failed to update submodules in {rule_dir}: {e}", err=True)
+            
+    try:
+        rule_service.merge_rules_to_agents_md(root_dir)
+        typer.echo(f"Successfully merged rules into AGENTS.md")
+    except Exception as e:
+        typer.echo(f"Failed to merge rules: {e}", err=True)
+        raise typer.Exit(1)
+
 @app.command("init")
 def init(name: str = typer.Argument(..., help="Name of the rule")):
     """Scaffold a new rule with standard markdown files."""

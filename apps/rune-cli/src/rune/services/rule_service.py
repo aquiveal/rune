@@ -48,3 +48,45 @@ def discover_rules(repo_path: Path) -> List[RuleSchema]:
             continue
             
     return rules
+
+def discover_rule_dirs(repo_path: Path) -> List[Path]:
+    rule_dirs = []
+    # Search for directories named 'rules' inside agent folders
+    agent_folders = [".roo", ".claude", ".cursor", ".cline", ".agents"]
+    
+    for folder in agent_folders:
+        rules_dir = repo_path / folder / "rules"
+        if rules_dir.exists() and rules_dir.is_dir():
+            # The rules are subdirectories inside the 'rules' folder
+            for child in rules_dir.iterdir():
+                if child.is_dir():
+                    rule_dirs.append(child)
+                    
+    return rule_dirs
+
+def merge_rules_to_agents_md(repo_path: Path):
+    rule_dirs = discover_rule_dirs(repo_path)
+    if not rule_dirs:
+        return
+        
+    merged_content = "# Agent Rules\n\n"
+    
+    for rule_dir in rule_dirs:
+        md_files = sorted(rule_dir.glob("*.md"))
+        if not md_files:
+            continue
+            
+        merged_content += f"## {rule_dir.name}\n\n"
+        
+        for md_file in md_files:
+            content = md_file.read_text(encoding="utf-8")
+            # Strip frontmatter if present
+            if content.startswith("---"):
+                parts = content.split("---", 2)
+                if len(parts) >= 3:
+                    content = parts[2].strip()
+            
+            merged_content += f"### {md_file.name}\n\n{content}\n\n"
+            
+    agents_md = repo_path / "AGENTS.md"
+    agents_md.write_text(merged_content, encoding="utf-8")
