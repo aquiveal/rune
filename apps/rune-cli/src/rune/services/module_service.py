@@ -3,7 +3,7 @@ import uuid
 import os
 from pathlib import Path
 from typing import List, Optional, Dict
-from rune.config.main import RUNE_DIR, RUNE_MODULES_DIR, RUNE_TMP_DIR, get_global_rune_dir
+from rune.config.main import RUNE_DIR, RUNE_MODULES_DIR, get_global_rune_dir
 from rune.config.exceptions import ModuleError
 from rune.repositories import git_repository, module_repository, config_repository
 from rune.schemas.module_schema import ModuleSchema
@@ -46,9 +46,9 @@ def add_module(root_dir: Path, url: str, path: str, name: str, type: str, agents
         agent_path = base_dir / agent / type / name
         agent_path.parent.mkdir(parents=True, exist_ok=True)
         if agent_path.exists():
-            if agent_path.is_symlink(): agent_path.unlink()
+            if agent_path.is_symlink(): agent_path.unlink(missing_ok=True)
             elif agent_path.is_dir(): shutil.rmtree(agent_path)
-            else: agent_path.unlink()
+            else: agent_path.unlink(missing_ok=True)
         
         if copy_mode:
             if source_path.is_dir():
