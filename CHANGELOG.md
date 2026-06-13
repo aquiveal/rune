@@ -2,11 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.13] - 2026-06-13
+
+### 🚀 Features
+
+- Auto-merge rules into AGENTS.md after install
+
+### 🐛 Bug Fixes
+
+- Replace symlinks with hard copies
+
+### 🧪 Testing
+
+- Update module service test mocks
+
 ## [26.6.12] - 2026-06-13
 
 ### 🚀 Features
 
 - Discover rule directories in rules folder
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.12
 
 ## [26.6.11] - 2026-06-13
 
