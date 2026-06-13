@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.6] - 2026-06-13
+
+### 🚀 Features
+
+- Add submodule command to cli
+- Add git sparse checkout support and utils
+- Register submodule command in cli
+- Refactor skill update command
+
+### 🐛 Bug Fixes
+
+- Support file protocol for remote repository URLs
+- Remove cone mode from sparse checkout init
+- Force submodule addition during initialization
+- Add --skip-checks to sparse-checkout commands
+
+### 🚜 Refactor
+
+- Implement sparse checkout for module management
+- Remove develop command and update rule flow
+- Update rules and skills independently
+- Improve path cleanup robustness
+
+### 🧪 Testing
+
+- Add unit tests for module service
+- Initialize git repository in rule tests
+- Initialize git repository in skills tests
+- Add debug prints to rule test failure
+- Refactor module service tests to avoid mocks
+- Improve local skill path resolution and debugging
+- Fix module service test mocking strategy
+
 ## [26.6.5] - 2026-06-13
 
 ### 🚀 Features
@@ -12,6 +45,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - [**breaking**] Update documentation and standards
+- Release 26.6.5
 
 ## [26.6.4] - 2026-06-13
 
