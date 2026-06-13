@@ -220,4 +220,3 @@ skills/
 .rune/*
 !.rune/config
 !.rune/index
-.agents/
