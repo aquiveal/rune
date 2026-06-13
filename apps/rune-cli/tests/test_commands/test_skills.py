@@ -13,10 +13,15 @@ def test_skills_add_shorthand(tmp_path, mock_git_repo):
     subprocess.run(["git", "init"], cwd=tmp_path, check=True)
     runner.invoke(app, ["config", "--add", "agent.name", ".roo"])
     
-    repo_url = str(mock_git_repo).replace('\\', '/')
+    repo_url = "file:///" + str(mock_git_repo).replace('\\', '/')
     # We use the full URL here because shorthand resolution for local paths isn't implemented yet
     result = runner.invoke(app, ["skills", "add", repo_url, "--agent", ".roo"])
     
+    if result.exit_code != 0:
+        print(result.output)
+        if result.exception:
+            print(result.exception)
+            
     assert result.exit_code == 0
     assert "Installed skill 'test-skill'" in result.stdout
     assert (tmp_path / ".roo" / "skills" / "test-skill" / "SKILL.md").exists()
@@ -25,7 +30,7 @@ def test_skills_list(tmp_path, mock_git_repo):
     os.chdir(tmp_path)
     runner.invoke(app, ["init"])
     subprocess.run(["git", "init"], cwd=tmp_path, check=True)
-    repo_url = str(mock_git_repo).replace('\\', '/')
+    repo_url = "file:///" + str(mock_git_repo).replace('\\', '/')
     runner.invoke(app, ["skills", "add", repo_url, "--agent", ".roo"])
     
     result = runner.invoke(app, ["skills", "list"])

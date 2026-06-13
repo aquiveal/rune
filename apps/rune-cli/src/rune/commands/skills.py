@@ -19,7 +19,7 @@ def resolve_url(source: str, root_dir: Path) -> str:
         return url
     
     # 3. Check if it's owner/repo
-    if "/" in source and not source.startswith(("http://", "https://", "git@")):
+    if "/" in source and not source.startswith(("http://", "https://", "git@", "file://")):
         return f"https://github.com/{source}.git"
     
     return source
