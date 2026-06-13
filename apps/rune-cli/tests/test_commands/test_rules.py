@@ -13,11 +13,11 @@ def test_rules_add(tmp_path, mock_git_repo):
     import subprocess
     subprocess.run(["git", "init"], cwd=tmp_path, check=True)
     
-    repo_url = str(mock_git_repo).replace('\\', '/')
+    repo_url = "file:///" + str(mock_git_repo).replace('\\', '/')
     result = runner.invoke(app, ["rules", "add", repo_url, "--agent", ".roo"])
     
     if result.exit_code != 0:
-        print(result.stdout)
+        print(result.output)
         if result.exception:
             print(result.exception)
             

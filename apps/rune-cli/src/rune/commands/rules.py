@@ -13,7 +13,7 @@ def resolve_url(source: str, root_dir: Path) -> str:
         return str(Path(source).absolute())
     url = config_repository.get_remote_url(root_dir, source)
     if url: return url
-    if "/" in source and not source.startswith(("http://", "https://", "git@")):
+    if "/" in source and not source.startswith(("http://", "https://", "git@", "file://")):
         return f"https://github.com/{source}.git"
     return source
 
