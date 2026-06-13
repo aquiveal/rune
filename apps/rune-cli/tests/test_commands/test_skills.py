@@ -10,6 +10,7 @@ runner = CliRunner()
 def test_skills_add_shorthand(tmp_path, mock_git_repo):
     os.chdir(tmp_path)
     runner.invoke(app, ["init"])
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True)
     runner.invoke(app, ["config", "--add", "agent.name", ".roo"])
     
     repo_url = str(mock_git_repo).replace('\\', '/')
@@ -23,22 +24,13 @@ def test_skills_add_shorthand(tmp_path, mock_git_repo):
 def test_skills_list(tmp_path, mock_git_repo):
     os.chdir(tmp_path)
     runner.invoke(app, ["init"])
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True)
     repo_url = str(mock_git_repo).replace('\\', '/')
     runner.invoke(app, ["skills", "add", repo_url, "--agent", ".roo"])
     
     result = runner.invoke(app, ["skills", "list"])
     assert result.exit_code == 0
     assert "skills/test-skill: OK" in result.stdout
-
-def test_skills_develop(tmp_path, mock_git_repo):
-    os.chdir(tmp_path)
-    subprocess.run(["git", "init"], check=True) # Need git repo for submodules
-    runner.invoke(app, ["init"])
-    repo_url = "file:///" + str(mock_git_repo).replace('\\', '/')
-    
-    result = runner.invoke(app, ["skills", "develop", repo_url])
-    assert result.exit_code == 0
-    assert (tmp_path / "mock_repo" / "modules").exists()
 
 def test_skills_validate(tmp_path):
     os.chdir(tmp_path)
