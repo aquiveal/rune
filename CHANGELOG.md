@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.23] - 2026-06-14
+
+### 📚 Documentation
+
+- Update root documentation
+
+### Build
+
+- Add python-logging submodule
+
 ## [26.6.22] - 2026-06-13
 
 ### 🚀 Features
@@ -11,6 +21,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - Sanitize skill names before directory creation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.22
 
 ## [26.6.21] - 2026-06-13
 
