@@ -55,13 +55,15 @@ def discover_skills(repo_path: Path) -> List[SkillSchema]:
         repo_path / "skills",
         repo_path / ".claude" / "skills",
         repo_path / ".roo" / "skills",
+        repo_path / ".agents" / "skills",
     ]
     
-    # Also recursive search if nothing found in common locations
+    # Search for SKILL.md directly in the search paths or one level deep
     found_files = []
     for p in search_paths:
         if p.exists() and p.is_dir():
-            found_files.extend(list(p.glob("**/SKILL.md")))
+            found_files.extend(list(p.glob("SKILL.md")))
+            found_files.extend(list(p.glob("*/SKILL.md")))
     
     # Deduplicate by path
     seen_paths = set()
