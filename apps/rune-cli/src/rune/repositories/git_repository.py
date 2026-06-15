@@ -60,6 +60,13 @@ def get_git_root(cwd: Path) -> Optional[Path]:
     except GitError:
         return None
 
+def get_short_sha(cwd: Path) -> Optional[str]:
+    try:
+        result = run_git(["rev-parse", "--short", "HEAD"], cwd=cwd)
+        return result.stdout.strip()
+    except GitError:
+        return None
+
 def get_config(key: str, file_path: Path) -> Optional[str]:
     try:
         result = run_git(["config", "--file", str(file_path), key])
