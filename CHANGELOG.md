@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.25] - 2026-06-15
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove readme field from pyproject.toml
+
 ## [26.6.24] - 2026-06-15
 
 ### 🚀 Features
@@ -12,6 +18,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Ignore plans directory
+- Release 26.6.24
 
 ## [26.6.23] - 2026-06-14
 
