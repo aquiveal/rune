@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.27] - 2026-06-15
+
+### 🚀 Features
+
+- Support standalone markdown files in rules
+
 ## [26.6.26] - 2026-06-15
 
 ### 🚀 Features
@@ -11,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Add test for skill discovery depth
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.26
 
 ## [26.6.25] - 2026-06-15
 
