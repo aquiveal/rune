@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.24] - 2026-06-15
+
+### 🚀 Features
+
+- Add get_short_sha helper to git repository
+- Display git submodule SHAs in file tree
+
+### ⚙️ Miscellaneous Tasks
+
+- Ignore plans directory
+
 ## [26.6.23] - 2026-06-14
 
 ### 📚 Documentation
 
 - Update root documentation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.23
 
 ### Build
 
