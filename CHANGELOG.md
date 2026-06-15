@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.28] - 2026-06-15
+
+### 🐛 Bug Fixes
+
+- Ignore empty markdown rule files
+
 ## [26.6.27] - 2026-06-15
 
 ### 🚀 Features
 
 - Support standalone markdown files in rules
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.27
 
 ## [26.6.26] - 2026-06-15
 
