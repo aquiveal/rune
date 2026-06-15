@@ -2,11 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.26] - 2026-06-15
+
+### 🚀 Features
+
+- Update skill discovery paths and search logic
+
+### 🧪 Testing
+
+- Add test for skill discovery depth
+
 ## [26.6.25] - 2026-06-15
 
 ### ⚙️ Miscellaneous Tasks
 
 - Remove readme field from pyproject.toml
+- Release 26.6.25
 
 ## [26.6.24] - 2026-06-15
 
