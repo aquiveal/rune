@@ -220,3 +220,6 @@ skills/
 .rune/*
 !.rune/config
 !.rune/index
+
+# Architect
+plans/
