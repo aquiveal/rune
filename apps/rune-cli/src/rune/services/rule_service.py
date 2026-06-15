@@ -89,10 +89,19 @@ def merge_rules_to_agents_md(repo_path: Path):
             if not md_files:
                 continue
                 
+            # Filter out empty files
+            valid_files = []
+            for md_file in md_files:
+                content = md_file.read_text(encoding="utf-8").strip()
+                if content:
+                    valid_files.append((md_file, content))
+                    
+            if not valid_files:
+                continue
+                
             rules_block += f"## {rule_item.name}\n\n"
             
-            for md_file in md_files:
-                content = md_file.read_text(encoding="utf-8")
+            for md_file, content in valid_files:
                 # Strip frontmatter if present
                 if content.startswith("---"):
                     parts = content.split("---", 2)
@@ -111,8 +120,12 @@ def merge_rules_to_agents_md(repo_path: Path):
                 
                 rules_block += f"{content}\n\n"
         elif rule_item.is_file() and rule_item.suffix == '.md':
+            content = rule_item.read_text(encoding="utf-8").strip()
+            if not content:
+                continue
+                
             rules_block += f"## {rule_item.stem}\n\n"
-            content = rule_item.read_text(encoding="utf-8")
+            
             # Strip frontmatter if present
             if content.startswith("---"):
                 parts = content.split("---", 2)
