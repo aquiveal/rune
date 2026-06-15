@@ -83,8 +83,8 @@ def test_merge_rules_to_agents_md_finds_standalone_files(tmp_path):
     content = agents_md.read_text()
     
     assert "# Rules" in content
-    assert "## my-rule" in content
-    assert "### My Rule" in content
+    assert "## my-rule" not in content
+    assert "## My Rule" in content
     assert "Content here." in content
 
 def test_merge_rules_to_agents_md_ignores_empty_files(tmp_path):

@@ -124,17 +124,15 @@ def merge_rules_to_agents_md(repo_path: Path):
             if not content:
                 continue
                 
-            rules_block += f"## {rule_item.stem}\n\n"
-            
             # Strip frontmatter if present
             if content.startswith("---"):
                 parts = content.split("---", 2)
                 if len(parts) >= 3:
                     content = parts[2].strip()
             
-            # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_item.stem}
+            # Shift headings in the content by 1 level to maintain hierarchy under # Rules
             import re
-            content = re.sub(r'^(#+)\s', r'##\1 ', content, flags=re.MULTILINE)
+            content = re.sub(r'^(#+)\s', r'#\1 ', content, flags=re.MULTILINE)
             
             # Handle unclosed code blocks
             code_block_count = len(re.findall(r'^\s*```', content, flags=re.MULTILINE))
