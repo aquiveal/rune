@@ -69,9 +69,9 @@ def discover_rule_dirs(repo_path: Path) -> List[Path]:
     for folder in agent_folders:
         rules_dir = repo_path / folder / "rules"
         if rules_dir.exists() and rules_dir.is_dir():
-            # The rules are subdirectories inside the 'rules' folder
+            # The rules can be subdirectories or standalone markdown files
             for child in rules_dir.iterdir():
-                if child.is_dir():
+                if child.is_dir() or (child.is_file() and child.suffix == '.md'):
                     rule_dirs.append(child)
                     
     return rule_dirs
@@ -83,23 +83,43 @@ def merge_rules_to_agents_md(repo_path: Path):
         
     rules_block = "# Rules\n\n"
     
-    for rule_dir in rule_dirs:
-        md_files = sorted(rule_dir.glob("*.md"))
-        if not md_files:
-            continue
+    for rule_item in rule_dirs:
+        if rule_item.is_dir():
+            md_files = sorted(rule_item.glob("*.md"))
+            if not md_files:
+                continue
+                
+            rules_block += f"## {rule_item.name}\n\n"
             
-        rules_block += f"## {rule_dir.name}\n\n"
-        
-        for md_file in md_files:
-            content = md_file.read_text(encoding="utf-8")
+            for md_file in md_files:
+                content = md_file.read_text(encoding="utf-8")
+                # Strip frontmatter if present
+                if content.startswith("---"):
+                    parts = content.split("---", 2)
+                    if len(parts) >= 3:
+                        content = parts[2].strip()
+                
+                # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_item.name}
+                # e.g., # Heading -> ### Heading
+                import re
+                content = re.sub(r'^(#+)\s', r'##\1 ', content, flags=re.MULTILINE)
+                
+                # Handle unclosed code blocks
+                code_block_count = len(re.findall(r'^\s*```', content, flags=re.MULTILINE))
+                if code_block_count % 2 != 0:
+                    content += "\n```"
+                
+                rules_block += f"{content}\n\n"
+        elif rule_item.is_file() and rule_item.suffix == '.md':
+            rules_block += f"## {rule_item.stem}\n\n"
+            content = rule_item.read_text(encoding="utf-8")
             # Strip frontmatter if present
             if content.startswith("---"):
                 parts = content.split("---", 2)
                 if len(parts) >= 3:
                     content = parts[2].strip()
             
-            # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_dir.name}
-            # e.g., # Heading -> ### Heading
+            # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_item.stem}
             import re
             content = re.sub(r'^(#+)\s', r'##\1 ', content, flags=re.MULTILINE)
             
