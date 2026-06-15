@@ -92,3 +92,30 @@ def test_generate_tree_with_submodule(tmp_path, monkeypatch):
     assert "file.txt" in tree
     assert "submodule_dir @ a1b2c3d" in tree
     assert "should_not_be_seen.txt" not in tree
+
+def test_discover_skills_depth(tmp_path):
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    
+    # Create a top-level skill
+    skill1_dir = repo_path / "skills" / "skill-one"
+    skill1_dir.mkdir(parents=True)
+    (skill1_dir / "SKILL.md").write_text("---\nname: skill-one\ndescription: desc\n---\n")
+    
+    # Create a nested skill (should NOT be discovered)
+    nested_skill_dir = skill1_dir / "modules" / "nested-skill"
+    nested_skill_dir.mkdir(parents=True)
+    (nested_skill_dir / "SKILL.md").write_text("---\nname: nested-skill\ndescription: desc\n---\n")
+    
+    # Create a skill in .agents/skills
+    skill2_dir = repo_path / ".agents" / "skills" / "skill-two"
+    skill2_dir.mkdir(parents=True)
+    (skill2_dir / "SKILL.md").write_text("---\nname: skill-two\ndescription: desc\n---\n")
+    
+    skills = skill_service.discover_skills(repo_path)
+    
+    skill_names = [s.name for s in skills]
+    assert "skill-one" in skill_names
+    assert "skill-two" in skill_names
+    assert "nested-skill" not in skill_names
+    assert len(skills) == 2
