@@ -1,9 +1,10 @@
 import yaml
 import re
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict
+from typing import List
 from rune.schemas.skill_schema import SkillSchema, SkillMetadata
 from rune.config.exceptions import ValidationError
+from rune.repositories import git_repository
 
 def sanitize_skill_name(name: str) -> str:
     """Sanitize a string to be a valid skill name."""
@@ -93,11 +94,16 @@ def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) ->
     for i, path in enumerate(paths):
         is_last = i == len(paths) - 1
         connector = "└── " if is_last else "├── "
-        tree_str += f"{prefix}{connector}{path.name}\n"
         
-        if path.is_dir():
-            extension = "    " if is_last else "│   "
-            tree_str += generate_tree(path, prefix + extension, ignore)
+        if path.is_dir() and (path / ".git").exists():
+            sha = git_repository.get_short_sha(path)
+            suffix = f" @ {sha}" if sha else " @ submodule"
+            tree_str += f"{prefix}{connector}{path.name}{suffix}\n"
+        else:
+            tree_str += f"{prefix}{connector}{path.name}\n"
+            if path.is_dir():
+                extension = "    " if is_last else "│   "
+                tree_str += generate_tree(path, prefix + extension, ignore)
             
     return tree_str
 
