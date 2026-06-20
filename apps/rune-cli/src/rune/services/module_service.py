@@ -23,7 +23,8 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         git_repository.sparse_checkout_set(cache_path, [path])
     else:
         git_repository.sparse_checkout_init(cache_path)
-        git_repository.sparse_checkout_add(cache_path, [path])
+        if path and path != ".":
+            git_repository.sparse_checkout_add(cache_path, [path])
             
     source_path = cache_path / path
     if not source_path.exists():
