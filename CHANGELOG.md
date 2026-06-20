@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.37] - 2026-06-20
+
+### 🚀 Features
+
+- Move AST map content outside of file tree
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove debug print statement
+
 ## [26.6.36] - 2026-06-20
 
 ### 🐛 Bug Fixes
@@ -14,6 +24,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Add debug print and use absolute paths
+- Release 26.6.36
 
 ## [26.6.35] - 2026-06-20
 
