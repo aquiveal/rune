@@ -40,7 +40,7 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
             target_paths.append(cwd / type / name)
         
     default_branch = git_repository.get_default_branch(url)
-    specific_url = f"{url.rstrip('.git')}/tree/{default_branch}/{path}"
+    specific_url = f"{url.rstrip('.git')}/tree/{default_branch}/{path}" if path and path != "." else f"{url.rstrip('.git')}/tree/{default_branch}"
         
     for agent_path in target_paths:
         agent_path.parent.mkdir(parents=True, exist_ok=True)
