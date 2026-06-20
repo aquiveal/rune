@@ -216,10 +216,11 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Rune
-skills/
 .rune/*
 !.rune/config
 !.rune/index
+.agents/skills/python-logging/modules/python-logging
 
-# Architect
+# Agents
 plans/
+skills
