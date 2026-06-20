@@ -5,7 +5,7 @@ description = "Rune CLI"
 authors = [
     {name = "Aryan Singh", email = "aquiveal@gmail.com"},
 ]
-dependencies = ["typer>=0.15.2", "pydantic>=2.13.3", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.74.2"]
+dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.74.2"]
 requires-python = ">=3.11"
 license = {text = "MIT"}
 
