@@ -19,11 +19,12 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
     if not cache_path.exists():
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         git_repository.clone(url, cache_path)
-        git_repository.sparse_checkout_init(cache_path)
-        git_repository.sparse_checkout_set(cache_path, [path])
-    else:
-        git_repository.sparse_checkout_init(cache_path)
         if path and path != ".":
+            git_repository.sparse_checkout_init(cache_path)
+            git_repository.sparse_checkout_set(cache_path, [path])
+    else:
+        if path and path != ".":
+            git_repository.sparse_checkout_init(cache_path)
             git_repository.sparse_checkout_add(cache_path, [path])
             
     source_path = cache_path / path
@@ -152,8 +153,8 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
             else:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 git_repository.clone(mod.base_url, cache_path)
-                git_repository.sparse_checkout_init(cache_path)
                 if mod.source_path and mod.source_path != ".":
+                    git_repository.sparse_checkout_init(cache_path)
                     git_repository.sparse_checkout_set(cache_path, [mod.source_path])
             updated_repos.add(cache_path)
             
