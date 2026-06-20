@@ -97,6 +97,16 @@ def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) ->
         is_last = i == len(paths) - 1
         connector = "└── " if is_last else "├── "
         
+        repomap_file = path / ".repomap.txt"
+        if path.is_dir() and repomap_file.exists():
+            map_content = repomap_file.read_text(encoding="utf-8")
+            tree_str += f"{prefix}{connector}{path.name} (AST Map)\n"
+            
+            extension = "    " if is_last else "│   "
+            indented_map = "\n".join(f"{prefix}{extension}{line}" for line in map_content.splitlines() if line.strip())
+            tree_str += indented_map + "\n"
+            continue
+            
         if path.is_dir() and (path / ".git").exists():
             sha = git_repository.get_short_sha(path)
             suffix = f" @ {sha}" if sha else " @ submodule"
