@@ -131,7 +131,7 @@ def update_skill_tree(skill_dir: Path):
     
     if "## File Tree" in content:
         pattern = re.compile(r"## File Tree.*?(?=\n## |\Z)", re.DOTALL)
-        content = pattern.sub(tree_block.strip(), content)
+        content = pattern.sub(lambda _: tree_block.strip(), content)
     else:
         content += f"\n{tree_block}"
         
