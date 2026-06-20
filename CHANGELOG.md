@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.36] - 2026-06-20
+
+### 🐛 Bug Fixes
+
+- Initialize sparse checkout before adding paths
+- Use source_path for submodule map generation
+- Prevent sparse checkout errors for root paths
+- Conditionally initialize sparse checkout
+
+### ⚙️ Miscellaneous Tasks
+
+- Add debug print and use absolute paths
+
 ## [26.6.35] - 2026-06-20
 
 ### 🚀 Features
@@ -18,6 +31,7 @@ All notable changes to this project will be documented in this file.
 
 - Fix syntax in runemodules configuration
 - Remove skills directory from gitignore
+- Release 26.6.35
 
 ## [26.6.34] - 2026-06-20
 
