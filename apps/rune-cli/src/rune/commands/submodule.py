@@ -4,6 +4,7 @@ from pathlib import Path
 from rune.commands import skills
 from rune.repositories import git_repository
 from rune.services import skill_service
+from rune.commands.skills import resolve_url, parse_github_url
 
 app = typer.Typer(no_args_is_help=True, help="Manage submodules contextually")
 
@@ -16,8 +17,14 @@ def add(
     """Add a submodule contextually based on the current directory."""
     cwd = Path.cwd()
     
-    # Extract repo name from URL
-    repo_name = url.rstrip('/').split('/')[-1]
+    git_root = git_repository.get_git_root(cwd) or cwd
+    
+    # Resolve the URL (handles aliases and subpaths)
+    raw_url = resolve_url(url, git_root)
+    base_url, extracted_path = parse_github_url(raw_url)
+    
+    # Extract repo name from base_url
+    repo_name = base_url.rstrip('/').split('/')[-1]
     if repo_name.endswith('.git'):
         repo_name = repo_name[:-4]
         
@@ -54,15 +61,14 @@ def add(
         
         from rune.services import module_service
         
-        typer.echo(f"Adding submodule {url} to {submodule_path}...")
-        git_root = git_repository.get_git_root(cwd) or cwd
+        typer.echo(f"Adding submodule {base_url} (path: {extracted_path or '.'}) to {submodule_path}...")
         
         try:
             module_service.add_module(
                 git_root=git_root,
                 cwd=target_dir,
-                url=url,
-                path=".",
+                url=base_url,
+                path=extracted_path or ".",
                 name=repo_name,
                 type="modules",
                 agents=[],
