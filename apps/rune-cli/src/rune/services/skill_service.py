@@ -85,9 +85,13 @@ def discover_skills(repo_path: Path) -> List[SkillSchema]:
             
     return skills
 
-def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) -> str:
+def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None, ast_maps: dict = None, root_dir: Path = None) -> str:
     if ignore is None:
         ignore = [".git", "__pycache__", "node_modules", ".venv", "venv", ".env"]
+    if ast_maps is None:
+        ast_maps = {}
+    if root_dir is None:
+        root_dir = dir_path
     
     tree_str = ""
     paths = sorted(dir_path.iterdir(), key=lambda p: (p.is_file(), p.name))
@@ -100,11 +104,9 @@ def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) ->
         repomap_file = path / ".repomap.txt"
         if path.is_dir() and repomap_file.exists():
             map_content = repomap_file.read_text(encoding="utf-8")
-            tree_str += f"{prefix}{connector}{path.name} (AST Map)\n"
-            
-            extension = "    " if is_last else "│   "
-            indented_map = "\n".join(f"{prefix}{extension}{line}" for line in map_content.splitlines() if line.strip())
-            tree_str += indented_map + "\n"
+            rel_path = str(path.relative_to(root_dir)).replace('\\', '/')
+            ast_maps[rel_path] = map_content.strip()
+            tree_str += f"{prefix}{connector}{path.name} (See AST Map below)\n"
             continue
             
         if path.is_dir() and (path / ".git").exists():
@@ -115,7 +117,7 @@ def generate_tree(dir_path: Path, prefix: str = "", ignore: List[str] = None) ->
             tree_str += f"{prefix}{connector}{path.name}\n"
             if path.is_dir():
                 extension = "    " if is_last else "│   "
-                tree_str += generate_tree(path, prefix + extension, ignore)
+                tree_str += generate_tree(path, prefix + extension, ignore, ast_maps, root_dir)
             
     return tree_str
 
@@ -124,15 +126,20 @@ def update_skill_tree(skill_dir: Path):
     if not skill_md.exists():
         return
         
-    tree = generate_tree(skill_dir)
+    ast_maps = {}
+    tree = generate_tree(skill_dir, ast_maps=ast_maps, root_dir=skill_dir)
     content = skill_md.read_text(encoding="utf-8")
     
     tree_block = f"## File Tree\n\n```text\n{skill_dir.name}/\n{tree}```\n"
     
+    if ast_maps:
+        for rel_path, map_content in ast_maps.items():
+            tree_block += f"\n### AST Map: `{rel_path}`\n\n```python\n{map_content}\n```\n"
+            
     if "## File Tree" in content:
         pattern = re.compile(r"## File Tree.*?(?=\n## |\Z)", re.DOTALL)
         content = pattern.sub(lambda _: tree_block.strip(), content)
     else:
-        content += f"\n{tree_block}"
+        content += f"\n{tree_block.strip()}\n"
         
     skill_md.write_text(content, encoding="utf-8")
