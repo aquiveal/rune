@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.35] - 2026-06-20
+
+### 🚀 Features
+
+- Add python-logging skill documentation
+- Enable sparse checkout for git modules
+
+### 🐛 Bug Fixes
+
+- Handle relative paths for module type inference
+- Update file indexing path and ignore rules
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix syntax in runemodules configuration
+- Remove skills directory from gitignore
+
 ## [26.6.34] - 2026-06-20
 
 ### 🚀 Features
@@ -17,6 +34,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - Update repomap model and method arguments
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.34
 
 ### Build
 
