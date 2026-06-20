@@ -1,6 +1,7 @@
 from pathlib import Path
 from aider.repomap import RepoMap
 from aider.io import InputOutput
+from aider.models import Model
 from rune.repositories import config_repository, git_repository
 
 def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
@@ -9,10 +10,14 @@ def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
     model_name = config_repository.get_repomap_model(git_root)
     
     io = InputOutput()
+    
+    # Force use gpt-4o just for the tiktoken encoding to avoid litellm gemini issues locally
+    model = Model("gpt-4o")
+        
     repo_map = RepoMap(
         map_tokens=max_tokens,
         root=str(module_path),
-        main_model=model_name,
+        main_model=model,
         io=io
     )
     
@@ -25,7 +30,7 @@ def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
     ]
     
     map_text = repo_map.get_ranked_tags_map(
-        chat_files=[],
-        other_files=all_files
+        chat_fnames=[],
+        other_fnames=all_files
     )
     return map_text
