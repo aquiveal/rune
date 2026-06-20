@@ -52,22 +52,25 @@ def add(
         
         submodule_path = f"modules/{repo_name}"
         
-        typer.echo(f"Adding submodule {url} to {submodule_path}...")
-        try:
-            git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=force)
-        except Exception as e:
-            if "already exists in the index" in str(e):
-                typer.echo(f"Submodule path '{submodule_path}' already exists in the index. Retrying with force...", err=True)
-                git_repository.add_submodule(url=url, path=submodule_path, cwd=target_dir, force=True)
-            else:
-                raise
+        from rune.services import module_service
         
-        typer.echo("Updating submodules...")
+        typer.echo(f"Adding submodule {url} to {submodule_path}...")
+        git_root = git_repository.get_git_root(cwd) or cwd
+        
         try:
-            git_repository.update_submodules(target_dir)
+            module_service.add_module(
+                git_root=git_root,
+                cwd=target_dir,
+                url=url,
+                path=".",
+                name=repo_name,
+                type="modules",
+                agents=[],
+                global_scope=False,
+                copy_mode=False
+            )
         except Exception as e:
-            typer.echo(f"Warning: Failed to update submodules recursively: {e}", err=True)
-            typer.echo("Continuing with skill tree sync...")
+            raise Exception(f"Failed to fetch submodule: {e}")
         
         typer.echo("Syncing skill tree...")
         skill_service.update_skill_tree(target_dir)
