@@ -22,6 +22,7 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         git_repository.sparse_checkout_init(cache_path)
         git_repository.sparse_checkout_set(cache_path, [path])
     else:
+        git_repository.sparse_checkout_init(cache_path)
         git_repository.sparse_checkout_add(cache_path, [path])
             
     source_path = cache_path / path
@@ -144,6 +145,7 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
             if cache_path.exists():
                 git_repository.run_git(["pull"], cwd=cache_path)
                 if mod.source_path and mod.source_path != ".":
+                    git_repository.sparse_checkout_init(cache_path)
                     git_repository.sparse_checkout_add(cache_path, [mod.source_path])
             else:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
