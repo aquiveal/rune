@@ -2,11 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.34] - 2026-06-20
+
+### 🚀 Features
+
+- Add aider-chat and dependencies
+
+### 🐛 Bug Fixes
+
+- Clone missing repository modules
+- Handle read-only files during directory removal
+- Use lambda to prevent regex substitution errors
+
+### 🚜 Refactor
+
+- Update repomap model and method arguments
+
+### Build
+
+- Restrict python version to <3.13
+
 ## [26.6.33] - 2026-06-20
 
 ### ⚙️ Miscellaneous Tasks
 
 - Downgrade pydantic version
+- Release 26.6.33
 
 ## [26.6.32] - 2026-06-20
 
