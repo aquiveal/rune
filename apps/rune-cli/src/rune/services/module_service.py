@@ -143,9 +143,14 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
         if cache_path not in updated_repos:
             if cache_path.exists():
                 git_repository.run_git(["pull"], cwd=cache_path)
+                if mod.source_path and mod.source_path != ".":
+                    git_repository.sparse_checkout_add(cache_path, [mod.source_path])
             else:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 git_repository.clone(mod.base_url, cache_path)
+                git_repository.sparse_checkout_init(cache_path)
+                if mod.source_path and mod.source_path != ".":
+                    git_repository.sparse_checkout_set(cache_path, [mod.source_path])
             updated_repos.add(cache_path)
             
         source_path = cache_path / mod.source_path
