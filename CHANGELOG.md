@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.30] - 2026-06-20
+
+### 🚀 Features
+
+- Add get_repomap_model helper
+- Add modules type inference for module schema
+- Add submodule map generation service
+- Improve module deployment and configuration
+- Include .repomap.txt content in directory tree
+
+### 🚜 Refactor
+
+- Remove submodule update from skill command
+- Replace direct submodule addition with module service
+
+### ⚙️ Miscellaneous Tasks
+
+- Add aider-chat dependency
+
 ## [26.6.29] - 2026-06-15
 
 ### 🚜 Refactor
@@ -11,6 +30,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Update rule service assertions
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.29
 
 ## [26.6.28] - 2026-06-15
 
