@@ -186,7 +186,8 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     
     try:
         module_service.update_modules(git_root, type="skills", global_scope=global_scope)
-        typer.echo("Updated installed skill submodules.")
+        module_service.update_modules(git_root, type="modules", global_scope=global_scope)
+        typer.echo("Updated installed skills and their internal submodules.")
     except Exception as e:
         typer.echo(f"Failed to update skill submodules: {e}", err=True)
         
