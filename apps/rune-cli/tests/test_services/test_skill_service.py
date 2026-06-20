@@ -93,6 +93,24 @@ def test_generate_tree_with_submodule(tmp_path, monkeypatch):
     assert "submodule_dir @ a1b2c3d" in tree
     assert "should_not_be_seen.txt" not in tree
 
+def test_generate_tree_with_ast_map(tmp_path):
+    skill_dir = tmp_path / "test-skill"
+    skill_dir.mkdir()
+    
+    # Create module with repomap
+    module_dir = skill_dir / "modules" / "foo"
+    module_dir.mkdir(parents=True)
+    
+    mock_repomap_content = "src/foo/__init__.py:\n│__version__ = '1.0'\n"
+    (module_dir / ".repomap.txt").write_text(mock_repomap_content, encoding="utf-8")
+    
+    ast_maps = {}
+    tree = skill_service.generate_tree(skill_dir, ast_maps=ast_maps, root_dir=skill_dir)
+    
+    assert "foo (See AST Map below)" in tree
+    assert "modules/foo" in ast_maps
+    assert ast_maps["modules/foo"] == mock_repomap_content.strip()
+
 def test_discover_skills_depth(tmp_path):
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
