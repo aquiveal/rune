@@ -2,11 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.32] - 2026-06-20
+
+### 🚀 Features
+
+- Resolve submodule urls and subpaths
+
+### 🐛 Bug Fixes
+
+- Update both skill and module submodules
+- Handle root directory paths in module urls
+
 ## [26.6.31] - 2026-06-20
 
 ### ⚙️ Miscellaneous Tasks
 
 - Migrate python-logging module to runemodules
+- Release 26.6.31
 
 ## [26.6.30] - 2026-06-20
 
