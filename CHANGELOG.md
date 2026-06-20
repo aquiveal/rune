@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.31] - 2026-06-20
+
+### ⚙️ Miscellaneous Tasks
+
+- Migrate python-logging module to runemodules
+
 ## [26.6.30] - 2026-06-20
 
 ### 🚀 Features
@@ -20,6 +26,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Add aider-chat dependency
+- Release 26.6.30
 
 ## [26.6.29] - 2026-06-15
 
