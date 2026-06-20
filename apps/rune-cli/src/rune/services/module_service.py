@@ -87,7 +87,8 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         if type == "modules" and agent_path.is_dir():
             from rune.services import map_service
             try:
-                map_text = map_service.generate_submodule_map(agent_path)
+                # Generate map using source_path (which has .git) so Aider tracks files properly
+                map_text = map_service.generate_submodule_map(source_path)
                 (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
             except Exception as e:
                 import sys
@@ -183,7 +184,8 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
                 if mod.inferred_type == "modules":
                     from rune.services import map_service
                     try:
-                        map_text = map_service.generate_submodule_map(agent_path)
+                        # Generate map using source_path (which has .git) so Aider tracks files properly
+                        map_text = map_service.generate_submodule_map(source_path)
                         (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
                     except Exception as e:
                         import sys
