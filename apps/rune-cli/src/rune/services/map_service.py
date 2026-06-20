@@ -25,8 +25,8 @@ def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
     # Skip large binary folders, .git, and __pycache__
     ignore_dirs = {'.git', '__pycache__', 'node_modules', 'dist', 'build', '.venv', 'venv'}
     all_files = [
-        str(p) for p in module_path.rglob("*") 
-        if p.is_file() and not any(part in ignore_dirs for part in p.parts)
+        str(p.relative_to(module_path)) for p in module_path.rglob("*")
+        if p.is_file() and not any(part in ignore_dirs or part.startswith('.aider') for part in p.parts)
     ]
     
     map_text = repo_map.get_ranked_tags_map(

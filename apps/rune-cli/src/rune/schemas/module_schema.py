@@ -30,10 +30,10 @@ class ModuleSchema(BaseModel):
 
     @property
     def inferred_type(self) -> str:
-        if '/modules/' in self.path:
+        if '/modules/' in self.path or self.path.startswith('modules/'):
             return 'modules'
-        if '/rules/' in self.path:
+        if '/rules/' in self.path or self.path.startswith('rules/'):
             return 'rules'
-        if '/skills/' in self.path:
+        if '/skills/' in self.path or self.path.startswith('skills/'):
             return 'skills'
         return 'unknown'
