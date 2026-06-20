@@ -201,10 +201,6 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         skill_dir = (git_root / skill.path).resolve() if skill.path else git_root
         
         try:
-            # Update nested submodules (for authors)
-            if (skill_dir / ".git").exists():
-                git_repository.update_submodules(skill_dir)
-                
             # Update SKILL.md tree
             skill_service.update_skill_tree(skill_dir)
             

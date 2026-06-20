@@ -102,4 +102,3 @@ def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo, mock_co
     assert mock_git_repo.run_git.call_count == 1
     args = mock_git_repo.run_git.call_args[0][0]
     assert args[0] == "pull"
-    mock_git_repo.update_submodules.assert_called_once_with(tmp_path)

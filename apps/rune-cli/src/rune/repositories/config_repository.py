@@ -20,3 +20,6 @@ def get_remote_url(root_dir: Path, alias: str) -> Optional[str]:
 
 def set_remote_url(root_dir: Path, alias: str, url: str):
     git_repository.set_config(f"remote.{alias}.url", url, _get_config_path(root_dir))
+
+def get_repomap_model(root_dir: Path) -> str:
+    return git_repository.get_config("repomap.model", _get_config_path(root_dir)) or "gemini/gemini-3.1-flash-lite"

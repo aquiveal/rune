@@ -52,12 +52,40 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         # Always copy instead of symlink to avoid cross-OS issues (Windows + WSL)
         if source_path.is_dir():
             shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
+            
+            # Remove .git if it was copied (e.g. submodule fetching)
+            git_dir = agent_path / ".git"
+            try:
+                if git_dir.exists():
+                    shutil.rmtree(git_dir, ignore_errors=True)
+            except Exception:
+                pass
         else:
             shutil.copy2(source_path, agent_path)
                 
         # Update registry for each target path
         rel_path = str(agent_path.relative_to(base_dir)).replace('\\', '/')
         module_repository.add_module(base_dir, ModuleSchema(name=rel_path, url=specific_url, path=rel_path))
+        
+        # Add to .gitignore if not already there
+        gitignore_path = base_dir / '.gitignore'
+        if gitignore_path.exists():
+            content = gitignore_path.read_text()
+            if rel_path not in content:
+                with open(gitignore_path, "a") as f:
+                    if not content.endswith("\n"):
+                        f.write("\n")
+                    f.write(f"{rel_path}\n")
+                    
+        # Generate repomap for modules (submodules)
+        if type == "modules" and agent_path.is_dir():
+            from rune.services import map_service
+            try:
+                map_text = map_service.generate_submodule_map(agent_path)
+                (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
+            except Exception as e:
+                import sys
+                print(f"Warning: Failed to generate repomap for {agent_path.name}: {e}", file=sys.stderr)
 
 def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
     base_dir = get_global_rune_dir() if global_scope else git_root
@@ -125,9 +153,20 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
                 
             if source_path.is_dir():
                 shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
+                git_dir = agent_path / ".git"
+                try:
+                    if git_dir.exists():
+                        shutil.rmtree(git_dir, ignore_errors=True)
+                except Exception:
+                    pass
+                    
+                if mod.inferred_type == "modules":
+                    from rune.services import map_service
+                    try:
+                        map_text = map_service.generate_submodule_map(agent_path)
+                        (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
+                    except Exception as e:
+                        import sys
+                        print(f"Warning: Failed to generate repomap for {agent_path.name}: {e}", file=sys.stderr)
             else:
                 shutil.copy2(source_path, agent_path)
-                
-    # Also update any git submodules
-    if not global_scope and git_repository.is_git_repo(git_root):
-        git_repository.update_submodules(git_root)
