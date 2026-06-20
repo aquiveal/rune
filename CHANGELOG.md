@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.33] - 2026-06-20
+
+### ⚙️ Miscellaneous Tasks
+
+- Downgrade pydantic version
+
 ## [26.6.32] - 2026-06-20
 
 ### 🚀 Features
@@ -12,6 +18,10 @@ All notable changes to this project will be documented in this file.
 
 - Update both skill and module submodules
 - Handle root directory paths in module urls
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.32
 
 ## [26.6.31] - 2026-06-20
 
