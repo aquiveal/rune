@@ -5,6 +5,7 @@ from aider.models import Model
 from rune.repositories import config_repository, git_repository
 
 def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
+    print(f"DEBUG: Generating map for {module_path}")
     # Determine model from rune config, default to gemini/gemini-3.1-flash-lite
     git_root = git_repository.get_git_root(module_path) or module_path
     model_name = config_repository.get_repomap_model(git_root)
@@ -25,7 +26,7 @@ def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
     # Skip large binary folders, .git, and __pycache__
     ignore_dirs = {'.git', '__pycache__', 'node_modules', 'dist', 'build', '.venv', 'venv'}
     all_files = [
-        str(p.relative_to(module_path)) for p in module_path.rglob("*")
+        str(p) for p in module_path.rglob("*")
         if p.is_file() and not any(part in ignore_dirs or part.startswith('.aider') for part in p.parts)
     ]
     
