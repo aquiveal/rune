@@ -44,9 +44,14 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         
     for agent_path in target_paths:
         agent_path.parent.mkdir(parents=True, exist_ok=True)
+        def on_rm_error(func, path, exc_info):
+            import stat
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+
         if agent_path.exists():
             if agent_path.is_symlink(): agent_path.unlink(missing_ok=True)
-            elif agent_path.is_dir(): shutil.rmtree(agent_path)
+            elif agent_path.is_dir(): shutil.rmtree(agent_path, onerror=on_rm_error)
             else: agent_path.unlink(missing_ok=True)
         
         # Always copy instead of symlink to avoid cross-OS issues (Windows + WSL)
@@ -149,9 +154,14 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
             if not agent_path.exists():
                 agent_path.parent.mkdir(parents=True, exist_ok=True)
             
+            def on_rm_error(func, path, exc_info):
+                import stat
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+
             if agent_path.exists():
                 if agent_path.is_symlink(): agent_path.unlink(missing_ok=True)
-                elif agent_path.is_dir(): shutil.rmtree(agent_path)
+                elif agent_path.is_dir(): shutil.rmtree(agent_path, onerror=on_rm_error)
                 else: agent_path.unlink(missing_ok=True)
                 
             if source_path.is_dir():
