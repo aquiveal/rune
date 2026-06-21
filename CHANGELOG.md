@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.39] - 2026-06-21
+
+### 🚀 Features
+
+- Allow dynamic max token configuration
+- Add support for repomap max tokens config
+
 ## [26.6.38] - 2026-06-21
 
 ### 🐛 Bug Fixes
@@ -11,6 +18,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Update module service tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.38
 
 ## [26.6.37] - 2026-06-20
 
