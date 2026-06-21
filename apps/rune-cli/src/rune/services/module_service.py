@@ -59,7 +59,7 @@ def add_module(git_root: Path, cwd: Path, url: str, path: str, name: str, type: 
         
         # Always copy instead of symlink to avoid cross-OS issues (Windows + WSL)
         if source_path.is_dir():
-            shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
+            shutil.copytree(source_path, agent_path, dirs_exist_ok=True, ignore_dangling_symlinks=True)
             
             # Remove .git if it was copied (e.g. submodule fetching)
             git_dir = agent_path / ".git"
@@ -175,7 +175,7 @@ def update_modules(git_root: Path, type: Optional[str] = None, global_scope: boo
                 else: agent_path.unlink(missing_ok=True)
                 
             if source_path.is_dir():
-                shutil.copytree(source_path, agent_path, dirs_exist_ok=True)
+                shutil.copytree(source_path, agent_path, dirs_exist_ok=True, ignore_dangling_symlinks=True)
                 git_dir = agent_path / ".git"
                 try:
                     if git_dir.exists():
