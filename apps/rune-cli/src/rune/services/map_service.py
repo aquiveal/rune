@@ -4,10 +4,13 @@ from aider.io import InputOutput
 from aider.models import Model
 from rune.repositories import config_repository, git_repository
 
-def generate_submodule_map(module_path: Path, max_tokens: int = 1000) -> str:
+def generate_submodule_map(module_path: Path, max_tokens: int | None = None) -> str:
     # Determine model from rune config, default to gemini/gemini-3.1-flash-lite
     git_root = git_repository.get_git_root(module_path) or module_path
     model_name = config_repository.get_repomap_model(git_root)
+    
+    if max_tokens is None:
+        max_tokens = config_repository.get_repomap_max_tokens(git_root)
     
     io = InputOutput()
     
