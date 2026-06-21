@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.38] - 2026-06-21
+
+### 🐛 Bug Fixes
+
+- Ignore dangling symlinks during directory copy
+
+### 🧪 Testing
+
+- Update module service tests
+
 ## [26.6.37] - 2026-06-20
 
 ### 🚀 Features
@@ -11,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Remove debug print statement
+- Release 26.6.37
 
 ## [26.6.36] - 2026-06-20
 
