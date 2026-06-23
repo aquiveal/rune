@@ -1,9 +1,9 @@
-import pytest
 from typer.testing import CliRunner
 from rune.main import app
 import os
 
 runner = CliRunner()
+
 
 def test_init(tmp_path):
     os.chdir(tmp_path)

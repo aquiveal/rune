@@ -1,183 +1,192 @@
 # Rune
 
-Rune is a Git-like command-line tool designed to manage LLM coding agent context, rules, and skills. It acts as a shadow version control system, allowing you to seamlessly integrate, update, and manage guidelines and executable skills for your AI agents across different projects.
+Rune is a Git-like command-line tool designed to manage LLM coding agent context, rules, and skills. It acts as a shadow version control system, allowing you to seamlessly integrate, update, and manage guidelines and executable skills for your AI agents across different projects without polluting your primary git history.
 
 ## Features
 
 - **Agent Context Management**: Easily manage rules and skills for various LLM agents (e.g., Roo, Cursor, Windsurf).
-- **Git-like Workflow**: Familiar commands like `init`, `status`, `update`, `remote`, `skills`, and `rules`.
-- **Global and Local Scopes**: Install rules and skills globally for all projects or locally for a specific repository.
-- **Submodule Support**: Manage rules and skills as Git submodules, ensuring they stay up-to-date with upstream changes.
-- **Skill Scaffolding**: Quickly scaffold new skills with a standard directory structure.
-- **Rule Merging**: Automatically merge installed rules into an `AGENTS.md` file for easy consumption by LLMs.
+- **Git-like Workflow**: Familiar commands like `init`, `status`, `update`, `fetch`, `pull`, `diff`, `remote`, `skills`, `rules`, and `modules`.
+- **Global and Local Scopes**: Install rules and skills globally for all projects (`~/.roo/skills`, `.cursor/rules`) or locally for a specific repository.
+- **Rune Modules (`.runemodules`)**: Manage external dependencies as internal tracked clones. This ensures easy upstream syncing, deterministic versions, and isolation from standard git submodules.
+- **Skill Scaffolding**: Quickly scaffold new skills with a standard directory structure and automatically validate them against specification constraints.
+- **Rule Merging**: Automatically merge installed rules into an `AGENTS.md` file for easy consumption by generic LLMs.
+- **Dependency Sandboxing**: Skills are sandboxed into their own directories.
 
 ## Installation
 
-Rune is managed using PDM, a modern Python package and dependency manager.
+Rune uses PDM (Python Dependency Manager) and standard Python deployment tools like `uv` and `pipx`.
 
 ### Prerequisites
 
 1. Python 3.11 or higher.
-2. PDM (Python Dependency Manager). Install it using pip:
-   ```sh
-   pip install pdm
-   ```
 
-### Installing the CLI
-
-You can install Rune CLI globally in your system or use it within a virtual environment.
-
-#### Option 1: Global Installation via pipx or uv (Recommended)
+### Option 1: Global Installation via `uv` or `pipx` (Recommended)
 
 To install Rune globally on your system so you can use the `rune` command anywhere:
 
-```sh
-# Install globally using pipx from git
-pipx install "git+https://github.com/aquiveal/rune.git#subdirectory=apps/rune-cli"
-
-# Or using uv from git
+```bash
+# Using uv (extremely fast)
 uv tool install "git+https://github.com/aquiveal/rune.git#subdirectory=apps/rune-cli"
+
+# Using pipx
+pipx install "git+https://github.com/aquiveal/rune.git#subdirectory=apps/rune-cli"
 ```
 
 You can also install it from a local clone:
 
-```sh
-# Clone the repository
+```bash
 git clone https://github.com/aquiveal/rune.git
 cd rune/apps/rune-cli
 
-# Install globally using pipx
-pipx install .
-
-# Or using uv
 uv tool install .
+# or
+pipx install .
 ```
 
-Make sure your Python global scripts directory is in your `PATH` (typically `~/.local/bin` on Linux/macOS/WSL or `%APPDATA%\Python\Scripts` on Windows).
+*Ensure your Python global scripts directory is in your `PATH`.*
 
-#### Option 2: Editable Installation (Development)
+### Option 2: Editable Installation (Development)
 
 If you want to contribute to Rune or run it locally:
 
-```sh
+```bash
 git clone https://github.com/aquiveal/rune.git
 cd rune/apps/rune-cli
 pdm install
-```
 
-You can then run commands using:
-
-```sh
 pdm run rune --help
 ```
+
+## Core Concepts
+
+- **Rules**: Markdown files containing guidelines for LLMs. Rune organizes rules into specific directories and merges them into an `AGENTS.md` file to inject context.
+- **Skills**: Advanced executable capabilities (e.g., Python scripts, bash scripts) mapped using an AST parser (like Aider) or executed directly by agent tools. Skills must include a `SKILL.md` entrypoint.
+- **Modules**: A generic term for any context package (Rules or Skills). Handled via `.runemodules`.
+- **Remotes**: URL aliases pointing to central repositories holding community or personal rules and skills.
+- **AGENTS.md**: A compiled manifest file injected into LLM context prompts detailing the project's activated rules.
 
 ## Usage
 
 ### Initialization
 
-Initialize a new Rune repository in your current directory:
+Initialize a new Rune shadow repository in your current directory. This creates a `.rune` folder to store configuration and state.
 
-```sh
+```bash
 rune init
 ```
 
-This creates a `.rune` directory to store configuration and state.
+### Managing Rules (`rune rules`)
 
-### Managing Rules
+Rules dictate coding standards, architectural guidelines, and best practices.
 
-Rules are markdown files that define coding standards, architectural guidelines, and best practices for your agents.
+**Install Rules**
+```bash
+# Install a rule locally from a git repo (using a remote alias or full URL)
+rune rules add <source_url_or_alias>
 
-- **Add a rule**:
-  ```sh
-  rune rules add <source_url_or_alias>
-  ```
-  Example: `rune rules add aquiveal/rune --rule language-python`
+# Install a specific rule by name
+rune rules add aquiveal/rune --rule language-python
 
-- **List installed rules**:
-  ```sh
-  rune rules list
-  ```
+# Target a specific AI agent (e.g. roo, cursor)
+rune rules add aquiveal/rune --agent cursor
 
-- **Update rules**:
-  ```sh
-  rune rules update
-  ```
-  This updates the rule submodules and merges them into `AGENTS.md`.
+# Install globally to your home directory (~/.cursor/rules, ~/.roo/skills)
+rune rules add aquiveal/rune --global
 
-- **Remove a rule**:
-  ```sh
-  rune rules remove <rule_name>
-  ```
-
-- **Scaffold a new rule**:
-  ```sh
-  rune rules init <rule_name>
-  ```
-
-### Managing Skills
-
-Skills are executable agent capabilities, often containing scripts, references, and a `SKILL.md` file.
-
-- **Add a skill**:
-  ```sh
-  rune skills add <source_url_or_alias>
-  ```
-
-- **List installed skills**:
-  ```sh
-  rune skills list
-  ```
-
-- **Update skills**:
-  ```sh
-  rune skills update
-  ```
-
-- **Remove a skill**:
-  ```sh
-  rune skills remove <skill_name>
-  ```
-
-- **Scaffold a new skill**:
-  ```sh
-  rune skills init <skill_name>
-  ```
-
-- **Validate a skill**:
-  ```sh
-  rune skills validate <path_to_skill>
-  ```
-
-### Submodules
-
-Manage submodules contextually within skills:
-
-```sh
-cd .agents/skills
-rune submodule add <git_url> <target_skill_name>
+# Copy files directly instead of tracking them via .runemodules
+rune rules add aquiveal/rune --copy
 ```
 
-### Configuration
+**View & Update Rules**
+```bash
+# List all installed rules (local)
+rune rules list
 
-Manage Rune configuration options:
+# Update all tracked rules to their latest upstream commits and merge into AGENTS.md
+rune rules update
 
-```sh
+# Remove a specific installed rule
+rune rules remove <rule_name>
+```
+
+**Authoring Rules**
+```bash
+# Scaffold a new rule directory with standard boilerplate files
+rune rules init <rule_name>
+```
+
+### Managing Skills (`rune skills`)
+
+Skills provide executable logic and advanced tool instructions for agents.
+
+**Install Skills**
+```bash
+# Install a skill from a repo
+rune skills add <source_url_or_alias>
+```
+
+**View, Update & Remove Skills**
+```bash
+# List all installed skills
+rune skills list
+
+# Update all tracked skills to their latest upstream commits
+rune skills update
+
+# Remove a specific installed skill
+rune skills remove <skill_name>
+```
+
+**Authoring Skills**
+```bash
+# Scaffold a new skill directory with a standard SKILL.md template
+rune skills init <skill_name>
+
+# Validate an existing skill against the Agents specification
+rune skills validate <path_to_skill>
+```
+
+### Contextual Modules (`rune modules`)
+
+A generic command for managing both skills and rules interchangeably.
+
+```bash
+# Contextually adds a module (rule or skill) depending on the environment
+rune modules add <source_url_or_alias>
+```
+
+### Base CLI Commands
+
+**Status**
+```bash
+# View the overall status of your local Rune repository, including installed modules
+rune status
+```
+
+**Git-like Synchronization**
+```bash
+# Update everything across your environment (Skills and Rules)
+rune update
+rune update --global
+
+# Fetch updates for runemodules without applying them
+rune fetch
+
+# Pull and merge updates for runemodules
+rune pull
+
+# Show changes between local agent rules and upstream
+rune diff
+```
+
+**Config & Remotes**
+```bash
+# Get or set options in `.rune/config`
 rune config <key> [value]
-```
 
-### Remote Repositories
-
-Add remote repository aliases for easier rule and skill installation:
-
-```sh
+# Manage remote repository aliases (simplifies `add` commands)
 rune remote add <alias> <url>
 ```
-
-## Project Structure
-
-- `apps/rune-cli/`: The source code for the Rune command-line interface.
-- `rules/`: A collection of standard rules for various languages and frameworks.
-- `specs/`: Specifications for Rune features and formats.
 
 ## License
 

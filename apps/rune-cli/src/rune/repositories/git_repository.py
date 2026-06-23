@@ -3,17 +3,21 @@ from pathlib import Path
 from typing import List, Optional
 from rune.config.exceptions import GitError
 
-def run_git(args: List[str], cwd: Optional[Path] = None, capture_output: bool = True) -> subprocess.CompletedProcess:
+
+def run_git(
+    args: List[str], cwd: Optional[Path] = None, capture_output: bool = True
+) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
             ["git"] + args,
             cwd=str(cwd) if cwd else None,
             capture_output=capture_output,
             text=True,
-            check=True
+            check=True,
         )
     except subprocess.CalledProcessError as e:
         raise GitError(f"Git command failed: {' '.join(e.cmd)}\nError: {e.stderr}")
+
 
 def clone(url: str, target_path: Path, depth: Optional[int] = None):
     args = ["clone"]
@@ -22,12 +26,14 @@ def clone(url: str, target_path: Path, depth: Optional[int] = None):
     args += [url, str(target_path)]
     run_git(args)
 
+
 def add_submodule(url: str, path: str, cwd: Path, force: bool = False):
     args = ["-c", "protocol.file.allow=always", "submodule", "add"]
     if force:
         args.append("-f")
     args.extend([url, path])
     run_git(args, cwd=cwd)
+
 
 def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
     args = ["submodule", "update"]
@@ -37,14 +43,18 @@ def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
         args.append("--recursive")
     run_git(args, cwd=cwd)
 
+
 def sparse_checkout_init(cwd: Path):
     run_git(["sparse-checkout", "init"], cwd=cwd)
+
 
 def sparse_checkout_set(cwd: Path, paths: List[str]):
     run_git(["sparse-checkout", "set", "--skip-checks"] + paths, cwd=cwd)
 
+
 def sparse_checkout_add(cwd: Path, paths: List[str]):
     run_git(["sparse-checkout", "add", "--skip-checks"] + paths, cwd=cwd)
+
 
 def is_git_repo(cwd: Path) -> bool:
     try:
@@ -53,12 +63,14 @@ def is_git_repo(cwd: Path) -> bool:
     except GitError:
         return False
 
+
 def get_git_root(cwd: Path) -> Optional[Path]:
     try:
         result = run_git(["rev-parse", "--show-toplevel"], cwd=cwd)
         return Path(result.stdout.strip())
     except GitError:
         return None
+
 
 def get_short_sha(cwd: Path) -> Optional[str]:
     try:
@@ -67,12 +79,14 @@ def get_short_sha(cwd: Path) -> Optional[str]:
     except GitError:
         return None
 
+
 def get_config(key: str, file_path: Path) -> Optional[str]:
     try:
         result = run_git(["config", "--file", str(file_path), key])
         return result.stdout.strip()
     except GitError:
         return None
+
 
 def get_config_all(key: str, file_path: Path) -> List[str]:
     try:
@@ -81,17 +95,21 @@ def get_config_all(key: str, file_path: Path) -> List[str]:
     except GitError:
         return []
 
+
 def set_config(key: str, value: str, file_path: Path):
     run_git(["config", "--file", str(file_path), key, value])
 
+
 def add_config(key: str, value: str, file_path: Path):
     run_git(["config", "--file", str(file_path), "--add", key, value])
+
 
 def unset_config_section(section: str, file_path: Path):
     try:
         run_git(["config", "--file", str(file_path), "--remove-section", section])
     except GitError:
-        pass # Section might not exist
+        pass  # Section might not exist
+
 
 def get_default_branch(url: str) -> str:
     try:

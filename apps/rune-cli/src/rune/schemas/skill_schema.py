@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Dict
+from typing import Optional
 import re
+
 
 class SkillMetadata(BaseModel):
     internal: bool = False
+
 
 class SkillSchema(BaseModel):
     name: str = Field(..., min_length=1, max_length=64)
@@ -17,5 +19,7 @@ class SkillSchema(BaseModel):
     @classmethod
     def validate_name(cls, v: str) -> str:
         if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", v):
-            raise ValueError("Name must contain only lowercase letters, numbers, and hyphens. Cannot start/end with a hyphen or have consecutive hyphens.")
+            raise ValueError(
+                "Name must contain only lowercase letters, numbers, and hyphens. Cannot start/end with a hyphen or have consecutive hyphens."
+            )
         return v

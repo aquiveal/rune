@@ -2,6 +2,7 @@ import typer
 from pathlib import Path
 from rune.services import workspace_service
 
+
 def init_cmd():
     """Initialize a new Rune repository."""
     cwd = Path.cwd()
