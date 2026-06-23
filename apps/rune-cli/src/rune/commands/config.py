@@ -13,9 +13,8 @@ def config_cmd(
     """Get or set options in .rune/config"""
     root_dir = Path.cwd()
     from rune.repositories import git_repository
-    from rune.config.main import settings
 
-    config_path = root_dir / settings.rune_dir / settings.rune_config
+    config_path = root_dir / ".rune" / "config"
 
     if not config_path.exists():
         typer.echo("Error: .rune/config not found. Run `rune init` first.", err=True)
