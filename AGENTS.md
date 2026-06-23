@@ -1,5 +1,563 @@
 # Rules
 
+## Elite Architecture & Coding Standards
+
+This document condenses the master repository rules into a dense, actionable reference for AI coding agents. It preserves all critical constraints, patterns, and vocabulary from the foundational architecture texts.
+
+### 1. Clean Architecture & SOLID Principles (Robert C. Martin)
+- **The Dependency Rule**: Source code dependencies MUST point strictly inward toward high-level policies (Entities/Use Cases).
+- **Entities**: Encapsulate enterprise-wide Critical Business Rules and Data. MUST NOT depend on frameworks, DBs, or UI.
+- **Use Cases**: Application-specific business rules orchestrating Entities. MUST NOT contain SQL, HTML, or routing. Use simple Request/Response DTOs.
+- **Interface Adapters**: Convert data between Use Cases and external agencies (Web, DB). Contains MVC components, Presenters, and DB Gateways.
+- **Frameworks & Drivers**: Outermost layer. Treat frameworks as interchangeable details. Do NOT inherit core objects from framework base classes (avoid Asymmetric Marriages).
+- **Boundaries**: Use Dependency Inversion (interfaces) to cross boundaries against the flow of control. Pass simple DTOs across boundaries, NEVER Entities or DB rows.
+- **Main Component**: The dirtiest component. Centralizes DI, configuration, and instantiation. Plugs into high-level policy.
+- **Screaming Architecture**: Top-level directories MUST reveal business intent (e.g., `/Checkout`), not frameworks (e.g., `/Controllers`).
+- **SRP (Single Responsibility)**: A module should be responsible to one, and only one, actor. Separate code serving different actors.
+- **OCP (Open-Closed)**: Open for extension, closed for modification. Protect high-level components from low-level changes.
+- **LSP (Liskov Substitution)**: Subtypes MUST be substitutable for base types without altering caller behavior. Avoid type-checking conditionals (`instanceof`, `switch` on type).
+- **ISP (Interface Segregation)**: Do not depend on unused methods. Segregate bloated interfaces into client-specific ones to avoid Architectural Baggage.
+- **DIP (Dependency Inversion)**: Depend on abstractions, not concretions. Use Abstract Factories for volatile concrete object creation.
+- **Component Cohesion (REP, CCP, CRP)**: Group classes that change together (CCP) and are reused together (CRP). Release as cohesive units (REP).
+- **Component Coupling (ADP, SDP, SAP)**: Zero dependency cycles (ADP). Depend in the direction of stability (SDP). Stable components must be abstract (SAP).
+- **Humble Object Pattern**: Split hard-to-test behaviors (UI/IO) into a Humble Object (View) and a testable object (Presenter/Interactor).
+- **Partial Boundaries**: Use when full boundaries are too expensive: Skip the Last Step (same deployable), One-Dimensional (Strategy pattern), or Facade.
+- **Clean Embedded Architecture**: Eliminate Target-Hardware Bottleneck using HAL, PAL, and OSAL. Test off-target.
+- **The Missing Chapter (Packaging)**: Prefer Package by Component for monoliths. Use compiler access modifiers (`package-private`/`internal`) to enforce boundaries, not just folders.
+
+### 2. Microservices Patterns (Chris Richardson & Sam Newman)
+- **Bounded Contexts**: Align microservices to business domains, not technical layers. Each service MUST own its database. NO shared databases.
+- **Fallacies of Distributed Computing**: Network is not reliable, latency is not zero. MUST use timeouts, retries (with backoff for transient errors), and Circuit Breakers for all remote calls.
+- **Stamp Coupling**: Minimize payload size. Do not send 500kb if only 200 bytes are needed.
+- **Sagas**: Use for distributed transactions. NO 2PC/XA. Use Choreography (events) for simple/cross-team workflows, Orchestration (central mediator) for complex/single-team workflows. Define Compensating Transactions for rollbacks.
+- **API Gateway & BFF**: Use API Gateways for North-South traffic (auth, rate limiting). Use Backends for Frontends (BFF) for client-specific aggregation. Do NOT put business logic in gateways.
+- **Strangler Fig Pattern**: Migrate monoliths incrementally. Extract vertical slices. Use Anti-Corruption Layers (ACL) to translate between legacy and new domain models.
+- **Service Mesh**: Use for East-West traffic reliability (mTLS, retries, routing) via sidecars.
+- **Communication**: Default to asynchronous messaging. Use synchronous (REST/gRPC) only when immediate response is required.
+- **Architecture Quantum**: An independently deployable artifact with high functional cohesion and synchronous connascence. Dictates monolith vs distributed.
+- **First Law of Distributed Object Design**: Don't distribute your objects! Use Clustering instead. Use Remote Facades and DTOs at strict distribution boundaries.
+- **Testing Microservices**: Follow the Test Pyramid. Use Solitary Unit Tests for Domain Services/Controllers. Use Sociable Unit Tests for Entities/Value Objects. Use Consumer-Driven Contracts (CDC) like Pact instead of brittle E2E tests.
+- **Deployment**: Serverless -> Containers -> VMs. One logical service per container. Use Deployments, Services, Liveness/Readiness probes. Externalize config via ConfigMaps/Secrets.
+- **Progressive Delivery**: Separate deployment from release. Use Feature Toggles, Canary Releases, and Parallel Runs.
+- **Security**: Zero Trust. mTLS for inter-service. Centralized Auth at Gateway, decentralized Authorization (via JWT claims) in services. Principle of Least Privilege. Datensparsamkeit (data frugality).
+- **Scaling**: Evaluate Vertical -> Horizontal -> Partitioning -> Functional Decomposition. Implement Caching judiciously (Client, Server, Request).
+
+### 3. Event-Driven Architecture & Streaming (Adam Bellemare & Ben Stopford)
+- **Event Sourcing**: Store state as an immutable sequence of events. Rebuild state by replaying events. Use Snapshots and Upcasting.
+- **CQRS**: Segregate Command (write) and Query (read) models. Update read models asynchronously via events.
+- **Single Writer Principle**: Only ONE microservice may write to a specific event stream.
+- **Kafka/Streaming**: Treat the event log as the single source of truth. Push data to code (materialized views/state stores) instead of remote DB queries.
+- **Stateful Streaming**: Use local state stores (e.g., RocksDB) backed by compacted changelog topics.
+- **Exactly-Once Processing**: Wrap consume-process-produce in Kafka transactions.
+- **Schema Evolution**: Use explicit schemas (Avro/Protobuf). Prefer forward/backward compatibility. For breaking changes, use Dual Schema Upgrade Window (v1 and v2 topics).
+- **Determinism**: Use Event Time (not wall-clock time). Handle late events via Grace Periods. Avoid external synchronous API calls in stream processors.
+- **Dead Letter Queues (DLQ)**: Route unprocessable messages to a DLQ to prevent blocking the main stream.
+- **Join-Filter-Process**: Standard streaming topology pattern. Use `selectKey` to rekey/copartition before joining.
+- **Data Liberation**: Extract legacy data via Outbox Pattern, CDC (Log-Based), or Query-Based liberation.
+- **FaaS/Serverless**: Map one function per microservice or per aggregate. Manage cold starts. Commit offsets ONLY after successful execution.
+- **Basic Producer and Consumer (BPC)**: Use Sidecar Pattern for legacy integration, Gating Pattern for unordered prerequisites.
+- **Heavyweight Frameworks**: Spark/Flink. Use Driver Mode, Checkpoints, External Shuffle Service.
+
+### 4. Refactoring & Code Quality (Martin Fowler)
+- **Two Hats**: Strictly separate adding functionality from refactoring. Do not do both simultaneously.
+- **Code Smells**: Extract long functions, replace temps with queries, encapsulate mutable data, replace primitives with objects (Value Objects).
+- **Conditional Logic**: Decompose complex conditionals. Use Guard Clauses for edge cases. Replace type-code switches with Polymorphism. Use Special Case (Null) Objects.
+- **Testing**: Tests MUST be isolated and deterministic. Use Fresh Fixtures (no shared mutable state).
+- **Test Boundary**: Tests are system components in the outermost circle. They depend on the system; the system NEVER depends on tests. Use a Testing API to bypass volatile GUIs.
+- **Moving Features**: Slide Statements, Split Loop, Replace Loop with Pipeline.
+- **Dealing with Inheritance**: Pull Up/Push Down methods. Replace Subclass/Superclass with Delegate (Composition over Inheritance).
+- **Organizing Data**: Split Variable, Derived Variable, Value vs Reference Object.
+- **Refactoring APIs**: Command-Query Separation, Flag Arguments, Preserve Whole Object.
+
+### 5. Enterprise Application Architecture (Martin Fowler)
+- **Database is a Detail**: Keep DB logic in the outermost circle. Business rules MUST be ignorant of SQL/ORM.
+- **Data Source Patterns**: 
+  - *Active Record*: Simple domain logic, isomorphic schema.
+  - *Data Mapper*: Complex domain logic, divergent schema.
+  - *Table/Row Data Gateway*: Transaction Scripts or Table Modules.
+- **Unit of Work**: Track changes and commit all DB updates at the end of a business transaction.
+- **Identity Map**: Cache loaded objects per session to prevent duplicate instances and inconsistent reads.
+- **Lazy Load**: Defer loading related objects. Avoid Ripple Loading (N+1 queries) by using Ghost Lists.
+- **Offline Concurrency**: 
+  - *Optimistic Offline Lock*: Default choice. Use version numbers, check on update.
+  - *Pessimistic Offline Lock*: Use only for high-conflict scenarios. Fail fast, do not block.
+- **Session State**: Prefer Client Session State (encrypted DTOs) or Database Session State (Pending Tables). Avoid Server Session State in memory for clustered environments.
+- **Object-Relational Structural Patterns**: Use Meaningless Keys (Identity Field). Map inheritance via Single Table, Class Table, or Concrete Table Inheritance.
+- **Web Presentation Patterns**: MVC, Page/Front Controller, Template/Transform/Two Step View.
+- **Base Patterns**: Gateway, Mapper, Layer Supertype, Registry, Value Object, Special Case.
+
+### 6. Fundamentals of Software Architecture (Mark Richards)
+- **Architecture Styles**: 
+  - *Layered Architecture*: Enforce closed layers to maintain isolation. Beware the Architecture Sinkhole anti-pattern.
+  - *Pipeline Architecture*: Unidirectional, stateless Pipes and Filters.
+  - *Microkernel Architecture*: Core system + independent Plug-in components.
+  - *Service-Based Architecture*: Coarse-grained services sharing a monolithic database.
+  - *Space-Based Architecture*: Tuple space, Processing Units, Data Grids, Data Pumps. High elasticity, no synchronous DB bottlenecks.
+  - *Orchestration-Driven SOA*: Legacy ESB pattern. High reuse, high coupling. Avoid for modern systems.
+- **Architecture Characteristics**: Explicit vs Implicit, Operational vs Structural. Least Worst Architecture.
+- **Measuring and Governing**: Performance Budgets, Cyclomatic Complexity, Fitness Functions, Chaos Engineering.
+- **Component-Based Thinking**: Actor/Actions, Event Storming, Workflow Approach. Avoid Entity Trap.
+- **Organizational & Soft Skills**:
+  - *Conway's Law*: Align architecture with team structures (Stream-Aligned Teams).
+  - *ADRs*: Document architecturally significant decisions using Architecture Decision Records (Context, Decision, Consequences).
+  - *Risk Matrix*: Calculate risk as Impact × Likelihood. Unproven tech = 9 (High Risk).
+  - *Elastic Leadership*: Adjust architectural control based on team size, familiarity, and project complexity.
+  - *Negotiation*: Use "Divide-and-Conquer" for extreme requirements (e.g., 5 nines). "Demonstration Defeats Discussion". Use collaborative grammar.
+  - *Diagramming*: Enforce Representational Consistency (macro before micro). Use C4 Model. Avoid "Irrational Artifact Attachment" by starting low-fidelity.
+  - *Career Path*: Follow the 20-Minute Rule for daily learning. Maintain a Technology Radar (Hold, Assess, Trial, Adopt).
+
+## Architecture & Business Standards (DDD)
+
+### 🎯 Directives
+
+#### 1. Domain Analysis & Subdomains
+- ALWAYS classify subdomains: **Core** (complex, competitive edge -> build in-house, Domain Model/Event Sourcing), **Generic** (complex, solved -> buy/open-source), **Supporting** (simple CRUD -> build in-house, Transaction Script/Active Record).
+- ALWAYS use the **Ubiquitous Language (UL)** for all class, method, and variable names. NEVER use technical jargon (e.g., `Manager`, `Processor`).
+- ALWAYS resolve ambiguous or synonymous business terms into strict, single-meaning definitions.
+
+#### 2. Bounded Contexts (BC) & Integration
+- ALWAYS enforce Bounded Contexts as strict linguistic and physical boundaries. One team per BC.
+- ALWAYS define integration patterns explicitly (Context Map):
+  - **Anticorruption Layer (ACL)**: ALWAYS use for downstream Core Subdomains to translate and protect against upstream legacy/foreign models.
+  - **Open-Host Service (OHS) & Published Language (PL)**: ALWAYS use upstream to expose a stable, decoupled API (e.g., JSON schema) hiding internal implementation.
+  - **Shared Kernel**: ONLY use for sharing minimal integration contracts.
+  - **Separate Ways**: Duplicate functionality if integration cost > duplication cost (NEVER for Core Subdomains).
+
+#### 3. Tactical Design (Domain Model)
+- ALWAYS prefer **Value Objects (VO)** (immutable, no identity, value-based equality, side-effect-free, conceptual whole) over Entities.
+- ALWAYS model **Entities** with unique, immutable identity (using custom VOs, e.g., `TenantId`) and mutable state. Use self-encapsulation (private setters).
+- ALWAYS design **Aggregates** as strict transactional boundaries:
+  - NEVER modify more than ONE Aggregate instance per database transaction. Use Eventual Consistency (Domain Events) for multi-aggregate updates.
+  - NEVER reference other Aggregates by object reference; ALWAYS reference by ID.
+  - ALWAYS keep Aggregates as small as possible (true invariants only).
+  - ALWAYS designate one Entity as the **Aggregate Root (AR)**. All external access MUST go through the AR.
+  - ALWAYS use Intention-Revealing Interfaces (e.g., `commitTo()`) and hide state mutation.
+  - ALWAYS implement Optimistic Concurrency (e.g., `version` field) on the AR.
+- ALWAYS use **Domain Services** for stateless operations spanning multiple Aggregates or requiring technical infrastructure. NEVER use them to strip behavior from Entities (Anemic Domain Model).
+- ALWAYS use **Factories** (Factory Methods on ARs or Domain Services) to encapsulate complex creation and enforce invariants. Hide constructors.
+- ALWAYS restrict **Repositories** to Aggregate Roots ONLY. Hide persistence details. NEVER manage transactions inside Repositories.
+
+#### 4. Business Logic & Architecture Patterns
+- ALWAYS align architecture with business logic complexity:
+  - **Transaction Script**: Simple procedural logic. Use Minimal Layered Architecture. Test via Reversed Pyramid (E2E).
+  - **Active Record**: Simple logic, complex data mapping. Use Layered Architecture + Application Service. Test via Diamond (Integration).
+  - **Domain Model**: Complex rules/invariants. Use Ports & Adapters (Hexagonal). Test via Pyramid (Unit).
+  - **Event-Sourced Domain Model (A+ES)**: Financial/audit-heavy domains. State is an append-only stream of Domain Events. ALWAYS pair with CQRS. Separate `Apply` (append event) and `Mutate` (update state).
+- ALWAYS keep **Application Services** thin. They MUST ONLY handle task coordination, transaction boundaries, and security. NEVER put business logic in Application Services. Use Command Objects for input.
+
+#### 5. Communication & Event-Driven Architecture (EDA)
+- ALWAYS classify asynchronous messages: **Events** (past tense, e.g., `OrderSubmitted`) or **Commands** (imperative, e.g., `SubmitOrder`).
+- ALWAYS select the correct Event type:
+  - **Event Notification**: Lightweight ping (ID/link). Use for sensitive data or strict concurrency.
+  - **Event-Carried State Transfer (ECST)**: State snapshot. Use for local caching/high availability.
+  - **Domain Event**: Internal BC modeling. NEVER expose raw Domain Events externally; translate to a Published Language.
+- ALWAYS use the **Outbox Pattern** (atomic save of state + outgoing events) to guarantee at-least-once delivery.
+- ALWAYS design consumers to be **Idempotent**.
+- ALWAYS use **Sagas** for linear, multi-step processes across BCs (with compensating actions). Use **Process Managers** for complex workflows with conditional routing.
+
+#### 6. Microservices & Modules
+- ALWAYS design Microservices as "deep modules" aligned with Subdomains. Encapsulate the database. Compress public interfaces (OHS).
+- NEVER create "shallow services" (e.g., single-method or single-aggregate services) that cause Distributed Big Balls of Mud.
+- ALWAYS group cohesive domain concepts into **Modules** (namespaces/packages) using the UL (e.g., `com.company.context.domain.model.concept`). NEVER group mechanically (e.g., all exceptions together).
+
+#### 7. Legacy Modernization & Data Mesh
+- ALWAYS use the **Strangler Pattern** with a Façade to incrementally replace legacy systems.
+- ALWAYS treat analytical data as a **Data Product** owned by the operational Bounded Context (Data Mesh).
+- ALWAYS use CQRS to project operational events into analytical **Fact** (append-only) and **Dimension** (normalized) tables. Expose via Polyglot Data Endpoints. NEVER extract directly from operational DB schemas.
+
+#### 8. EventStorming
+- ALWAYS follow the 10-step process for complex domains: Domain Events (Orange, past tense) -> Timelines -> Pain Points (Pink) -> Pivotal Events -> Commands (Blue, imperative) & Actors (Yellow) -> Policies (Purple) -> Read Models (Green) -> External Systems (Pink) -> Aggregates (Yellow) -> Bounded Contexts.
+
+### 📝 Examples
+
+#### ✅ DO
+```csharp
+// DO: Small Aggregate, ID references, Intention-Revealing Interface, Eventual Consistency
+public class Ticket : Entity 
+{
+    private TicketId _id;
+    private CustomerId _customerId; // ID reference, not object
+    private int _version;
+
+    // Hidden constructor
+    protected Ticket() { }
+
+    // Intention-revealing command
+    public void Escalate(EscalationReason reason) 
+    {
+        if (this.IsClosed) throw new DomainException("Cannot escalate closed ticket.");
+        
+        this.IsEscalated = true;
+        this._version++;
+        
+        // Publish Domain Event for eventual consistency
+        DomainEventPublisher.Instance.Publish(new TicketEscalated(_id, reason));
+    }
+}
+
+// DO: Thin Application Service handling transactions and coordination
+public class TicketService 
+{
+    [Transactional]
+    public void EscalateTicket(TicketId id, EscalationReason reason) 
+    {
+        var ticket = _repository.Load(id);
+        ticket.Escalate(reason);
+        _repository.Save(ticket); // Outbox pattern handled by repository/infrastructure
+    }
+}
+```
+
+#### ❌ DON'T
+```csharp
+// DON'T: Large cluster, object references, anemic domain model, multi-aggregate transactions
+public class Ticket 
+{
+    public Guid Id { get; set; }
+    public Customer Customer { get; set; } // Direct object reference
+    public bool IsEscalated { get; set; }
+}
+
+public class TicketService 
+{
+    [Transactional]
+    public void EscalateTicket(Guid ticketId, string reason) 
+    {
+        var ticket = _repository.Load(ticketId);
+        
+        // Business logic leaked into Application Service
+        if (ticket.Status == "Closed") return; 
+        
+        ticket.IsEscalated = true;
+        
+        // Modifying multiple aggregates in one transaction
+        ticket.Customer.EscalationCount++; 
+        
+        _repository.Save(ticket);
+        _customerRepository.Save(ticket.Customer);
+        
+        // Unsafe event publishing (prone to dual-write failure)
+        _messageBus.Publish(new TicketEscalatedEvent(ticketId)); 
+    }
+}
+```
+
+## Data Architecture and Strategy Standards
+
+### 🎯 Directives
+
+#### 1. Data Modeling & Schema Design (Relational & Dimensional)
+- ALWAYS separate intrinsic identity (`PARTY`, `PERSON`, `ORGANIZATION`) from contextual roles (`CUSTOMER`, `EMPLOYEE`). Use `PARTY_RELATIONSHIP` for interactions.
+- ALWAYS decouple marketing offerings (`PRODUCT`) from physical inventory (`PART`, `INVENTORY_ITEM`).
+- ALWAYS unify Sales and Purchase transactions under a generic `ORDER` supertype. Link shipping/billing to `ORDER_ITEM`.
+- NEVER overwrite financial data or quantities for corrections; ALWAYS use recursive adjusting `INVOICE_ITEM`s. Separate business transactions from accounting transactions (`TRANSACTION_DETAIL` with debit/credit).
+- ALWAYS separate `WORK_REQUIREMENT` (need), `WORK_ORDER_ITEM` (commitment), and `WORK_EFFORT` (execution). Track historical state using `from_date` and `thru_date`. Derive statuses where possible.
+- ALWAYS abstract addresses/phones into `CONTACT_MECHANISM` linked via associative entities with `PURPOSE` and `USAGE`.
+- ALWAYS enforce Normalization (1NF, 2NF, 3NF) in logical models. Denormalize (Rolldown/Rollup) in physical models ONLY for explicit performance gains.
+- ALWAYS resolve logical subtypes in physical models via Identity, Rolldown, or Rollup based on access patterns.
+- ALWAYS design Data Warehouses using Star Schemas: a central `FACT` table (numeric measures, composite primary keys) surrounded by flattened `DIMENSION` tables (e.g., `TIME_BY_DAY`). NEVER extract Data Marts directly from operational systems; source from the EDW.
+
+#### 2. Distributed Systems & Database Reliability
+- ALWAYS select storage engines based on workload: B-Trees for read-heavy/predictable latency, LSM-Trees for write-heavy, Columnar (Parquet/ORC) with Bitmap/RLE for OLAP.
+- ALWAYS configure replication appropriately: Single-Leader for strong consistency, Multi-Leader for geo-distribution (requires CRDTs), Leaderless for high availability (requires Quorum $W+R>N$).
+- NEVER use Last Write Wins (LWW) with wall-clock timestamps; ALWAYS use Version Vectors. 
+- ALWAYS wrap multi-object mutations in explicit ACID transactions. Prevent Lost Updates via atomic operations or `FOR UPDATE`. Prevent Write Skew via Serializable isolation or index-range locks.
+- ALWAYS mitigate hot keys using salting. NEVER use `hash % N` for routing; use Consistent Hashing.
+- ALWAYS use Fencing Tokens for distributed locks. Use 2PC for distributed transactions. Rely on ZooKeeper/etcd for consensus.
+- ALWAYS treat event logs as immutable Systems of Record. Derive read-optimized Materialized Views (CQRS) deterministically. Use pure functions.
+- ALWAYS prioritize MTTR over MTBF. Implement automated failover with STONITH. Monitor USE (Utilization, Saturation, Errors). Alert ONLY on imminent SLO violations.
+- ALWAYS enforce Datensparsamkeit (Data Minimization). Implement crypto-shredding for GDPR right-to-erasure in immutable logs. Use Prepared Statements. Enforce TLS 1.2+ and PFS.
+- NEVER treat replication as a backup. ALWAYS implement tiered physical backups and continuously test restores.
+
+#### 3. Information Architecture & Content Strategy
+- ALWAYS separate content meaning from visual presentation. Break content into semantic chunks (Elements) within Content Types. NEVER use WYSIWYG HTML blobs.
+- ALWAYS implement COPE (Create Once, Publish Everywhere) using Adaptive Content (filtered by device constraints) rather than relying solely on Responsive Design.
+- ALWAYS use Controlled Vocabularies. Define Preferred Terms (PT) and Variant Terms (VT/UF). Enforce the "All/Some" rule for Hierarchical relationships (BT/NT). Use Associative relationships (RT) for cross-hierarchy links.
+- ALWAYS use Faceted Classification (mutually exclusive dimensions like Topic, Audience, Geography) for complex, heterogeneous content instead of rigid single hierarchies.
+- ALWAYS tune search systems by weighting structural metadata. Implement "No Dead Ends" policies for zero-result SERPs.
+- ALWAYS use Open Card Sorts for discovery and Closed Card Sorts for validation. NEVER use card sorting to test findability; use task-based usability testing.
+- ALWAYS establish a Governance Board. Define strict rules for content lifecycles (Create, Review, Manage, Deliver).
+- ALWAYS use URIs for entities and structure data as RDF Triples (Subject-Predicate-Object). Embed Schema.org microdata in HTML.
+
+### 📝 Examples
+
+#### ✅ DO
+```sql
+-- DO: Use associative entities with date ranges for historical tracking
+CREATE TABLE party_role (
+    party_id INT REFERENCES party(party_id),
+    role_type_id INT REFERENCES role_type(role_type_id),
+    from_date DATE NOT NULL,
+    thru_date DATE,
+    PRIMARY KEY (party_id, role_type_id, from_date)
+);
+
+-- DO: Star Schema Fact Table with composite dimension keys
+CREATE TABLE sales_fact (
+    time_id INT REFERENCES time_dim(time_id),
+    product_id INT REFERENCES product_dim(product_id),
+    customer_id INT REFERENCES customer_dim(customer_id),
+    quantity_sold INT,
+    gross_revenue DECIMAL(15,2),
+    PRIMARY KEY (time_id, product_id, customer_id)
+);
+```
+
+```json
+// DO: Semantic, format-free content modeling for omnichannel delivery
+{
+  "content_type": "Recipe",
+  "id": "rec_123",
+  "metadata": {
+    "audience": "Beginner",
+    "dietary_tags": ["Vegan", "Gluten-Free"]
+  },
+  "elements": {
+    "title": "Roasted Carrots",
+    "teaser_mobile": "Quick and easy roasted carrots.",
+    "ingredients": ["Carrots", "Olive Oil", "Salt"],
+    "steps": ["Preheat oven to 400F.", "Roast for 20 mins."]
+  }
+}
+```
+
+```python
+## DO: Safe distributed locking with Fencing Tokens
+lock_token = coordination_service.acquire_lock("resource_x")
+db.execute(
+    "UPDATE table SET val = %s WHERE id = %s AND last_token <= %s", 
+    (new_val, resource_id, lock_token)
+)
+```
+
+#### ❌ DON'T
+```sql
+-- DON'T: Hardcode volatile attributes or repeating groups (1NF/3NF violations)
+CREATE TABLE customer (
+    customer_id INT PRIMARY KEY,
+    phone_1 VARCHAR(20),
+    phone_2 VARCHAR(20),
+    current_status VARCHAR(50) -- Loses history
+);
+
+-- DON'T: Use operational keys in Fact Tables
+CREATE TABLE sales_fact (
+    invoice_id INT PRIMARY KEY, -- Anti-pattern: Prevents dimensional aggregation
+    gross_revenue DECIMAL(15,2)
+);
+```
+
+```html
+<!-- DON'T: WYSIWYG blobs mixing content and presentation -->
+<div class="article-body">
+  <font size="5"><b>Roasted Carrots</b></font><br><br>
+  <i>Quick and easy roasted carrots.</i><br>
+  <ul><li>Carrots</li></ul>
+</div>
+```
+
+```python
+## DON'T: Naive read-modify-write vulnerable to Lost Updates
+row = db.execute("SELECT value FROM counters WHERE id = ?", counter_id)
+new_value = row['value'] + 1
+db.execute("UPDATE counters SET value = ? WHERE id = ?", new_value, counter_id)
+```
+
+## Architecture & Integration Standards
+
+### 🎯 Directives
+
+#### API Design & RESTful Principles
+- ALWAYS use standard HTTP methods correctly: `GET` (read, idempotent), `POST` (create/action), `PUT` (replace, idempotent), `PATCH` (partial update), `DELETE` (remove, idempotent).
+- ALWAYS use nouns for resource URIs (e.g., `/users/123`), NEVER verbs (e.g., `/getUser/123`).
+- ALWAYS enforce statelessness. NEVER store client session state on the server.
+- ALWAYS implement pagination (cursor-based preferred for large datasets) and filtering via query parameters.
+- ALWAYS version APIs (e.g., via `Accept` header or URI `/v1/`) and maintain backward compatibility (additive changes only).
+- ALWAYS return standard HTTP status codes (2xx, 3xx, 4xx, 5xx) and structured, machine-readable error payloads.
+- NEVER use Basic Authentication for public APIs; ALWAYS use OAuth 2.0 or JWT with granular scopes.
+
+#### Messaging & Enterprise Integration Patterns
+- ALWAYS decouple applications using asynchronous messaging (Publish-Subscribe for events, Point-to-Point for commands/documents).
+- ALWAYS separate routing/system metadata (Headers) from business data (Body) in messages.
+- ALWAYS use a Dead Letter Channel for undeliverable/expired messages and an Invalid Message Channel for parsing errors.
+- ALWAYS implement Idempotent Receivers to safely handle duplicate message deliveries.
+- NEVER hardcode reply channels; ALWAYS use a `Return Address` and `Correlation Identifier` for Request-Reply patterns.
+- NEVER mix different data schemas on the same channel; ALWAYS use Datatype Channels.
+- ALWAYS use a Messaging Gateway to encapsulate messaging infrastructure APIs away from business logic.
+
+#### Microservices & API Gateways
+- ALWAYS route external traffic through an API Gateway (Layer 7) for cross-cutting concerns (auth, rate limiting, SSL termination).
+- ALWAYS assign an isolated, exclusive database to each microservice (Polyglot Persistence). NEVER share databases or use cross-service SQL JOINs.
+- ALWAYS use Circuit Breakers with fallbacks and Retries (with exponential backoff) for downstream service calls.
+- ALWAYS pass a Correlation ID across all microservice boundaries for distributed tracing.
+- NEVER store rate-limiting counters or state in the API Gateway's local memory; use a distributed cache (e.g., Redis).
+
+### 📝 Examples
+
+#### ✅ DO
+```http
+GET /api/v1/users/123/orders?limit=50&cursor=eyJpZCI6MTIzNDV9 HTTP/1.1
+Authorization: Bearer <token>
+Accept: application/json
+```
+
+```java
+// Messaging Gateway abstracting infrastructure
+public interface OrderGateway {
+    void sendOrder(Order order);
+}
+```
+
+#### ❌ DON'T
+```http
+// Anti-pattern: Verbs in URI, stateful session cookie, missing version
+POST /api/updateUserOrder HTTP/1.1
+Cookie: session_id=abcxyz
+```
+
+```java
+// Anti-pattern: Infrastructure leaked into business logic
+public void processOrder(Order order) {
+    JMSContext context = connectionFactory.createContext();
+    // ...
+}
+```
+
+## Architecture & Technology Standards
+
+### 🎯 Core Directives
+
+#### 1. Stability & Resilience (Cynical Software)
+- **Timeouts & Limits**: ALWAYS configure explicit connection/read timeouts for EVERY external integration, DB, and socket. NEVER use infinite blocking. Bound all resource pools and queues.
+- **Circuit Breakers & Bulkheads**: ALWAYS wrap risky external calls in Circuit Breakers with fallback strategies (e.g., defensive caching). Isolate resources (Bulkheads) so one failure doesn't sink the system.
+- **Demand Control**: ALWAYS implement Load Shedding (return HTTP 503) and Backpressure when capacity/SLA is exceeded. Keep TCP listen queues short.
+- **Resource Cleanup**: ALWAYS isolate resource closures (e.g., `try-with-resources`) so one exception doesn't leak subsequent resources.
+- **Dogpile Prevention**: ALWAYS add randomized jitter/slew to retries, cron jobs, and cache expirations.
+- **Unbounded Results**: NEVER return unbounded result sets. ALWAYS enforce pagination and `LIMIT` clauses.
+- **Session Bloat**: NEVER store large object graphs in memory sessions. Store only lightweight identifiers (e.g., User ID) and rely on cookies, not URL parameters.
+- **Component Restarts**: Favor dynamic component-level restarts (via lifecycle hooks) over rolling cluster reboots during acute thread-exhaustion incidents.
+
+#### 2. Microservices & Architecture
+- **Horizontal Scaling**: ALWAYS design for stateless horizontal scaling (concurrency & partitioning). NEVER rely on vertical scaling.
+- **Loose Clustering**: ALWAYS use Service Discovery (Consul, etcd) and logical DNS/VIPs. NEVER hardcode physical IPs or hostnames. Instances must not statically know peers.
+- **Decoupling**: ALWAYS prefer asynchronous decoupling (message queues, pub/sub) over synchronous RPC/HTTP where business logic permits.
+- **Explicit Context (URL Dualism)**: ALWAYS use full URLs as identifiers in payloads instead of bare database IDs to prevent concept leakage and decouple authority.
+- **Federated Data**: Reject the "Single System of Record" fallacy. Allow different bounded contexts to own their distinct facets of data.
+- **Service Extinction**: ALWAYS delete unsuccessful/redundant services rather than merging them into complex monoliths.
+
+#### 3. Zero-Downtime Deployment & CI/CD
+- **Immutable Infrastructure**: ALWAYS deploy via immutable images (Containers, AMIs). NEVER write scripts to patch or mutate running production instances (Convergence).
+- **Deployinator**: ALWAYS automate deployments completely. NEVER use manual playbooks, SSH into production, or require "Go/No-Go" meetings.
+- **Database Migrations (Relational)**: ALWAYS split into two phases: 1) **Expansion** (add tables/nullable columns/shims, backward-compatible) -> Code Rollout -> 2) **Contraction** (cleanup, strict constraints, `NOT NULL`). NEVER apply breaking schema changes synchronously.
+- **Database Migrations (NoSQL)**: ALWAYS use "Trickle, then Batch" (migrate documents on-read in app code, batch cleanup later).
+- **Asset Versioning**: ALWAYS version static web assets by embedding the hash in the filename/path (e.g., `/v1a2b3c/app.css`). NEVER use query strings for cache-busting.
+- **Health Checks & Draining**: ALWAYS implement deep `/health` checks verifying dependencies. Toggle to 503 to gracefully drain traffic before shutdown. Wait for cache warm-up before passing.
+
+#### 4. API Evolution & Versioning
+- **Postel's Law**: ALWAYS be conservative in what you send, liberal in what you accept.
+- **Safe vs. Breaking**: Adding required fields, removing response fields, or tightening constraints are BREAKING changes. Adding optional inputs or new outputs are SAFE (Covariant/Contravariant).
+- **Versioning**: ALWAYS implement breaking changes via explicit URL versioning (e.g., `/v2/`). Bump all routes simultaneously.
+- **Controller Translation**: ALWAYS route old API versions through adapters to the current business logic. NEVER duplicate business logic.
+- **Contract Testing**: ALWAYS split integration tests into outbound (spec compliance) and inbound (fuzzing/generative). NEVER rely on brittle end-to-end tests against live providers.
+
+#### 5. Security & Access Control
+- **Injection**: ALWAYS use parameterized queries. NEVER concatenate strings for SQL/NoSQL. Disable XXE in XML parsers.
+- **Session Management**: ALWAYS use high-entropy, PRNG-generated session IDs stored ONLY in `Secure`, `HttpOnly`, `SameSite=Strict` cookies. Regenerate IDs on login.
+- **Access Control**: ALWAYS return `404 Not Found` instead of `403 Forbidden` for unauthorized access to obscure resource existence. Use random UUIDs, not sequential IDs.
+- **XSS & CSRF**: ALWAYS scrub input and contextually escape output. Require anti-CSRF tokens for state-changing requests.
+- **Least Privilege**: ALWAYS run processes as unprivileged users, disable OS core dumps, and vault all secrets (KMS/Vault). NEVER log PII or secrets.
+
+#### 6. Observability & Control Plane
+- **Metrics & Logs**: ALWAYS inject Correlation/Trace IDs into logs. Log to stdout/external volume. Separate Host metrics (CPU/RAM) from Microservice metrics (RPS/Latency).
+- **Actionable Alerts**: ALWAYS restrict `ERROR`/`SEVERE` logs to actionable system failures requiring operator intervention. Log user errors as `WARN`/`INFO`. Every alert MUST have a Runbook.
+- **Governors**: ALWAYS implement "Governors" on automation scripts to hard-limit the blast radius of destructive actions (e.g., max 10% termination without human approval).
+- **Admin APIs**: ALWAYS expose administrative APIs on private/internal NICs. NEVER implement "flush cache" or schema wipe commands in production APIs.
+
+#### 7. Chaos Engineering
+- **Empirical Resilience**: ALWAYS validate resilience empirically via Chaos Engineering. Define a steady state, formulate an externally observable hypothesis, and limit the blast radius.
+- **Fault Injection**: Use Instance Death for autoscaling tests, Latency Injection for race conditions, and Failure Injection Testing (FIT) via request tagging for downstream failures.
+
+### 📝 Examples
+
+#### ✅ DO: Safe Resource Cleanup & Timeouts
+```java
+// Explicit timeouts and isolated cleanup via try-with-resources
+HikariConfig config = new HikariConfig();
+config.setConnectionTimeout(3000); // 3s timeout, no infinite blocking
+HikariDataSource ds = new HikariDataSource(config);
+
+try (Connection conn = ds.getConnection();
+     PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users LIMIT 100")) {
+    stmt.setQueryTimeout(5);
+    ResultSet rs = stmt.executeQuery();
+} catch (SQLException e) {
+    log.error("Database integration failed", e);
+    throw new ServiceDegradedException();
+}
+```
+
+#### ❌ DON'T: Unbounded Queries & Leaky Cleanup
+```java
+Connection conn = null;
+Statement stmt = null;
+try {
+    conn = pool.getConnection(); // Blocks infinitely if pool exhausted
+    stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery("SELECT * FROM audit_logs"); // Unbounded result set (OOM risk)
+} finally {
+    if (stmt != null) stmt.close(); // If this throws, conn is leaked!
+    if (conn != null) conn.close();
+}
+```
+
+#### ✅ DO: API Versioning via Controller Translation
+```javascript
+// V2 Controller (Current Business Logic)
+async function createApplicationV2(req, res) {
+    const result = await BusinessLogic.createApplication(req.body);
+    res.json(result);
+}
+
+// V1 Controller (Adapter)
+async function createApplicationV1(req, res) {
+    // Translate V1 to V2 (provide defaults for new required fields)
+    const v2Data = { ...req.body, newRequiredField: 'DEFAULT' };
+    const result = await BusinessLogic.createApplication(v2Data);
+    // Translate V2 back to V1 (strip new fields)
+    res.json(mapToV1Response(result));
+}
+```
+
+#### ❌ DON'T: Breaking API Changes
+```javascript
+// Adding a required field to an existing endpoint breaks all current consumers
+async function createApplicationV1(req, res) {
+    if (!req.body.newRequiredField) {
+        return res.status(400).send("Missing newRequiredField"); // BREAKS CONSUMERS
+    }
+}
+```
+
+#### ✅ DO: Zero-Downtime Database Expansion
+```sql
+-- Phase 1: Expansion (Run before code deploy)
+ALTER TABLE users ADD COLUMN first_name VARCHAR(255);
+-- Shim to keep old code working
+CREATE TRIGGER sync_names BEFORE INSERT OR UPDATE ON users FOR EACH ROW EXECUTE FUNCTION split_full_name();
+
+-- Phase 2: Contraction (Run AFTER 100% code deploy)
+DROP TRIGGER sync_names ON users;
+ALTER TABLE users DROP COLUMN full_name;
+ALTER TABLE users ALTER COLUMN first_name SET NOT NULL;
+```
+
+#### ❌ DON'T: Synchronous Breaking Schema Changes
+```sql
+-- Causes immediate downtime for running instances
+ALTER TABLE users RENAME COLUMN full_name TO first_name;
+ALTER TABLE users ADD COLUMN last_name VARCHAR(255) NOT NULL;
+```
+
 ## language-python
 
 ### Anti-Patterns Standards
