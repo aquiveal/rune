@@ -122,10 +122,10 @@ Refs: #801
 
 ## ✅ Developer Checklist
 - [x] My PR title strictly follows `<type>[optional scope]: <description>`.
+- [x] All markdown lists in this description strictly use `-` instead of `*`.
 - [x] This PR contains a **single responsibility**.
 - [x] I have performed a self-review of my own code.
 - [x] I have added/updated tests to cover my changes.
 - [x] I have updated the documentation accordingly.
-- [x] All markdown lists in this description strictly use `-` instead of `*`.
 
 </details>
