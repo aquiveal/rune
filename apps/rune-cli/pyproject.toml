@@ -5,7 +5,7 @@ description = "Rune CLI"
 authors = [
     {name = "Aryan Singh", email = "aquiveal@gmail.com"},
 ]
-dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.86.2", "pydantic-settings>=2.14.2", "python-logging @ file:///${PROJECT_ROOT}/../../.agents/skills/python-logging/modules/python-logging"]
+dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.86.2", "pydantic-settings>=2.14.2", "python-logging @ git+https://github.com/aurumorinc/python-logging.git"]
 requires-python = "<3.13,>=3.11"
 license = {text = "MIT"}
 
