@@ -6,7 +6,7 @@ version = "1.0.0"
 current_version = "1.0.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit = false
-tag = false
+tag = true
 push = false
 
 [tool.bumpver.file_patterns]
