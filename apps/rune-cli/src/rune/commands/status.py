@@ -2,6 +2,7 @@ import typer
 from pathlib import Path
 from rune.services import module_service
 
+
 def status_cmd():
     """Show status of installed skills and rules."""
     cwd = Path.cwd()

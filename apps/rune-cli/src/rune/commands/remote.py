@@ -4,6 +4,7 @@ from rune.repositories import config_repository
 
 app = typer.Typer(no_args_is_help=True, help="Manage remote repositories")
 
+
 @app.command("add")
 def add(name: str = typer.Argument(...), url: str = typer.Argument(...)):
     """Add a new remote repository alias."""

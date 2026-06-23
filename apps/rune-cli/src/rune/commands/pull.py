@@ -1,6 +1,7 @@
 import typer
 from pathlib import Path
-from rune.services import module
+from rune.services import module_service
+
 
 def pull_cmd():
     """
@@ -10,7 +11,7 @@ def pull_cmd():
     if not (cwd / ".rune").exists():
         typer.echo("Error: .rune directory not found. Run `rune init` first.", err=True)
         raise typer.Exit(1)
-        
+
     typer.echo("Pulling modules...")
-    module.update_modules(cwd)
+    module_service.update_modules(cwd)
     typer.echo("Pull complete.")
