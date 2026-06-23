@@ -14,3 +14,4 @@ jobs:
     uses: aurumorinc/.github/.github/workflows/release.yaml@main
     secrets:
       RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
