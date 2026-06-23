@@ -2,5 +2,5 @@
 	url = https://github.com/aquiveal/rune/tree/main/rules/language-python https://github.com/aquiveal/rune
 	path = .agents/rules/language-python
 [runemodule ".agents/skills/python-logging/modules/python-logging"]
-	url = https://github.com/aurumorinc/python-logging
+	url = https://github.com/aurumorinc/python-loggin/tree/main
 	path = .agents/skills/python-logging/modules/python-logging
