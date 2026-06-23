@@ -1,8 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class RuleMetadata(BaseModel):
     internal: bool = False
+
 
 class RuleSchema(BaseModel):
     name: str
