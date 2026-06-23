@@ -2,12 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6.40] - 2026-06-23
+
+### 🚀 Features
+
+- Add architectural and domain standards
+
+### 📚 Documentation
+
+- Add elite architecture and coding standards
+- Update python-logging skill documentation
+
+### ⚙️ Miscellaneous Tasks
+
+- Update python-logging module url
+
 ## [26.6.39] - 2026-06-21
 
 ### 🚀 Features
 
 - Allow dynamic max token configuration
 - Add support for repomap max tokens config
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 26.6.39
 
 ## [26.6.38] - 2026-06-21
 
