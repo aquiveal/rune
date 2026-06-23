@@ -5,7 +5,7 @@ description = "Rune CLI"
 authors = [
     {name = "Aryan Singh", email = "aquiveal@gmail.com"},
 ]
-dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.74.2"]
+dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.86.2", "pydantic-settings>=2.14.2", "python-logging @ file:///${PROJECT_ROOT}/../../.agents/skills/python-logging/modules/python-logging"]
 requires-python = "<3.13,>=3.11"
 license = {text = "MIT"}
 
@@ -19,9 +19,17 @@ build-backend = "pdm.backend"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
+    "pyrefly>=1.1.1",
+    "vcrpy>=6.0.0",
 ]
 
