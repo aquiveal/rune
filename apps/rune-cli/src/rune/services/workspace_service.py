@@ -1,55 +1,81 @@
-import os
 from pathlib import Path
-from typing import List
-from rune.config.main import RUNE_DIR, RUNE_MODULES_DIR, RUNE_MODULES_FILE, RUNE_CONFIG, RUNE_INDEX, DEFAULT_AGENTS, get_global_rune_dir
+from typing import List, Optional
+
+import questionary
+
+from rune.config.main import settings
 from rune.repositories import config_repository
 
+
 def is_initialized(root_dir: Path) -> bool:
-    return (root_dir / RUNE_DIR).is_dir()
+    return (root_dir / ".rune").is_dir()
+
 
 def init_workspace(root_dir: Path):
-    rune_dir = root_dir / RUNE_DIR
-    (rune_dir / RUNE_MODULES_DIR).mkdir(parents=True, exist_ok=True)
-    (root_dir / RUNE_MODULES_FILE).touch(exist_ok=True)
-    (rune_dir / RUNE_CONFIG).touch(exist_ok=True)
-    (rune_dir / RUNE_INDEX).touch(exist_ok=True)
+    rune_dir = root_dir / ".rune"
+    (rune_dir / "modules").mkdir(parents=True, exist_ok=True)
+    (root_dir / ".runemodules").touch(exist_ok=True)
+    (rune_dir / "config").touch(exist_ok=True)
+    (rune_dir / "index").touch(exist_ok=True)
     update_gitignore(root_dir)
 
+
 def detect_agents(root_dir: Path) -> List[str]:
-    detected = []
-    # Check for directories in root
-    for agent in DEFAULT_AGENTS:
+    if settings.agent.names:
+        return [settings.agent.names[0]]
+
+    for agent in settings.agents:
         if (root_dir / agent).is_dir():
-            detected.append(agent)
-    
-    # Also check config
-    config_agents = config_repository.get_agent_names(root_dir)
-    for a in config_agents:
-        if a not in detected:
-            detected.append(a)
-            
-    return detected
+            return [agent]
+
+    return []
+
+
+def resolve_target_agents(
+    git_root: Optional[Path],
+    cwd: Path,
+    global_scope: bool,
+    agents_arg: Optional[List[str]],
+) -> Optional[List[str]]:
+    target_agents = []
+    if global_scope or cwd == git_root:
+        target_agents = agents_arg or detect_agents(git_root or cwd)
+        if not target_agents and not agents_arg:
+            target_agents = questionary.checkbox(
+                "Select additional target agents (optional):",
+                choices=settings.agents,
+            ).ask()
+            if target_agents is None:  # ctrl+c abort
+                return None
+            for agent in target_agents:
+                config_repository.add_agent_name(git_root or cwd, agent)
+
+        if target_agents is not None and ".agents" not in target_agents:
+            target_agents.append(".agents")
+
+    return target_agents
+
 
 def update_gitignore(root_dir: Path):
     gitignore_file = root_dir / ".gitignore"
     content = gitignore_file.read_text() if gitignore_file.exists() else ""
     lines = content.splitlines()
-    
+
     # Remove old .rune/ entry if it exists
-    if f"{RUNE_DIR}/" in lines:
-        lines.remove(f"{RUNE_DIR}/")
+    if ".rune/" in lines:
+        lines.remove(".rune/")
         content = "\n".join(lines)
         if content and not content.endswith("\n"):
             content += "\n"
-    
+
     entries = [
-        f"{RUNE_DIR}/*",
-        f"!{RUNE_DIR}/{RUNE_CONFIG}",
-        f"!{RUNE_DIR}/{RUNE_INDEX}"
+        ".rune/*",
+        "!.rune/config",
+        "!.rune/index",
     ]
-        
-    missing = [e for e in entries if e not in lines and e.strip('/') not in lines]
-    
+
+    missing = [e for e in entries if e not in lines and e.strip("/") not in lines]
+
     if missing:
         if content and not content.endswith("\n"):
             content += "\n"
