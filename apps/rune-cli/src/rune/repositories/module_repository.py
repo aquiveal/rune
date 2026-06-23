@@ -1,12 +1,11 @@
 from pathlib import Path
 from typing import List
 from rune.repositories import git_repository
-from rune.config.main import settings
 from rune.schemas.module_schema import ModuleSchema
 
 
 def _get_modules_path(root_dir: Path) -> Path:
-    return root_dir / settings.rune_modules_file
+    return root_dir / ".runemodules"
 
 
 def list_modules(root_dir: Path) -> List[ModuleSchema]:

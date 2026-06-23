@@ -4,10 +4,6 @@ from rune.repositories import module_repository
 
 from rune.repositories.config_repository import (
     add_agent_name,
-    get_agent_names,
-    get_remote_url,
-    get_repomap_max_tokens,
-    get_repomap_model,
     set_agent_name,
     set_remote_url,
 )
@@ -42,14 +38,10 @@ __all__ = [
     "add_submodule",
     "clone",
     "config_repository",
-    "get_agent_names",
     "get_config",
     "get_config_all",
     "get_default_branch",
     "get_git_root",
-    "get_remote_url",
-    "get_repomap_max_tokens",
-    "get_repomap_model",
     "get_short_sha",
     "git_repository",
     "is_git_repo",
