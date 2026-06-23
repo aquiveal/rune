@@ -1,6 +1,6 @@
 ---
 name: python-logging
-description: Provides specialized context, rules, and tools for implementing, configuring, and debugging python-logging systems. Use this skill whenever modifying logger configurations or adding telemetry.
+description: Provides specialized context, rules, and tools for implementing, configuring, and debugging python-logging. Use this skill whenever modifying python-logging configurations or adding related functionality.
 ---
 # python-logging
 
@@ -11,7 +11,22 @@ python-logging/
 ├── assets
 ├── modules
 │   └── python-logging (AST Map)
-│       .roo\rules\language-python\architecture-and-structure.md
+│       src\python_logging\__init__.py:
+│       ⋮
+│       │__version__ = "26.6.5"
+│       │
+│       ⋮
+│       │__all__ = [
+│       │    "__version__",
+│       │    "LoggingSettings",
+│       │    "StdoutFormat",
+│       │    "add_otel_context",
+│       │    "config",
+│       │    "get_console_renderer_format",
+│       │    "get_logger",
+│       │    "get_rich_format",
+│       │    "get_windmill_traceparent",
+│       ⋮
 │       src\python_logging\config.py:
 │       ⋮
 │       │def generate_traceparent() -> str:
@@ -32,11 +47,21 @@ python-logging/
 │       │    @property
 │       │    def span_id(self) -> str:
 │       ⋮
+│       │settings = LoggingSettings()
+│       src\python_logging\integrations\__init__.py:
+│       ⋮
+│       │__all__ = [
+│       │    "get_windmill_traceparent",
+│       │    "windmill",
+│       ⋮
 │       src\python_logging\integrations\windmill.py:
 │       ⋮
 │       │def get_windmill_traceparent() -> Optional[str]:
 │       ⋮
 │       src\python_logging\main.py:
+│       ⋮
+│       │get_logger = structlog.get_logger
+│       │
 │       ⋮
 │       │def setup_logging(settings: Optional[LoggingSettings] = None) -> None:
 │       ⋮
@@ -100,22 +125,6 @@ python-logging/
 │       │    clear=True,
 │       │)
 │       │def test_settings_precedence_env_over_windmill():
-│       ⋮
-│       tests\unit\python_logging\test_main.py:
-│       ⋮
-│       │@mock.patch("python_logging.main.structlog.configure")
-│       │@mock.patch("python_logging.main.setup_otel_provider")
-│       │def test_setup_logging_console_renderer(mock_setup_otel, mock_configure):
-│       ⋮
-│       │@mock.patch("python_logging.main.structlog.configure")
-│       │@mock.patch("python_logging.main.setup_otel_provider")
-│       │def test_setup_logging_rich(mock_setup_otel, mock_configure):
-│       ⋮
-│       │@mock.patch("python_logging.main.structlog.configure")
-│       │@mock.patch("python_logging.main.setup_otel_provider")
-│       │def test_setup_logging_with_otel(mock_setup_otel, mock_configure):
-│       ⋮
-│       │def test_console_renderer_output_is_clean():
 │       ⋮
 │       tests\unit\python_logging\test_service.py:
 │       ⋮
