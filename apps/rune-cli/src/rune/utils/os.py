@@ -2,9 +2,9 @@
 import sys
 import platform
 import ctypes
-import logging
+from lume import logging
 
-logger = logging.getLogger("roo")
+logger = logging.get_logger()
 
 
 def is_admin() -> bool:
