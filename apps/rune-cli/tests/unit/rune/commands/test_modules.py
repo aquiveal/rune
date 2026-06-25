@@ -92,16 +92,19 @@ def test_modules_add_inside_specific_skill(
 
 @patch("rune.commands.modules.Path.cwd")
 @patch("rune.repositories.git_repository.get_git_root")
+@patch("rune.services.workspace_service.resolve_target_agents")
 def test_modules_add_outside_skills_context(
+    mock_resolve_target_agents,
     mock_get_git_root,
     mock_cwd,
     mock_git_root,
 ):
-    """Test that executing `rune modules add` outside a skills context fails with exit code 1."""
+    """Test that executing `rune modules add` outside a skills context fails with exit code 1 if no target agents are resolved."""
     # Arrange
     wrong_dir = mock_git_root / "other_folder"
     mock_cwd.return_value = wrong_dir
     mock_get_git_root.return_value = mock_git_root
+    mock_resolve_target_agents.return_value = None
 
     # Act
     result = runner.invoke(app, ["modules", "add", "https://github.com/user/repo"])
@@ -109,8 +112,51 @@ def test_modules_add_outside_skills_context(
     # Assert
     assert result.exit_code == 1
     assert (
-        "You must be inside a 'skills' directory to use this command" in result.output
+        "Could not determine target agent directory. Please run inside a 'skills' directory."
+        in result.output
     )
+
+
+@patch("rune.commands.modules.Path.cwd")
+@patch("rune.repositories.git_repository.get_git_root")
+@patch("rune.services.workspace_service.resolve_target_agents")
+@patch("rune.commands.skills.scaffold_skill")
+@patch("rune.services.module_service.add_module")
+@patch("rune.services.skill_service.update_skill_tree")
+def test_modules_add_from_root_infers_agent_dir(
+    mock_update_skill_tree,
+    mock_add_module,
+    mock_scaffold_skill,
+    mock_resolve_target_agents,
+    mock_get_git_root,
+    mock_cwd,
+    mock_git_root,
+):
+    """Test adding a module from root correctly infers the agent skills directory."""
+    # Arrange
+    mock_cwd.return_value = mock_git_root
+    mock_get_git_root.return_value = mock_git_root
+    mock_resolve_target_agents.return_value = [".agents"]
+
+    inferred_skills_dir = mock_git_root / ".agents" / "skills"
+
+    mock_scaffold_skill.side_effect = lambda name, base_dir: (base_dir / name).mkdir(
+        parents=True, exist_ok=True
+    )
+
+    # Act
+    result = runner.invoke(
+        app, ["modules", "add", "https://github.com/user/repo", "my-skill"]
+    )
+
+    # Assert
+    assert result.exit_code == 0
+    assert "Adding module" in result.output
+    assert "Successfully added module" in result.output
+
+    mock_scaffold_skill.assert_called_once_with("my-skill", inferred_skills_dir)
+    mock_add_module.assert_called_once()
+    mock_update_skill_tree.assert_called_once_with(inferred_skills_dir / "my-skill")
 
 
 @patch("rune.commands.modules.Path.cwd")
