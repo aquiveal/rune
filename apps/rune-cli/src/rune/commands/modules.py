@@ -47,17 +47,35 @@ def add(
         context = "inside_skill"
         target_dir = cwd
     else:
-        typer.echo(
-            "Error: You must be inside a 'skills' directory to use this command.",
-            err=True,
+        from rune.services import workspace_service
+
+        target_agents = workspace_service.resolve_target_agents(
+            git_root=git_root, cwd=cwd, global_scope=False, agents_arg=None
         )
-        raise typer.Exit(1)
+        if not target_agents:
+            typer.echo(
+                "Error: Could not determine target agent directory. Please run inside a 'skills' directory.",
+                err=True,
+            )
+            raise typer.Exit(1)
+
+        agent_dir = target_agents[0]
+        skills_dir = git_root / agent_dir / "skills"
+        skills_dir.mkdir(parents=True, exist_ok=True)
+
+        context = "skills_root"
+        raw_name = target_name or repo_name
+        sanitized_name = skill_service.sanitize_skill_name(raw_name)
+        if not sanitized_name:
+            typer.echo(f"Error: Invalid skill name '{raw_name}'.", err=True)
+            raise typer.Exit(1)
+        target_dir = skills_dir / sanitized_name
 
     try:
         # Scaffold if necessary
         if context == "skills_root" and not target_dir.exists():
             typer.echo(f"Scaffolding new skill '{target_dir.name}'...")
-            skills.scaffold_skill(target_dir.name, cwd)
+            skills.scaffold_skill(target_dir.name, target_dir.parent)
 
         # Ensure modules directory exists
         modules_dir = target_dir / "modules"
