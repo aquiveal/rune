@@ -148,11 +148,15 @@ rune skills validate <path_to_skill>
 
 ### Contextual Modules (`rune modules`)
 
-A generic command for managing both skills and rules interchangeably.
+A generic command for managing modules contextually.
 
 ```bash
-# Contextually adds a module (rule or skill) depending on the environment
+# Contextually adds a module depending on the current directory
 rune modules add <source_url_or_alias>
+
+# Add and scaffold a skill directly from the project root 
+# (automatically infers the correct agent directory, scaffolds the skill, and links the module)
+rune modules add <source_url_or_alias> <skill_name>
 ```
 
 ### Base CLI Commands
