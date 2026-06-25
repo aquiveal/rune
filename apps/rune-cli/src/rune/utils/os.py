@@ -2,9 +2,9 @@
 import sys
 import platform
 import ctypes
-from lume import logging
+from lume import structlog
 
-logger = logging.get_logger()
+logger = structlog.get_logger()
 
 
 def is_admin() -> bool:

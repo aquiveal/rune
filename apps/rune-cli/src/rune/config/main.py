@@ -9,8 +9,7 @@ from pydantic_settings import (
     SettingsConfigDict,
     PydanticBaseSettingsSource,
 )
-from lume.config import LoggingSettings
-from lume import logging
+from lume import LoggingSettings
 
 
 class RepoMapSettings(BaseModel):
@@ -127,6 +126,3 @@ class Settings(LoggingSettings, BaseSettings):
 
 # Global settings instance
 settings = Settings()
-
-# Initialize global logging state
-logging.setup_logging(settings)

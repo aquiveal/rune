@@ -8,11 +8,8 @@ description: Provides specialized context, rules, and tools for implementing, co
 
 ```text
 lume-python/
-├── assets
 ├── modules
 │   └── lume-python (See AST Map below)
-├── references
-├── scripts
 └── SKILL.md
 ```
 
@@ -63,6 +60,8 @@ lume-python/
 
 .agents\skills\sentry\SKILL.md
 
+.agents\skills\structlog\SKILL.md
+
 .agents\skills\windmill\SKILL.md
 
 .github\pull_request_template.md
@@ -70,44 +69,6 @@ lume-python/
 .github\workflows\release.yaml
 
 .gitignore
-
-.roo\rules\architecture-and-structure.md
-
-.roo\rules\architecture-application.md
-
-.roo\rules\architecture-business.md
-
-.roo\rules\architecture-data.md
-
-.roo\rules\architecture-integration.md
-
-.roo\rules\architecture-technology.md
-
-.roo\rules\language-python\anti-patterns.md
-
-.roo\rules\language-python\architecture-and-structure.md
-
-.roo\rules\language-python\code-style-and-formatting.md
-
-.roo\rules\language-python\configuration-and-environment.md
-
-.roo\rules\language-python\dependency-management.md
-
-.roo\rules\language-python\documentation-and-comments.md
-
-.roo\rules\language-python\error-handling.md
-
-.roo\rules\language-python\logging-and-observability.md
-
-.roo\rules\language-python\naming-conventions.md
-
-.roo\rules\language-python\performance-and-optimization.md
-
-.roo\rules\language-python\security-and-validation.md
-
-.roo\rules\language-python\testing-standards.md
-
-.roo\rules\language-python\type-safety.md
 
 .rune\config
 
@@ -160,14 +121,30 @@ src\lume\integrations\posthog\__init__.py
 
 src\lume\integrations\sentry\__init__.py
 
+src\lume\integrations\structlog.py:
+⋮
+│def _setup(settings: Optional["LoggingSettings"] = None) -> None:
+⋮
+│def get_logger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def getLogger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def wrap_logger(logger: Any, **kwargs: Any) -> Any:
+⋮
+│def _merge_configuration(kwargs: Dict[str, Any], once: bool = False) -> None:
+⋮
+│def configure(**kwargs: Any) -> None:
+⋮
+│def configure_once(**kwargs: Any) -> None:
+⋮
+│def __getattr__(name: str) -> Any:
+⋮
+│def __dir__() -> List[str]:
+⋮
+
 src\lume\integrations\windmill.py:
 ⋮
 │def get_windmill_traceparent() -> Optional[str]:
-⋮
-
-src\lume\logging.py:
-⋮
-│def setup_logging(settings: Optional[LoggingSettings] = None) -> None:
 ⋮
 
 src\lume\service.py:
@@ -232,7 +209,7 @@ tests\performance\test_logging_concurrency.py:
 │    under concurrent load.
 ⋮
 │    with mock.patch("sys.stdout", out):
-│        setup_logging(settings)
+│        structlog._setup(settings)
 ⋮
 │        def worker(thread_idx: int):
 ⋮
@@ -261,6 +238,34 @@ tests\unit\lume\integrations\test_posthog.py:
 
 tests\unit\lume\integrations\test_sentry.py:
 │def test_sentry_facade_re_exported() -> None:
+⋮
+
+tests\unit\lume\integrations\test_structlog.py:
+⋮
+│@pytest.fixture(autouse=True)
+│def reset_structlog_state():
+⋮
+│@mock.patch("lume.integrations.structlog._original_structlog.configure", spec=True)
+│@mock.patch("lume.service.setup_otel_provider", spec=True)
+│def test_auto_initialization(mock_setup_otel, mock_configure):
+⋮
+│@mock.patch("lume.integrations.structlog._setup")
+│def test_idempotency(mock_setup):
+│    """Assert that get_logger only runs _setup once."""
+│
+⋮
+│    def mock_setup_side_effect(*args, **kwargs):
+⋮
+│def test_additive_configuration():
+│    """Assert that custom configure() intelligently merges processors."""
+│
+│    def my_processor(logger, name, event_dict):
+⋮
+│def test_proxy_validation():
+⋮
+│def test_dynamic_attribute():
+⋮
+│def test_standard_logging_capture():
 ⋮
 
 tests\unit\lume\integrations\test_windmill.py:
@@ -320,31 +325,6 @@ tests\unit\lume\test_config.py:
 │def test_generate_traceparent():
 ⋮
 │def test_malformed_traceparent_fails():
-⋮
-
-tests\unit\lume\test_logging.py:
-⋮
-│@mock.patch("lume.logging.structlog.configure", spec=True)
-│@mock.patch("lume.logging.setup_otel_provider", spec=True)
-│def test_setup_logging(mock_setup_otel, mock_configure):
-⋮
-│@mock.patch("lume.logging.structlog.configure", spec=True)
-│@mock.patch("lume.logging.setup_otel_provider", spec=True)
-│def test_setup_logging_with_otel(mock_setup_otel, mock_configure):
-⋮
-│@mock.patch("lume.logging.structlog.configure", spec=True)
-⋮
-│def test_setup_logging_initializes_vendors(
-│    mock_langfuse, mock_posthog, mock_sentry, mock_setup_otel, mock_configure
-⋮
-│@mock.patch("lume.logging.structlog.configure", spec=True)
-⋮
-│def test_setup_logging_zero_config(
-│    mock_langfuse, mock_posthog, mock_sentry, mock_setup_otel, mock_configure
-⋮
-│def test_console_output_is_clean():
-⋮
-│def test_setup_logging_idempotency():
 ⋮
 
 tests\unit\lume\test_service.py:
