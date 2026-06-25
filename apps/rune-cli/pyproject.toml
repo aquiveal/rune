@@ -25,9 +25,6 @@ project-includes = [
     "**/*.ipynb",
 ]
 
-[tool.pdm.resolution.overrides]
-posthog = ">=7.8.6"
-
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
