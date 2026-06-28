@@ -88,6 +88,38 @@ def test_generate_submodule_map_honors_gitignore(tmp_path: Path):
     assert "ignored_file.txt" not in map_text
 
 
+def test_generate_submodule_map_honors_gitignore_with_complex_patterns(tmp_path: Path):
+    # Setup mock structure
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "main.py").write_text("print('hello')")
+    
+    (tmp_path / ".rune").mkdir()
+    (tmp_path / ".rune" / "config").write_text("key=value")
+    
+    (tmp_path / ".rune" / "modules").mkdir()
+    (tmp_path / ".rune" / "modules" / "test.py").write_text("test")
+    
+    # Create .gitignore with complex patterns
+    (tmp_path / ".gitignore").write_text(".rune/*\n!.rune/config\n")
+
+    with patch("rune.services.map_service.RepoMap") as MockRepoMap:
+        def fake_get_ranked_tags_map(chat_fnames, other_fnames):
+            return "\n".join(other_fnames)
+
+        MockRepoMap.return_value.get_ranked_tags_map.side_effect = fake_get_ranked_tags_map
+        map_text = generate_submodule_map(tmp_path, max_tokens=1000)
+
+    # Assertions
+    assert "src" in map_text
+    assert "main.py" in map_text
+    
+    # Assert negation logic (.rune/config should be included)
+    assert "config" in map_text
+    
+    # Assert wildcard exclusion (.rune/modules/test.py should be excluded)
+    assert "test.py" not in map_text
+
+
 def test_merge_ast_to_agents_md_creates_new(tmp_path: Path):
     from rune.services.map_service import merge_ast_to_agents_md
 
