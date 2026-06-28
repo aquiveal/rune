@@ -1,8 +1,14 @@
-# Changelog v1.2.1
+# Changelog v2.0.0
 
-## Improvements
+## Breaking Changes
 
-### Logging Infrastructure
-* **Migration to structlog for standardized logging**
-  Replaced the internal custom logging implementation with `structlog` to provide structured, flexible logging output and simplified configuration imports. This change ensures consistent log formatting across the codebase.
-  Commits: [b3f7d26](https://github.com/aquiveal/rune/commit/b3f7d26a), [e0bcf4c](https://github.com/aquiveal/rune/commit/e0bcf4cf), [3a3b296](https://github.com/aquiveal/rune/commit/3a3b296a)
+* **Namespace Migration: Rename Lume to Worldline**
+  All references, dependencies, imports, and configurations previously namespaced under `lume` have been renamed to `worldline`. This is a high-severity breaking change requiring updates to all project configuration files, import statements, and dependency references.
+  * Migration: Update your codebase to replace all instances of `lume` with `worldline`. Ensure local environment variables and build scripts are updated to reflect the new namespace.
+  * Commits: [51acc1b](https://github.com/aquiveal/rune/commit/51acc1bf), [c92e5a5](https://github.com/aquiveal/rune/commit/c92e5a5b)
+
+## New Features
+
+* **Automated Skill Tree Scaffolding**
+  The `update_skill_tree` function now includes logic to automatically scaffold the necessary directory structure, including `scripts`, `references`, `assets`, and `modules`, as well as generating or updating the `SKILL.md` file.
+  * Commits: [51acc1b](https://github.com/aquiveal/rune/commit/51acc1bf), [c92e5a5](https://github.com/aquiveal/rune/commit/c92e5a5b)
