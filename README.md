@@ -5,7 +5,7 @@ Rune is a Git-like command-line tool designed to manage LLM coding agent context
 ## Features
 
 - **Agent Context Management**: Easily manage rules and skills for various LLM agents (e.g., Roo, Cursor, Windsurf).
-- **Git-like Workflow**: Familiar commands like `init`, `status`, `update`, `fetch`, `pull`, `diff`, `remote`, `skills`, `rules`, and `modules`.
+- **Git-like Workflow**: Familiar commands like `init`, `status`, `update`, `fetch`, `pull`, `diff`, `remote`, `agents`, `skills`, `rules`, and `modules`.
 - **Global and Local Scopes**: Install rules and skills globally for all projects (`~/.roo/skills`, `.cursor/rules`) or locally for a specific repository.
 - **Rune Modules (`.runemodules`)**: Manage external dependencies as internal tracked clones. This ensures easy upstream syncing, deterministic versions, and isolation from standard git submodules.
 - **Skill Scaffolding**: Quickly scaffold new skills with a standard directory structure and automatically validate them against specification constraints.
@@ -144,6 +144,19 @@ rune skills init <skill_name>
 
 # Validate an existing skill against the Agents specification
 rune skills validate <path_to_skill>
+```
+
+### Managing Agents (`rune agents`)
+
+The `agents` command suite manages high-level context updates and system states for your LLM agents.
+
+**Update All Agent Contexts**
+```bash
+# Update all installed rules, skills, modules, and generate a repository AST map into AGENTS.md
+rune agents update
+
+# Update global agent contexts
+rune agents update --global
 ```
 
 ### Contextual Modules (`rune modules`)
