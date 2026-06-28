@@ -1,6 +1,9 @@
 import typer
 from pathlib import Path
+from worldline import structlog
 from rune.services import module_service
+
+logger = structlog.get_logger(__name__)
 
 
 def pull_cmd():
@@ -9,9 +12,9 @@ def pull_cmd():
     """
     cwd = Path.cwd()
     if not (cwd / ".rune").exists():
-        typer.echo("Error: .rune directory not found. Run `rune init` first.", err=True)
+        logger.error(".rune directory not found. Run `rune init` first.")
         raise typer.Exit(1)
 
-    typer.echo("Pulling modules...")
+    logger.info("Pulling modules...")
     module_service.update_modules(cwd)
-    typer.echo("Pull complete.")
+    logger.info("Pull complete.")

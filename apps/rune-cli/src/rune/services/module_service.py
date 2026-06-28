@@ -1,10 +1,14 @@
 import shutil
 import os
 from pathlib import Path
+from worldline import structlog
 from typing import List, Optional, Dict
 from rune.config.exceptions import ModuleError
 from rune.repositories import git_repository, module_repository
 from rune.schemas.module_schema import ModuleSchema
+
+
+logger = structlog.get_logger(__name__)
 
 
 def add_module(
@@ -119,12 +123,7 @@ def add_module(
                 map_text = map_service.generate_submodule_map(source_path)
                 (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
             except Exception as e:
-                import sys
-
-                print(
-                    f"Warning: Failed to generate repomap for {agent_path.name}: {e}",
-                    file=sys.stderr,
-                )
+                logger.warning(f"Failed to generate repomap for {agent_path.name}: {e}")
 
 
 def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
@@ -246,11 +245,8 @@ def update_modules(
                             map_text, encoding="utf-8"
                         )
                     except Exception as e:
-                        import sys
-
-                        print(
-                            f"Warning: Failed to generate repomap for {agent_path.name}: {e}",
-                            file=sys.stderr,
+                        logger.warning(
+                            f"Failed to generate repomap for {agent_path.name}: {e}"
                         )
             else:
                 shutil.copy2(source_path, agent_path)

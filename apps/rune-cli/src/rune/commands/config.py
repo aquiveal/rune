@@ -1,6 +1,9 @@
 import typer
 from typing import Optional
 from pathlib import Path
+from worldline import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 def config_cmd(
@@ -17,7 +20,7 @@ def config_cmd(
     config_path = root_dir / ".rune" / "config"
 
     if value is not None and not config_path.exists():
-        typer.echo("Error: .rune/config not found. Run `rune init` first.", err=True)
+        logger.error(".rune/config not found. Run `rune init` first.")
         raise typer.Exit(1)
 
     if value is None:

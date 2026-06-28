@@ -1,6 +1,9 @@
 import typer
 from pathlib import Path
+from worldline import structlog
 from rune.services import module_service
+
+logger = structlog.get_logger(__name__)
 
 
 def status_cmd():
@@ -8,4 +11,4 @@ def status_cmd():
     cwd = Path.cwd()
     status = module_service.get_status(cwd)
     for mod, stat in status.items():
-        typer.echo(f"{mod}: {stat}")
+        logger.info(f"{mod}: {stat}")

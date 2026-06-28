@@ -1,13 +1,16 @@
 import typer
+from worldline import structlog
 from rune.commands import rules, skills
+
+logger = structlog.get_logger(__name__)
 
 
 def update_cmd(global_scope: bool = typer.Option(False, "--global", "-g")):
     """Update installed skills and rules."""
-    typer.echo("Updating rules...")
+    logger.info("Updating rules...")
     rules.update(global_scope=global_scope)
 
-    typer.echo("\nUpdating skills...")
+    logger.info("Updating skills...")
     skills.update(global_scope=global_scope)
 
-    typer.echo("\nUpdated all modules.")
+    logger.info("Updated all modules.")

@@ -22,7 +22,6 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
                 if (rule_dir / ".git").exists():
                     git_repository.update_submodules(rule_dir)
         logger.info("Successfully updated rules.")
-        typer.echo("Successfully updated rules.")
     except Exception as e:
         logger.exception("Failed to update rules.")
 
@@ -36,7 +35,6 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
                 skill_dir = git_root / skill.path if skill.path else git_root
                 skill_service.update_skill_tree(skill_dir)
         logger.info("Successfully updated skills and their ASTs.")
-        typer.echo("Successfully updated skills and their ASTs.")
     except Exception as e:
         logger.exception("Failed to update skills and their ASTs.")
 
@@ -44,17 +42,14 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     try:
         rule_service.merge_rules_to_agents_md(git_root)
         logger.info("Successfully merged rules into AGENTS.md.")
-        typer.echo("Successfully merged rules into AGENTS.md.")
     except Exception as e:
         logger.exception("Failed to merge rules into AGENTS.md.")
 
     # Step 4: Generate Repo AST and Merge
     try:
-        typer.echo("Generating full repository AST map...")
         logger.info("Generating full repository AST map...")
         repo_ast = map_service.generate_submodule_map(git_root)
         map_service.merge_ast_to_agents_md(git_root, repo_ast)
         logger.info("Successfully generated and merged repo AST map.")
-        typer.echo("Successfully generated and merged repo AST map.")
     except Exception as e:
         logger.exception("Failed to generate and merge repo AST map.")

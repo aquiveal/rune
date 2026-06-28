@@ -1,5 +1,8 @@
 import typer
 from pathlib import Path
+from worldline import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 def diff_cmd():
@@ -8,7 +11,7 @@ def diff_cmd():
     """
     cwd = Path.cwd()
     if not (cwd / ".rune").exists():
-        typer.echo("Error: .rune directory not found. Run `rune init` first.", err=True)
+        logger.error(".rune directory not found. Run `rune init` first.")
         raise typer.Exit(1)
 
-    typer.echo("No local changes.")
+    logger.info("No local changes.")

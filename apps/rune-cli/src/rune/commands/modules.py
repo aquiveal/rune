@@ -1,12 +1,14 @@
 import typer
 from typing import Optional
 from pathlib import Path
+from worldline import structlog
 from rune.commands import skills
 from rune.repositories import git_repository
 from rune.services import skill_service
 from rune.utils.url import parse_github_url, resolve_url
 
 app = typer.Typer(no_args_is_help=True, help="Manage modules contextually")
+logger = structlog.get_logger(__name__)
 
 
 @app.command("add")
@@ -40,7 +42,7 @@ def add(
         raw_name = target_name or repo_name
         sanitized_name = skill_service.sanitize_skill_name(raw_name)
         if not sanitized_name:
-            typer.echo(f"Error: Invalid skill name '{raw_name}'.", err=True)
+            logger.error(f"Invalid skill name '{raw_name}'.")
             raise typer.Exit(1)
         target_dir = cwd / sanitized_name
     elif cwd.parent.name == "skills":
@@ -53,9 +55,8 @@ def add(
             git_root=git_root, cwd=cwd, global_scope=False, agents_arg=None
         )
         if not target_agents:
-            typer.echo(
-                "Error: Could not determine target agent directory. Please run inside a 'skills' directory.",
-                err=True,
+            logger.error(
+                "Could not determine target agent directory. Please run inside a 'skills' directory."
             )
             raise typer.Exit(1)
 
@@ -67,14 +68,14 @@ def add(
         raw_name = target_name or repo_name
         sanitized_name = skill_service.sanitize_skill_name(raw_name)
         if not sanitized_name:
-            typer.echo(f"Error: Invalid skill name '{raw_name}'.", err=True)
+            logger.error(f"Invalid skill name '{raw_name}'.")
             raise typer.Exit(1)
         target_dir = skills_dir / sanitized_name
 
     try:
         # Scaffold if necessary
         if context == "skills_root" and not target_dir.exists():
-            typer.echo(f"Scaffolding new skill '{target_dir.name}'...")
+            logger.info(f"Scaffolding new skill '{target_dir.name}'...")
             skills.scaffold_skill(target_dir.name, target_dir.parent)
 
         # Ensure modules directory exists
@@ -85,7 +86,7 @@ def add(
 
         from rune.services import module_service
 
-        typer.echo(
+        logger.info(
             f"Adding module {base_url} (path: {extracted_path or '.'}) to {module_path}..."
         )
 
@@ -104,13 +105,13 @@ def add(
         except Exception as e:
             raise Exception(f"Failed to fetch module: {e}")
 
-        typer.echo("Syncing skill tree...")
+        logger.info("Syncing skill tree...")
         skill_service.update_skill_tree(target_dir)
 
-        typer.echo(f"Successfully added module and updated skill '{target_dir.name}'")
+        logger.info(f"Successfully added module and updated skill '{target_dir.name}'")
 
     except typer.Exit:
         raise
     except Exception as e:
-        typer.echo(f"Failed to add module: {e}", err=True)
+        logger.error(f"Failed to add module: {e}")
         raise typer.Exit(1)

@@ -1,5 +1,8 @@
 import typer
 from pathlib import Path
+from worldline import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 def fetch_cmd():
@@ -8,9 +11,9 @@ def fetch_cmd():
     """
     cwd = Path.cwd()
     if not (cwd / ".rune").exists():
-        typer.echo("Error: .rune directory not found. Run `rune init` first.", err=True)
+        logger.error(".rune directory not found. Run `rune init` first.")
         raise typer.Exit(1)
 
-    typer.echo("Fetching modules...")
+    logger.info("Fetching modules...")
     # In a full implementation, this would use `git ls-remote` and check against local hashes.
-    typer.echo("Fetch complete.")
+    logger.info("Fetch complete.")
