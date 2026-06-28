@@ -1357,3 +1357,1234 @@ def notify_user(user_id, sender: Any):
     sender.send("user@example.com", "Hello")
     return "Success"
 ```
+
+# Repository Map
+
+```python
+
+.rune\modules\modules\lume-python\src\lume\config.py:
+⋮
+│def generate_traceparent() -> str:
+⋮
+│def resolve_traceparent() -> str:
+⋮
+│class LoggingSettings(BaseSettings):
+│    """Configuration for the lume package."""
+│
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def is_windmill_env(self) -> bool:
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def trace_id(self) -> str:
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def span_id(self) -> str:
+⋮
+
+.rune\modules\modules\lume-python\src\lume\integrations\structlog.py:
+⋮
+│def _setup(settings: Optional["LoggingSettings"] = None) -> None:
+⋮
+│def get_logger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def getLogger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def wrap_logger(logger: Any, **kwargs: Any) -> Any:
+⋮
+│def _merge_configuration(kwargs: Dict[str, Any], once: bool = False) -> None:
+⋮
+│def configure(**kwargs: Any) -> None:
+⋮
+│def configure_once(**kwargs: Any) -> None:
+⋮
+│def __getattr__(name: str) -> Any:
+⋮
+│def __dir__() -> List[str]:
+⋮
+
+.rune\modules\modules\lume-python\src\lume\integrations\windmill.py:
+⋮
+│def get_windmill_traceparent() -> Optional[str]:
+⋮
+
+.rune\modules\modules\lume-python\src\lume\service.py:
+⋮
+│def remove_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def rich_renderer(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def get_console_format() -> Tuple[List[Any], List[logging.Handler]]:
+⋮
+│def add_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def setup_otel_provider(
+│    settings_override: Optional[Any] = None,
+⋮
+
+.rune\modules\modules\lume-python\tests\conftest.py:
+⋮
+│@pytest.fixture(autouse=True)
+│def clean_structlog():
+⋮
+│@pytest.fixture(autouse=True)
+│def env_reset():
+⋮
+│@pytest.fixture
+│def in_memory_otel_exporters():
+⋮
+
+.rune\modules\modules\lume-python\tests\integration\test_telemetry_integration.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "SENTRY_DSN": "https://dummy@sentry.io/123",
+│        "POSTHOG_API_KEY": "ph_dummy_key",
+│        "LANGFUSE_PUBLIC_KEY": "lf_pub",
+│        "LANGFUSE_SECRET_KEY": "lf_sec",
+│        "WM_TOKEN": "wm_dummy_token",
+│        "WM_WORKSPACE": "wm_ws",
+│        "WM_BASE_URL": "https://app.windmill.dev",
+⋮
+│def test_telemetry_integration(
+│    mock_langfuse, mock_posthog, mock_sentry, in_memory_otel_exporters
+│):
+│    """
+│    Integration test utilizing InMemory OpenTelemetry Exporters to verify
+│    the fully configured pipeline accurately translates custom structured
+│    logging events into W3C compliant OpenTelemetry LogRecords and spans.
+⋮
+│    @observe(as_type="generation")
+│    def my_generation_func():
+⋮
+
+.rune\modules\modules\lume-python\tests\performance\test_logging_concurrency.py:
+⋮
+│def test_thread_safe_contextvars():
+│    """
+│    Test that bound contextvars in structlog do not bleed across threads
+│    under concurrent load.
+⋮
+│    with mock.patch("sys.stdout", out):
+│        structlog._setup(settings)
+⋮
+│        def worker(thread_idx: int):
+⋮
+
+.rune\modules\modules\lume-python\tests\property\test_logging_properties.py:
+⋮
+│@given(
+│    st.dictionaries(
+│        st.text(), st.text() | st.integers() | st.none() | st.floats(allow_nan=False)
+│    )
+│)
+│def test_remove_otel_context_never_crashes(event_dict):
+⋮
+│@mock.patch("lume.service.settings")
+⋮
+│def test_add_otel_context_never_crashes(mock_settings, event_dict):
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\integrations\test_langfuse.py:
+│def test_langfuse_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\integrations\test_posthog.py:
+│def test_posthog_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\integrations\test_sentry.py:
+│def test_sentry_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\integrations\test_structlog.py:
+⋮
+│@pytest.fixture(autouse=True)
+│def reset_structlog_state():
+⋮
+│@mock.patch("lume.integrations.structlog._original_structlog.configure", spec=True)
+│@mock.patch("lume.service.setup_otel_provider", spec=True)
+│def test_auto_initialization(mock_setup_otel, mock_configure):
+⋮
+│@mock.patch("lume.integrations.structlog._setup")
+│def test_idempotency(mock_setup):
+│    """Assert that get_logger only runs _setup once."""
+│
+⋮
+│    def mock_setup_side_effect(*args, **kwargs):
+⋮
+│def test_additive_configuration():
+│    """Assert that custom configure() intelligently merges processors."""
+│
+│    def my_processor(logger, name, event_dict):
+⋮
+│def test_proxy_validation():
+⋮
+│def test_dynamic_attribute():
+⋮
+│def test_standard_logging_capture():
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\integrations\test_windmill.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {"WM_TRACEPARENT": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
+│    clear=True,
+│)
+│def test_get_windmill_traceparent_valid():
+⋮
+│@mock.patch.dict(os.environ, {}, clear=True)
+│def test_get_windmill_traceparent_missing():
+⋮
+│def test_windmill_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\lume-python\tests\unit\lume\test_config.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_from_windmill_env():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "TRACEPARENT": "00-envtraceid1234567890123456789012-envspanid1234567-01",
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_precedence_env_over_windmill():
+⋮
+│def test_vendor_defaults():
+⋮
+
+.rune\modules\modules\python-logging\src\python_logging\config.py:
+⋮
+│def generate_traceparent() -> str:
+⋮
+│def resolve_traceparent() -> str:
+⋮
+│class StdoutFormat(str, Enum):
+⋮
+│class LoggingSettings(BaseSettings):
+│    """Configuration for the python-logging package."""
+│
+⋮
+│    @computed_field
+│    @property
+│    def trace_id(self) -> str:
+⋮
+│    @computed_field
+│    @property
+│    def span_id(self) -> str:
+⋮
+
+.rune\modules\modules\python-logging\src\python_logging\integrations\windmill.py:
+⋮
+│def get_windmill_traceparent() -> Optional[str]:
+⋮
+
+.rune\modules\modules\python-logging\src\python_logging\main.py:
+⋮
+│def setup_logging(settings: Optional[LoggingSettings] = None) -> None:
+⋮
+
+.rune\modules\modules\python-logging\src\python_logging\service.py:
+⋮
+│def remove_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def get_console_renderer_format() -> Tuple[List[Any], List[logging.Handler]]:
+⋮
+│def get_rich_format() -> Tuple[List[Any], List[logging.Handler]]:
+⋮
+│def add_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def setup_otel_provider() -> Optional[LoggerProvider]:
+⋮
+
+.rune\modules\modules\python-logging\tests\unit\python_logging\integrations\test_windmill.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {"WM_TRACEPARENT": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
+│    clear=True,
+│)
+│def test_get_windmill_traceparent_valid():
+⋮
+│@mock.patch.dict(os.environ, {}, clear=True)
+│def test_get_windmill_traceparent_missing():
+⋮
+
+.rune\modules\modules\python-logging\tests\unit\python_logging\test_config.py:
+⋮
+│def test_default_settings():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "LOG_LEVEL": "DEBUG",
+│        "STDOUT_FORMAT": "rich",
+│        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+│        "TRACEPARENT": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_from_env():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_from_windmill_env():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "TRACEPARENT": "00-envtraceid1234567890123456789012-envspanid1234567-01",
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_precedence_env_over_windmill():
+⋮
+
+.rune\modules\modules\worldline-python\src\worldline\config.py:
+⋮
+│def generate_traceparent() -> str:
+⋮
+│def resolve_traceparent() -> str:
+⋮
+│class LoggingSettings(BaseSettings):
+│    """Configuration for the lume package."""
+│
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def is_windmill_env(self) -> bool:
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def trace_id(self) -> str:
+⋮
+│    @computed_field  # type: ignore
+│    @property
+│    def span_id(self) -> str:
+⋮
+
+.rune\modules\modules\worldline-python\src\worldline\integrations\structlog.py:
+⋮
+│def _setup(settings: Optional["LoggingSettings"] = None) -> None:
+⋮
+│def get_logger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def getLogger(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def wrap_logger(logger: Any, **kwargs: Any) -> Any:
+⋮
+│def _merge_configuration(kwargs: Dict[str, Any], once: bool = False) -> None:
+⋮
+│def configure(**kwargs: Any) -> None:
+⋮
+│def configure_once(**kwargs: Any) -> None:
+⋮
+│def __getattr__(name: str) -> Any:
+⋮
+│def __dir__() -> List[str]:
+⋮
+
+.rune\modules\modules\worldline-python\src\worldline\integrations\windmill.py:
+⋮
+│def get_windmill_traceparent() -> Optional[str]:
+⋮
+
+.rune\modules\modules\worldline-python\src\worldline\service.py:
+⋮
+│def remove_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def rich_renderer(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def get_console_format() -> Tuple[List[Any], List[logging.Handler]]:
+⋮
+│def add_otel_context(
+│    logger: logging.Logger, method_name: str, event_dict: Dict[str, Any]
+⋮
+│def setup_otel_provider(
+│    settings_override: Optional[Any] = None,
+⋮
+
+.rune\modules\modules\worldline-python\tests\conftest.py:
+⋮
+│@pytest.fixture(autouse=True)
+│def clean_structlog():
+⋮
+│@pytest.fixture(autouse=True)
+│def env_reset():
+⋮
+│@pytest.fixture
+│def in_memory_otel_exporters():
+⋮
+
+.rune\modules\modules\worldline-python\tests\integration\test_telemetry_integration.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "SENTRY_DSN": "https://dummy@sentry.io/123",
+│        "POSTHOG_API_KEY": "ph_dummy_key",
+│        "LANGFUSE_PUBLIC_KEY": "lf_pub",
+│        "LANGFUSE_SECRET_KEY": "lf_sec",
+│        "WINDMILL_TOKEN": "windmill_dummy_token",
+│        "WINDMILL_WORKSPACE": "windmill_ws",
+│        "WINDMILL_BASE_URL": "https://app.windmill.dev",
+⋮
+│def test_telemetry_integration(
+│    mock_langfuse, mock_posthog, mock_sentry, in_memory_otel_exporters
+│):
+│    """
+│    Integration test utilizing InMemory OpenTelemetry Exporters to verify
+│    the fully configured pipeline accurately translates custom structured
+│    logging events into W3C compliant OpenTelemetry LogRecords and spans.
+⋮
+│    @observe(as_type="generation")
+│    def my_generation_func():
+⋮
+
+.rune\modules\modules\worldline-python\tests\performance\test_logging_concurrency.py:
+⋮
+│def test_thread_safe_contextvars():
+│    """
+│    Test that bound contextvars in structlog do not bleed across threads
+│    under concurrent load.
+⋮
+│    with mock.patch("sys.stdout", out):
+│        structlog._setup(settings)
+⋮
+│        def worker(thread_idx: int):
+⋮
+
+.rune\modules\modules\worldline-python\tests\property\test_logging_properties.py:
+⋮
+│@given(
+│    st.dictionaries(
+│        st.text(), st.text() | st.integers() | st.none() | st.floats(allow_nan=False)
+│    )
+│)
+│def test_remove_otel_context_never_crashes(event_dict):
+⋮
+│@mock.patch("worldline.service.settings")
+⋮
+│def test_add_otel_context_never_crashes(mock_settings, event_dict):
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\integrations\test_langfuse.py:
+│def test_langfuse_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\integrations\test_posthog.py:
+│def test_posthog_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\integrations\test_sentry.py:
+│def test_sentry_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\integrations\test_structlog.py:
+⋮
+│@pytest.fixture(autouse=True)
+│def reset_structlog_state():
+⋮
+│@mock.patch("worldline.integrations.structlog._original_structlog.configure", spec=True)
+│@mock.patch("worldline.service.setup_otel_provider", spec=True)
+│def test_auto_initialization(mock_setup_otel, mock_configure):
+⋮
+│@mock.patch("worldline.integrations.structlog._setup")
+│def test_idempotency(mock_setup):
+│    """Assert that get_logger only runs _setup once."""
+│
+⋮
+│    def mock_setup_side_effect(*args, **kwargs):
+⋮
+│def test_additive_configuration():
+│    """Assert that custom configure() intelligently merges processors."""
+│
+│    def my_processor(logger, name, event_dict):
+⋮
+│def test_proxy_validation():
+⋮
+│def test_dynamic_attribute():
+⋮
+│def test_standard_logging_capture():
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\integrations\test_windmill.py:
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {"WM_TRACEPARENT": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
+│    clear=True,
+│)
+│def test_get_windmill_traceparent_valid():
+⋮
+│@mock.patch.dict(os.environ, {}, clear=True)
+│def test_get_windmill_traceparent_missing():
+⋮
+│def test_windmill_facade_re_exported() -> None:
+⋮
+
+.rune\modules\modules\worldline-python\tests\unit\worldline\test_config.py:
+⋮
+│def test_default_settings():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "LOG_LEVEL": "DEBUG",
+│        "STDOUT_FORMAT": "rich",
+│        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+│        "TRACEPARENT": "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_from_env():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_from_windmill_env():
+⋮
+│@mock.patch.dict(
+│    os.environ,
+│    {
+│        "TRACEPARENT": "00-envtraceid1234567890123456789012-envspanid1234567-01",
+│        "WM_TRACEPARENT": "00-windmilltraceid1234567890123456-windmillspanid12-01",
+│    },
+│    clear=True,
+│)
+│def test_settings_precedence_env_over_windmill():
+⋮
+│def test_is_windmill_env():
+⋮
+│def test_vendor_defaults():
+⋮
+│def test_generate_traceparent():
+⋮
+│def test_malformed_traceparent_fails():
+⋮
+
+apps\rune-cli\src\rune\commands\agents.py:
+⋮
+│@app.command("update")
+│def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+
+apps\rune-cli\src\rune\commands\config.py:
+⋮
+│def config_cmd(
+│    key: str = typer.Argument(...),
+│    value: Optional[str] = typer.Argument(None),
+│    add: bool = typer.Option(False, "--add", help="Add a new line to the option"),
+│    get_all: bool = typer.Option(False, "--get-all", help="Get all values"),
+⋮
+
+apps\rune-cli\src\rune\commands\diff.py:
+⋮
+│def diff_cmd():
+⋮
+
+apps\rune-cli\src\rune\commands\fetch.py:
+⋮
+│def fetch_cmd():
+⋮
+
+apps\rune-cli\src\rune\commands\init.py:
+⋮
+│def init_cmd():
+⋮
+
+apps\rune-cli\src\rune\commands\modules.py:
+⋮
+│@app.command("add")
+│def add(
+│    url: str = typer.Argument(..., help="URL of the git repository to add as a module"),
+│    target_name: Optional[str] = typer.Argument(
+│        None, help="Name of the skill/rule to add the module to"
+│    ),
+│    force: bool = typer.Option(False, "--force", "-f", help="Force add the module"),
+⋮
+
+apps\rune-cli\src\rune\commands\pull.py:
+⋮
+│def pull_cmd():
+⋮
+
+apps\rune-cli\src\rune\commands\remote.py:
+⋮
+│@app.command("add")
+│def add(name: str = typer.Argument(...), url: str = typer.Argument(...)):
+⋮
+
+apps\rune-cli\src\rune\commands\rules.py:
+⋮
+│@app.command("add")
+│def add(
+│    source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
+│    agents: Optional[List[str]] = typer.Option(
+│        None, "--agent", "-a", help="Target agents"
+│    ),
+│    rules: Optional[List[str]] = typer.Option(
+│        None, "--rule", "-r", help="Specific rules to install"
+│    ),
+│    global_scope: bool = typer.Option(False, "--global", "-g", help="Install globally"),
+│    copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink"),
+⋮
+│@app.command("list")
+│def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+│@app.command("remove")
+│def remove(
+│    names: List[str] = typer.Argument(..., help="Names of rules to remove"),
+│    global_scope: bool = typer.Option(False, "--global", "-g"),
+⋮
+│@app.command("update")
+│def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+│@app.command("init")
+│def init(name: str = typer.Argument(..., help="Name of the rule")):
+⋮
+
+apps\rune-cli\src\rune\commands\skills.py:
+⋮
+│@app.command("add")
+│def add(
+│    source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
+│    agents: Optional[List[str]] = typer.Option(
+│        None, "--agent", "-a", help="Target agents"
+│    ),
+│    skills: Optional[List[str]] = typer.Option(
+│        None, "--skill", "-s", help="Specific skills to install"
+│    ),
+│    global_scope: bool = typer.Option(False, "--global", "-g", help="Install globally"),
+│    copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink"),
+⋮
+│@app.command("list")
+│def list_skills(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+│@app.command("remove")
+│def remove(
+│    names: List[str] = typer.Argument(..., help="Names of skills to remove"),
+│    global_scope: bool = typer.Option(False, "--global", "-g"),
+⋮
+│def scaffold_skill(name: str, base_dir: Path) -> Path:
+⋮
+│@app.command("init")
+│def init(name: str = typer.Argument(..., help="Name of the skill")):
+⋮
+│@app.command("update")
+│def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+│@app.command("validate")
+│def validate(
+│    path: Path = typer.Argument(
+│        Path.cwd(), help="Path to the skill directory or SKILL.md"
+│    ),
+⋮
+
+apps\rune-cli\src\rune\commands\status.py:
+⋮
+│def status_cmd():
+⋮
+
+apps\rune-cli\src\rune\commands\update.py:
+⋮
+│def update_cmd(global_scope: bool = typer.Option(False, "--global", "-g")):
+⋮
+
+apps\rune-cli\src\rune\config\exceptions.py:
+│class RuneError(Exception):
+⋮
+│class GitError(RuneError):
+⋮
+│class ConfigError(RuneError):
+⋮
+│class ModuleError(RuneError):
+⋮
+│class ValidationError(RuneError):
+⋮
+
+apps\rune-cli\src\rune\config\main.py:
+⋮
+│class RepoMapSettings(BaseModel):
+⋮
+│class AgentSettings(BaseModel):
+⋮
+│class RuneConfigSource(PydanticBaseSettingsSource):
+│    def get_field_value(
+│        self, field: FieldInfo, field_name: str
+⋮
+│    def __call__(self) -> Dict[str, Any]:
+⋮
+│class Settings(LoggingSettings, BaseSettings):
+│    """
+│    Centralized configuration for Rune.
+│    Loads values from environment variables and .rune/config with sensible defaults.
+⋮
+│    @classmethod
+│    def settings_customise_sources(
+│        cls,
+│        settings_cls: Type[BaseSettings],
+│        init_settings: PydanticBaseSettingsSource,
+│        env_settings: PydanticBaseSettingsSource,
+│        dotenv_settings: PydanticBaseSettingsSource,
+│        file_secret_settings: PydanticBaseSettingsSource,
+⋮
+
+apps\rune-cli\src\rune\main.py:
+⋮
+│@app.callback()
+│def callback():
+⋮
+│def main():
+⋮
+
+apps\rune-cli\src\rune\repositories\config_repository.py:
+⋮
+│def _get_config_path(root_dir: Path) -> Path:
+⋮
+│def add_agent_name(root_dir: Path, name: str):
+⋮
+│def set_agent_name(root_dir: Path, name: str):
+⋮
+│def set_remote_url(root_dir: Path, alias: str, url: str):
+⋮
+
+apps\rune-cli\src\rune\repositories\git_repository.py:
+⋮
+│def run_git(
+│    args: List[str], cwd: Optional[Path] = None, capture_output: bool = True
+⋮
+│def clone(url: str, target_path: Path, depth: Optional[int] = None):
+⋮
+│def add_submodule(url: str, path: str, cwd: Path, force: bool = False):
+⋮
+│def update_submodules(cwd: Path, init: bool = True, recursive: bool = True):
+⋮
+│def sparse_checkout_init(cwd: Path):
+⋮
+│def sparse_checkout_set(cwd: Path, paths: List[str]):
+⋮
+│def sparse_checkout_add(cwd: Path, paths: List[str]):
+⋮
+│def is_git_repo(cwd: Path) -> bool:
+⋮
+│def get_git_root(cwd: Path) -> Optional[Path]:
+⋮
+│def get_short_sha(cwd: Path) -> Optional[str]:
+⋮
+│def get_config(key: str, file_path: Path) -> Optional[str]:
+⋮
+│def get_config_all(key: str, file_path: Path) -> List[str]:
+⋮
+│def set_config(key: str, value: str, file_path: Path):
+⋮
+│def add_config(key: str, value: str, file_path: Path):
+⋮
+│def unset_config_section(section: str, file_path: Path):
+⋮
+│def get_default_branch(url: str) -> str:
+⋮
+
+apps\rune-cli\src\rune\repositories\module_repository.py:
+⋮
+│def _get_modules_path(root_dir: Path) -> Path:
+⋮
+│def list_modules(root_dir: Path) -> List[ModuleSchema]:
+⋮
+│def add_module(root_dir: Path, module: ModuleSchema):
+⋮
+│def remove_module(root_dir: Path, module_name: str):
+⋮
+
+apps\rune-cli\src\rune\schemas\module_schema.py:
+⋮
+│class ModuleSchema(BaseModel):
+│    name: str
+⋮
+│    @property
+│    def specific_url(self) -> str:
+⋮
+│    @property
+│    def base_url(self) -> str:
+⋮
+│    @property
+│    def source_path(self) -> str:
+⋮
+│    @property
+│    def inferred_type(self) -> str:
+⋮
+
+apps\rune-cli\src\rune\schemas\rule_schema.py:
+⋮
+│class RuleMetadata(BaseModel):
+⋮
+│class RuleSchema(BaseModel):
+⋮
+
+apps\rune-cli\src\rune\schemas\skill_schema.py:
+⋮
+│class SkillMetadata(BaseModel):
+⋮
+│class SkillSchema(BaseModel):
+│    name: str = Field(..., min_length=1, max_length=64)
+⋮
+│    @field_validator("name")
+│    @classmethod
+│    def validate_name(cls, v: str) -> str:
+⋮
+
+apps\rune-cli\src\rune\services\map_service.py:
+⋮
+│def generate_submodule_map(module_path: Path, max_tokens: int | None = None) -> str:
+⋮
+│def merge_ast_to_agents_md(repo_path: Path, ast_content: str) -> None:
+⋮
+
+apps\rune-cli\src\rune\services\module_service.py:
+⋮
+│def add_module(
+│    git_root: Path,
+│    cwd: Path,
+│    url: str,
+│    path: str,
+│    name: str,
+│    type: str,
+│    agents: List[str],
+│    global_scope: bool = False,
+│    copy_mode: bool = False,
+│):
+│    base_dir = (Path.home() / ".rune") if global_scope else git_root
+⋮
+│    for agent_path in target_paths:
+│        agent_path.parent.mkdir(parents=True, exist_ok=True)
+│
+│        def on_rm_error(func, path, exc_info):
+⋮
+│def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
+⋮
+│def remove_module(git_root: Path, name: str, type: str, global_scope: bool = False):
+⋮
+│def update_modules(
+│    git_root: Path, type: Optional[str] = None, global_scope: bool = False
+│):
+│    base_dir = (Path.home() / ".rune") if global_scope else git_root
+⋮
+│    for mod in modules:
+│        repo_name = mod.base_url.rstrip("/").split("/")[-1].replace(".git", "")
+⋮
+│        if source_path.exists():
+│            agent_path = base_dir / mod.path
+⋮
+│            def on_rm_error(func, path, exc_info):
+⋮
+
+apps\rune-cli\src\rune\services\rule_service.py:
+⋮
+│def validate_rule_file(path: Path) -> RuleSchema:
+⋮
+│def discover_rules(repo_path: Path) -> List[RuleSchema]:
+⋮
+│def discover_rule_dirs(repo_path: Path) -> List[Path]:
+⋮
+│def merge_rules_to_agents_md(repo_path: Path):
+⋮
+
+apps\rune-cli\src\rune\services\skill_service.py:
+⋮
+│def sanitize_skill_name(name: str) -> str:
+⋮
+│def validate_skill_file(path: Path) -> SkillSchema:
+⋮
+│def discover_skills(repo_path: Path) -> List[SkillSchema]:
+⋮
+│def generate_tree(
+│    dir_path: Path,
+│    prefix: str = "",
+│    ignore: Optional[List[str]] = None,
+│    ast_maps: Optional[dict] = None,
+│    root_dir: Optional[Path] = None,
+⋮
+│def update_skill_tree(skill_dir: Path):
+⋮
+
+apps\rune-cli\src\rune\services\workspace_service.py:
+⋮
+│def is_initialized(root_dir: Path) -> bool:
+⋮
+│def init_workspace(root_dir: Path):
+⋮
+│def detect_agents(root_dir: Path) -> List[str]:
+⋮
+│def resolve_target_agents(
+│    git_root: Optional[Path],
+│    cwd: Path,
+│    global_scope: bool,
+│    agents_arg: Optional[List[str]],
+⋮
+│def update_gitignore(root_dir: Path):
+⋮
+
+apps\rune-cli\src\rune\utils\git.py:
+⋮
+│class GitError(Exception):
+⋮
+│def get_git_root() -> Path:
+⋮
+│def is_github_url(url: str) -> bool:
+⋮
+│def is_github_folder_url(url: str) -> bool:
+⋮
+
+apps\rune-cli\src\rune\utils\os.py:
+⋮
+│def is_admin() -> bool:
+⋮
+│def elevate_and_run(args: list[str], original_cwd: str):
+⋮
+
+apps\rune-cli\src\rune\utils\url.py:
+⋮
+│def resolve_url(source: str, root_dir: Path) -> str:
+⋮
+│def parse_github_url(url: str) -> tuple[str, Optional[str]]:
+⋮
+
+apps\rune-cli\tests\conftest.py:
+⋮
+│@pytest.fixture
+│def mock_git_repo(tmp_path):
+⋮
+│@pytest.fixture
+│def rune_workspace(tmp_path):
+⋮
+
+apps\rune-cli\tests\integration\external\test_github_fetch.py:
+⋮
+│@vcr.use_cassette("tests/integration/external/cassettes/github_api.yaml")
+│def test_github_api_fetch():
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_agents.py:
+⋮
+│@patch("rune.commands.agents.module_service.update_modules")
+⋮
+│def test_agents_update_success(
+│    mock_cwd,
+│    mock_get_git_root,
+│    mock_merge_ast,
+│    mock_gen_map,
+│    mock_merge_rules,
+│    mock_update_skill_tree,
+│    mock_discover_skills,
+│    mock_update_submodules,
+│    mock_discover_rule_dirs,
+⋮
+│@patch("rune.commands.agents.module_service.update_modules")
+⋮
+│def test_agents_update_continues_on_rule_failure(
+│    mock_cwd,
+│    mock_get_git_root,
+│    mock_merge_ast,
+│    mock_gen_map,
+│    mock_merge_rules,
+│    mock_update_skill_tree,
+│    mock_discover_skills,
+│    mock_discover_rule_dirs,
+│    mock_update_modules,
+⋮
+│    mock_cwd_path = MagicMock()
+⋮
+│    def update_modules_side_effect(path, type, global_scope):
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_config.py:
+⋮
+│def test_config(tmp_path):
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_init.py:
+⋮
+│def test_init(tmp_path):
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_modules.py:
+⋮
+│@pytest.fixture
+│def mock_git_root(tmp_path):
+⋮
+│def test_modules_help():
+⋮
+│@patch("rune.commands.modules.Path.cwd")
+⋮
+│def test_modules_add_inside_skills_root(
+│    mock_update_skill_tree,
+│    mock_add_module,
+│    mock_scaffold,
+│    mock_get_git_root,
+│    mock_cwd,
+│    mock_git_root,
+⋮
+│@patch("rune.commands.modules.Path.cwd")
+⋮
+│def test_modules_add_inside_specific_skill(
+│    mock_update_skill_tree,
+│    mock_add_module,
+│    mock_get_git_root,
+│    mock_cwd,
+│    mock_git_root,
+⋮
+│@patch("rune.commands.modules.Path.cwd")
+⋮
+│def test_modules_add_outside_skills_context(
+│    mock_resolve_target_agents,
+│    mock_get_git_root,
+│    mock_cwd,
+│    mock_git_root,
+⋮
+│@patch("rune.commands.modules.Path.cwd")
+⋮
+│def test_modules_add_from_root_infers_agent_dir(
+│    mock_update_skill_tree,
+│    mock_add_module,
+│    mock_scaffold_skill,
+│    mock_resolve_target_agents,
+│    mock_get_git_root,
+│    mock_cwd,
+│    mock_git_root,
+⋮
+│@patch("rune.commands.modules.Path.cwd")
+⋮
+│def test_modules_add_handles_fetch_failure(
+│    mock_add_module,
+│    mock_scaffold,
+│    mock_get_git_root,
+│    mock_cwd,
+│    mock_git_root,
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_rules.py:
+⋮
+│def test_rules_add(tmp_path, mock_git_repo):
+⋮
+│def test_rules_update(tmp_path):
+⋮
+│def test_rule_filtering(tmp_path, mock_git_repo):
+⋮
+│@patch("rune.services.module_service.add_module")
+│def test_implicit_agents_injection(mock_add_module, tmp_path, mock_git_repo):
+⋮
+│def test_rule_filtering_edge_cases(tmp_path, mock_git_repo):
+⋮
+
+apps\rune-cli\tests\unit\rune\commands\test_skills.py:
+⋮
+│def test_skills_add_shorthand(tmp_path, mock_git_repo):
+⋮
+│def test_skills_list(tmp_path, mock_git_repo):
+⋮
+│def test_skills_validate(tmp_path):
+⋮
+│def test_skills_init(tmp_path):
+⋮
+│def test_skills_update(tmp_path):
+⋮
+
+apps\rune-cli\tests\unit\rune\config\test_main.py:
+⋮
+│def test_settings_initialization_with_extra_kwargs():
+⋮
+│def test_settings_setup_logging_is_called():
+⋮
+
+apps\rune-cli\tests\unit\rune\repositories\test_config_repository.py:
+⋮
+│def test_add_agent_name(tmp_path: Path):
+⋮
+│def test_set_agent_name(tmp_path: Path):
+⋮
+│def test_set_remote_url(tmp_path: Path):
+⋮
+
+apps\rune-cli\tests\unit\rune\schemas\test_module_schema.py:
+⋮
+│def test_module_schema_properties():
+⋮
+│def test_module_schema_inferred_type():
+⋮
+
+apps\rune-cli\tests\unit\rune\services\test_map_service.py:
+⋮
+│def test_generate_submodule_map_uses_config_default(tmp_path: Path):
+⋮
+│def test_generate_submodule_map_includes_nested_paths_and_excludes_aider_cache(
+│    tmp_path: Path,
+⋮
+│    (tmp_path / "src").mkdir()
+⋮
+│    with patch("rune.services.map_service.RepoMap") as MockRepoMap:
+│
+│        def fake_get_ranked_tags_map(chat_fnames, other_fnames):
+⋮
+│def test_generate_submodule_map_honors_gitignore(tmp_path: Path):
+│    # Setup mock structure
+│    (tmp_path / "src").mkdir()
+⋮
+│    with patch("rune.services.map_service.RepoMap") as MockRepoMap:
+│        def fake_get_ranked_tags_map(chat_fnames, other_fnames):
+⋮
+│def test_merge_ast_to_agents_md_creates_new(tmp_path: Path):
+⋮
+│def test_merge_ast_to_agents_md_appends_to_existing(tmp_path: Path):
+⋮
+│def test_merge_ast_to_agents_md_replaces_existing(tmp_path: Path):
+⋮
+
+apps\rune-cli\tests\unit\rune\services\test_module_service.py:
+⋮
+│@pytest.fixture
+│def mock_git_repo():
+⋮
+│@pytest.fixture
+│def mock_module_repo():
+⋮
+│@pytest.fixture
+│def mock_config_repo():
+⋮
+│def test_add_module_local_clone(tmp_path, mock_git_repo, mock_module_repo):
+│    # Arrange
+│    root_dir = tmp_path
+⋮
+│    def mock_exists(self):
+⋮
+│    def mock_is_dir(self):
+⋮
+│def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
+│    # Arrange
+│    root_dir = tmp_path
+⋮
+│    def mock_exists(self):
+⋮
+│    def mock_is_dir(self):
+⋮
+│def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo):
+│    # Arrange
+│    mock_module_repo.list_modules.return_value = [
+│        ModuleSchema(
+│            name=".roo/rules/my-rule",
+│            url="https://github.com/owner/repo/tree/main/rules/my-rule https://github.com/owner/rep
+│            path=".roo/rules/my-rule",
+│        )
+⋮
+│    def mock_is_dir(self):
+⋮
+
+apps\rune-cli\tests\unit\rune\services\test_rule_service.py:
+⋮
+│def test_merge_rules_to_agents_md_creates_new_file(tmp_path):
+⋮
+│def test_merge_rules_to_agents_md_updates_existing_block(tmp_path):
+⋮
+│def test_merge_rules_to_agents_md_handles_unclosed_code_blocks(tmp_path):
+⋮
+│def test_merge_rules_to_agents_md_finds_standalone_files(tmp_path):
+⋮
+│def test_merge_rules_to_agents_md_ignores_empty_files(tmp_path):
+⋮
+
+apps\rune-cli\tests\unit\rune\services\test_skill_service.py:
+⋮
+│def test_sanitize_skill_name():
+⋮
+│def test_validate_skill_valid(tmp_path):
+⋮
+│def test_validate_skill_invalid_name(tmp_path):
+⋮
+│def test_validate_skill_name_mismatch(tmp_path):
+⋮
+│def test_validate_skill_description_too_long(tmp_path):
+⋮
+│def test_generate_tree_with_submodule(tmp_path, monkeypatch):
+│    # Create a mock directory structure
+│    skill_dir = tmp_path / "test-skill"
+⋮
+│    def mock_get_short_sha(cwd):
+⋮
+│def test_generate_tree_with_ast_map(tmp_path):
+⋮
+│def test_discover_skills_depth(tmp_path):
+⋮
+│def test_update_skill_tree_with_ast_map(tmp_path):
+⋮
+│def test_update_skill_tree_without_ast_map(tmp_path):
+⋮
+│def test_update_skill_tree_creates_scaffolded_folders(tmp_path):
+⋮
+
+apps\rune-cli\tests\unit\rune\services\test_workspace_service.py:
+⋮
+│def test_resolve_target_agents_with_agents_arg():
+⋮
+│@patch("rune.services.workspace_service.detect_agents")
+⋮
+│def test_resolve_target_agents_interactive_selection(
+│    mock_config, mock_questionary, mock_detect
+⋮
+│@patch("rune.services.workspace_service.detect_agents")
+│@patch("rune.services.workspace_service.questionary")
+│def test_resolve_target_agents_interactive_abort(mock_questionary, mock_detect):
+⋮
+│@patch("rune.services.workspace_service.detect_agents")
+│@patch("rune.services.workspace_service.questionary")
+│def test_resolve_target_agents_interactive_empty(mock_questionary, mock_detect):
+⋮
+
+apps\rune-cli\tests\unit\rune\utils\test_url.py:
+⋮
+│def test_parse_github_url_standard():
+⋮
+│def test_parse_github_url_tree():
+⋮
+│def test_parse_github_url_blob():
+⋮
+│def test_parse_github_url_nested_branch():
+⋮
+│def test_resolve_url_local(tmp_path):
+⋮
+│def test_resolve_url_owner_repo():
+⋮
+│def test_resolve_url_already_valid():
+⋮
+
+```
