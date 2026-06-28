@@ -1,14 +1,31 @@
-# Changelog v2.0.0
+# Changelog v2.1.0
 
-## Breaking Changes
+## Features
 
-* **Namespace Migration: Rename Lume to Worldline**
-  All references, dependencies, imports, and configurations previously namespaced under `lume` have been renamed to `worldline`. This is a high-severity breaking change requiring updates to all project configuration files, import statements, and dependency references.
-  * Migration: Update your codebase to replace all instances of `lume` with `worldline`. Ensure local environment variables and build scripts are updated to reflect the new namespace.
-  * Commits: [51acc1b](https://github.com/aquiveal/rune/commit/51acc1bf), [c92e5a5](https://github.com/aquiveal/rune/commit/c92e5a5b)
+* **Agents CLI Command Group**
+  Introduced the `agents` command group to the CLI, enabling programmatic management of agent configurations. This includes the `update` command for managing contexts, rules, and skills.
+  Commits: [1d8bc1d](https://github.com/aquiveal/rune/commit/1d8bc1d7), [aac81f2](https://github.com/aquiveal/rune/commit/aac81f28), [16d6653](https://github.com/aquiveal/rune/commit/16d66530)
 
-## New Features
+* **Repository AST Map Generation**
+  Added functionality within the `agents update` command to generate repository AST maps, featuring native `.gitignore` support to ensure accurate indexing of project structures.
+  Commits: [1d8bc1d](https://github.com/aquiveal/rune/commit/1d8bc1d7), [aac81f2](https://github.com/aquiveal/rune/commit/aac81f28), [16d6653](https://github.com/aquiveal/rune/commit/16d66530)
 
-* **Automated Skill Tree Scaffolding**
-  The `update_skill_tree` function now includes logic to automatically scaffold the necessary directory structure, including `scripts`, `references`, `assets`, and `modules`, as well as generating or updating the `SKILL.md` file.
-  * Commits: [51acc1b](https://github.com/aquiveal/rune/commit/51acc1bf), [c92e5a5](https://github.com/aquiveal/rune/commit/c92e5a5b)
+## Docs
+
+* **Agents Command Documentation**
+  Updated the README to include comprehensive usage instructions and configuration examples for the new `agents` CLI command group.
+  Commit: [037a9b5](https://github.com/aquiveal/rune/commit/037a9b51)
+
+## Other
+
+* **Test Coverage Expansion**
+  Added comprehensive unit tests for the map service and the `agents update` command to ensure stability of the new CLI features.
+  Commits: [ebf8fd5](https://github.com/aquiveal/rune/commit/ebf8fd5a), [2bfd7e1](https://github.com/aquiveal/rune/commit/2bfd7e1b)
+
+* **Dependency Updates**
+  Updated `worldline` to version 2.0.1.
+  Commit: [37f2b04](https://github.com/aquiveal/rune/commit/37f2b04b)
+
+* **Dependency Downgrades**
+  Downgraded `posthog` to version 7.8.6 to resolve compatibility issues.
+  Commit: [37f2b04](https://github.com/aquiveal/rune/commit/37f2b04b)
