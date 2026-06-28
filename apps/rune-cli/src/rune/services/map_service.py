@@ -40,21 +40,35 @@ def generate_submodule_map(module_path: Path, max_tokens: int | None = None) -> 
             spec = pathspec.PathSpec.from_lines('gitignore', f)
 
     all_files = []
-    for p in module_path.rglob("*"):
-        if not p.is_file():
-            continue
-            
-        # Check standard ignore dirs
-        if any(part in ignore_dirs or part.startswith(".aider") for part in p.parts):
-            continue
-            
-        # Check .gitignore
-        if spec:
-            rel_path = str(p.relative_to(module_path))
-            if spec.match_file(rel_path):
+    
+    import os
+    for root, dirs, files in os.walk(module_path):
+        rel_root = Path(root).relative_to(module_path)
+        
+        # Filter directories in-place to prevent os.walk from recursing into them
+        valid_dirs = []
+        for d in dirs:
+            if d in ignore_dirs or d.startswith(".aider"):
                 continue
                 
-        all_files.append(str(p))
+            if spec:
+                # Add trailing slash for directory matching in pathspec
+                dir_rel_path = (rel_root / d).as_posix() + "/"
+                if spec.match_file(dir_rel_path):
+                    continue
+                    
+            valid_dirs.append(d)
+        dirs[:] = valid_dirs
+        
+        for f in files:
+            if any(f.startswith(ignore) for ignore in ignore_dirs):
+                continue
+                
+            rel_file_path = (rel_root / f).as_posix()
+            if spec and spec.match_file(rel_file_path):
+                continue
+                
+            all_files.append(str(Path(root) / f))
 
     map_text = repo_map.get_ranked_tags_map(chat_fnames=[], other_fnames=all_files)
     return map_text or ""

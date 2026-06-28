@@ -219,7 +219,6 @@ __marimo__/
 .rune/*
 !.rune/config
 !.rune/index
-.agents/skills/python-logging/modules/python-logging
 
 # Aider
 .aider.*
