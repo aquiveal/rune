@@ -57,3 +57,77 @@ def test_generate_submodule_map_includes_nested_paths_and_excludes_aider_cache(
     assert "cache.db" not in map_text
     assert ".git" not in map_text
     assert "config" not in map_text
+
+
+def test_generate_submodule_map_honors_gitignore(tmp_path: Path):
+    # Setup mock structure
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "main.py").write_text("print('hello')")
+    
+    (tmp_path / "ignored_dir").mkdir()
+    (tmp_path / "ignored_dir" / "secret.txt").write_text("shhh")
+    (tmp_path / "ignored_file.txt").write_text("ignore me")
+    
+    # Create .gitignore
+    (tmp_path / ".gitignore").write_text("ignored_dir/\nignored_file.txt")
+
+    with patch("rune.services.map_service.RepoMap") as MockRepoMap:
+        def fake_get_ranked_tags_map(chat_fnames, other_fnames):
+            return "\n".join(other_fnames)
+
+        MockRepoMap.return_value.get_ranked_tags_map.side_effect = fake_get_ranked_tags_map
+        map_text = generate_submodule_map(tmp_path, max_tokens=1000)
+
+    # Assertions
+    assert "src" in map_text
+    assert "main.py" in map_text
+    
+    # Exclusions via .gitignore
+    assert "ignored_dir" not in map_text
+    assert "secret.txt" not in map_text
+    assert "ignored_file.txt" not in map_text
+
+
+def test_merge_ast_to_agents_md_creates_new(tmp_path: Path):
+    from rune.services.map_service import merge_ast_to_agents_md
+
+    ast_content = "def hello():\n    pass"
+    merge_ast_to_agents_md(tmp_path, ast_content)
+
+    agents_md = tmp_path / "AGENTS.md"
+    assert agents_md.exists()
+    content = agents_md.read_text(encoding="utf-8")
+    assert "# Repository Map" in content
+    assert "def hello():" in content
+
+
+def test_merge_ast_to_agents_md_appends_to_existing(tmp_path: Path):
+    from rune.services.map_service import merge_ast_to_agents_md
+
+    agents_md = tmp_path / "AGENTS.md"
+    agents_md.write_text("# Existing Content\n\nSome rules.", encoding="utf-8")
+
+    ast_content = "class Mock:"
+    merge_ast_to_agents_md(tmp_path, ast_content)
+
+    content = agents_md.read_text(encoding="utf-8")
+    assert content.startswith("# Existing Content")
+    assert "# Repository Map" in content
+    assert "class Mock:" in content
+
+
+def test_merge_ast_to_agents_md_replaces_existing(tmp_path: Path):
+    from rune.services.map_service import merge_ast_to_agents_md
+
+    agents_md = tmp_path / "AGENTS.md"
+    initial_content = "# Rules\n\n- Rule 1\n\n# Repository Map\n\n```python\nold_ast()\n```\n"
+    agents_md.write_text(initial_content, encoding="utf-8")
+
+    ast_content = "new_ast()"
+    merge_ast_to_agents_md(tmp_path, ast_content)
+
+    content = agents_md.read_text(encoding="utf-8")
+    assert "# Rules\n\n- Rule 1\n\n" in content
+    assert "old_ast()" not in content
+    assert "new_ast()" in content
+    assert "# Repository Map" in content
