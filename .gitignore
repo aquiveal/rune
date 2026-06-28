@@ -221,6 +221,9 @@ __marimo__/
 !.rune/index
 .agents/skills/python-logging/modules/python-logging
 
+# Aider
+.aider.*
+
 # Agents
 plans/
 .agents/skills/worldline-python/modules/worldline-python
