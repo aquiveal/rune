@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:b01d68f1684098bd8935a76587d89eef415f4b0c62fd2ac0b868b9bd48204713"
+content_hash = "sha256:92ae531bcc777b657434569136053ca37b7da5f6e3435a8e7cad52138cedc578"
 
 [[metadata.targets]]
 requires_python = ">=3.11,<3.13"
@@ -942,25 +942,6 @@ files = [
 ]
 
 [[package]]
-name = "worldline"
-version = "1.0.1"
-git = "https://github.com/aurumorinc/worldline-python.git"
-revision = "8ecdc10a460b35d6f6fbfae2a30b96cfa589b59a"
-summary = ""
-dependencies = [
-    "colorama",
-    "langfuse",
-    "opentelemetry-api",
-    "opentelemetry-exporter-otlp",
-    "opentelemetry-sdk",
-    "posthog",
-    "pydantic-settings",
-    "rich",
-    "sentry-sdk",
-    "structlog",
-]
-
-[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 summary = ""
@@ -1381,17 +1362,19 @@ files = [
 
 [[package]]
 name = "posthog"
-version = "7.20.5"
+version = "7.8.6"
 summary = ""
 dependencies = [
     "backoff",
     "distro",
+    "python-dateutil",
     "requests",
+    "six",
     "typing-extensions",
 ]
 files = [
-    {file = "posthog-7.20.5-py3-none-any.whl", hash = "sha256:1e33e352ff6d67f362d572d040b110316b107ffa924b322ba8a818db758a9b05"},
-    {file = "posthog-7.20.5.tar.gz", hash = "sha256:ff667df36528d418aa22f1368b77326ba04ee5238169f874ed1fa2d246101ce2"},
+    {file = "posthog-7.8.6-py3-none-any.whl", hash = "sha256:21809f73e8e8f09d2bc273b09582f1a9f997b66f51fc626ef5bd3c5bdffd8bcd"},
+    {file = "posthog-7.8.6.tar.gz", hash = "sha256:6f67e18b5f19bf20d7ef2e1a80fa1ad879a5cd309ca13cfb300f45a8105968c4"},
 ]
 
 [[package]]
@@ -2341,6 +2324,25 @@ summary = ""
 files = [
     {file = "wcwidth-0.6.0-py3-none-any.whl", hash = "sha256:1a3a1e510b553315f8e146c54764f4fb6264ffad731b3d78088cdb1478ffbdad"},
     {file = "wcwidth-0.6.0.tar.gz", hash = "sha256:cdc4e4262d6ef9a1a57e018384cbeb1208d8abbc64176027e2c2455c81313159"},
+]
+
+[[package]]
+name = "worldline"
+version = "2.0.1"
+git = "https://github.com/aurumorinc/worldline-python.git"
+revision = "c8158c5d99b7ba2e0b13f3179f60b6179c0bf55d"
+summary = ""
+dependencies = [
+    "colorama",
+    "langfuse",
+    "opentelemetry-api",
+    "opentelemetry-exporter-otlp",
+    "opentelemetry-sdk",
+    "posthog",
+    "pydantic-settings",
+    "rich",
+    "sentry-sdk",
+    "structlog",
 ]
 
 [[package]]
