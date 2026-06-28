@@ -143,6 +143,10 @@ def update_skill_tree(skill_dir: Path):
     if not skill_md.exists():
         return
 
+    scaffold_folders = ["scripts", "references", "assets", "modules"]
+    for folder in scaffold_folders:
+        (skill_dir / folder).mkdir(exist_ok=True)
+
     ast_maps = {}
     tree = generate_tree(skill_dir, ast_maps=ast_maps, root_dir=skill_dir)
     content = skill_md.read_text(encoding="utf-8")

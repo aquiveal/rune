@@ -205,3 +205,29 @@ def test_update_skill_tree_without_ast_map(tmp_path):
     assert "> **Agent Instructions:**" not in updated_content
     assert "normal_dir" in updated_content
     assert "file.txt" in updated_content
+
+
+def test_update_skill_tree_creates_scaffolded_folders(tmp_path):
+    skill_dir = tmp_path / "test-skill"
+    skill_dir.mkdir()
+
+    # Create SKILL.md
+    skill_md = skill_dir / "SKILL.md"
+    skill_md.write_text(
+        "---\nname: test-skill\n---\n",
+        encoding="utf-8",
+    )
+
+    skill_service.update_skill_tree(skill_dir)
+
+    assert (skill_dir / "scripts").is_dir()
+    assert (skill_dir / "references").is_dir()
+    assert (skill_dir / "assets").is_dir()
+    assert (skill_dir / "modules").is_dir()
+
+    updated_content = skill_md.read_text(encoding="utf-8")
+    assert "scripts" in updated_content
+    assert "references" in updated_content
+    assert "assets" in updated_content
+    assert "modules" in updated_content
+

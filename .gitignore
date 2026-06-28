@@ -223,4 +223,4 @@ __marimo__/
 
 # Agents
 plans/
-.agents/skills/lume-python/modules/lume-python
+.agents/skills/worldline-python/modules/worldline-python

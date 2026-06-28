@@ -11,7 +11,7 @@ def test_settings_initialization_with_extra_kwargs():
 
 
 def test_settings_setup_logging_is_called():
-    with mock.patch("lume.logging.setup_logging") as mock_setup_logging:
+    with mock.patch("worldline.logging.setup_logging") as mock_setup_logging:
         import importlib
         import rune.config.main
 

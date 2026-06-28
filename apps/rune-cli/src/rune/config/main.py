@@ -9,7 +9,7 @@ from pydantic_settings import (
     SettingsConfigDict,
     PydanticBaseSettingsSource,
 )
-from lume import LoggingSettings
+from worldline import LoggingSettings
 
 
 class RepoMapSettings(BaseModel):
