@@ -2,12 +2,14 @@ import typer
 import questionary
 from typing import List, Optional
 from pathlib import Path
+from worldline import structlog
 from rune.services import skill_service, module_service, workspace_service
 from rune.repositories import git_repository
 from rune.config.exceptions import RuneError, ValidationError
 from rune.utils.url import parse_github_url, resolve_url
 
 app = typer.Typer(no_args_is_help=True, help="Manage executable agent skills")
+logger = structlog.get_logger(__name__)
 
 
 @app.command("add")
@@ -27,7 +29,7 @@ def add(
     git_root = git_repository.get_git_root(cwd)
 
     if not global_scope and not git_root:
-        typer.echo("Error: Must be run inside a git repository.", err=True)
+        logger.error("Must be run inside a git repository.")
         raise typer.Exit(1)
 
     raw_url = resolve_url(source, git_root or cwd)
@@ -45,7 +47,7 @@ def add(
         discovered = skill_service.discover_skills(tmp_dir)
 
         if not discovered:
-            typer.echo("No skills found in repository.", err=True)
+            logger.error("No skills found in repository.")
             raise typer.Exit(1)
 
         # Filter or prompt
@@ -57,7 +59,7 @@ def add(
                 if s.name in skills or s.name.replace(".md", "") in skills
             ]
             if not to_install:
-                typer.echo(f"No skills found matching: {', '.join(skills)}", err=True)
+                logger.error(f"No skills found matching: {', '.join(skills)}")
                 raise typer.Exit(1)
         elif extracted_path:
             to_install = [
@@ -67,7 +69,7 @@ def add(
                 or (s.path and s.path.startswith(extracted_path + "/"))
             ]
             if not to_install:
-                typer.echo(f"No skills found at path '{extracted_path}'.", err=True)
+                logger.error(f"No skills found at path '{extracted_path}'.")
                 raise typer.Exit(1)
         elif len(discovered) == 1:
             to_install = discovered
@@ -103,14 +105,14 @@ def add(
                 copy_mode=copy_mode,
             )
             if target_agents:
-                typer.echo(
+                logger.info(
                     f"Installed skill '{skill.name}' to {', '.join(target_agents)}"
                 )
             else:
-                typer.echo(f"Installed skill '{skill.name}' to {cwd}")
+                logger.info(f"Installed skill '{skill.name}' to {cwd}")
 
     except RuneError as e:
-        typer.echo(f"Error: {e}", err=True)
+        logger.error(str(e))
         raise typer.Exit(1)
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -124,7 +126,7 @@ def list_skills(global_scope: bool = typer.Option(False, "--global", "-g")):
     status = module_service.get_status(git_root, global_scope=global_scope)
     for mod, stat in status.items():
         if "/skills/" in mod or mod.startswith("skills/"):
-            typer.echo(f"{mod}: {stat}")
+            logger.info(f"{mod}: {stat}")
 
 
 @app.command("remove")
@@ -139,7 +141,7 @@ def remove(
         module_service.remove_module(
             git_root, name, "skills", global_scope=global_scope
         )
-        typer.echo(f"Removed skill '{name}'")
+        logger.info(f"Removed skill '{name}'")
 
 
 def scaffold_skill(name: str, base_dir: Path) -> Path:
@@ -169,11 +171,11 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
     """Scaffold a new skill with standard folder structure."""
     sanitized_name = skill_service.sanitize_skill_name(name)
     if not sanitized_name:
-        typer.echo(f"Error: Invalid skill name '{name}'.", err=True)
+        logger.error(f"Invalid skill name '{name}'.")
         raise typer.Exit(1)
 
     skill_dir = scaffold_skill(sanitized_name, Path.cwd())
-    typer.echo(
+    logger.info(
         f"Created skill '{sanitized_name}' with standard structure at {skill_dir}"
     )
 
@@ -191,14 +193,14 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         module_service.update_modules(
             git_root, type="modules", global_scope=global_scope
         )
-        typer.echo("Updated installed skills and their internal submodules.")
+        logger.info("Updated installed skills and their internal submodules.")
     except Exception as e:
-        typer.echo(f"Failed to update skill submodules: {e}", err=True)
+        logger.error(f"Failed to update skill submodules: {e}")
 
     discovered = skill_service.discover_skills(git_root)
 
     if not discovered:
-        typer.echo("No skills found in the current context to compile.", err=True)
+        logger.error("No skills found in the current context to compile.")
         return
 
     updated_count = 0
@@ -210,11 +212,11 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
             skill_service.update_skill_tree(skill_dir)
 
             updated_count += 1
-            typer.echo(f"Updated SKILL.md for '{skill.name}' at {skill_dir}")
+            logger.info(f"Updated SKILL.md for '{skill.name}' at {skill_dir}")
         except Exception as e:
-            typer.echo(f"Failed to update skill '{skill.name}': {e}", err=True)
+            logger.error(f"Failed to update skill '{skill.name}': {e}")
 
-    typer.echo(f"Successfully compiled {updated_count} skill(s).")
+    logger.info(f"Successfully compiled {updated_count} skill(s).")
 
 
 @app.command("validate")
@@ -231,10 +233,10 @@ def validate(
 
     try:
         skill = skill_service.validate_skill_file(skill_file)
-        typer.echo(f"Skill '{skill.name}' is valid!")
+        logger.info(f"Skill '{skill.name}' is valid!")
     except ValidationError as e:
-        typer.echo(f"Validation failed: {e}", err=True)
+        logger.error(f"Validation failed: {e}")
         raise typer.Exit(1)
     except Exception as e:
-        typer.echo(f"An unexpected error occurred: {e}", err=True)
+        logger.error(f"An unexpected error occurred: {e}")
         raise typer.Exit(1)

@@ -2,12 +2,14 @@ import typer
 import questionary
 from typing import List, Optional
 from pathlib import Path
+from worldline import structlog
 from rune.services import rule_service, module_service, workspace_service
 from rune.repositories import git_repository
 from rune.config.exceptions import RuneError
 from rune.utils.url import parse_github_url, resolve_url
 
 app = typer.Typer(no_args_is_help=True, help="Manage agent context and guidelines")
+logger = structlog.get_logger(__name__)
 
 
 @app.command("add")
@@ -27,7 +29,7 @@ def add(
     git_root = git_repository.get_git_root(cwd)
 
     if not global_scope and not git_root:
-        typer.echo("Error: Must be run inside a git repository.", err=True)
+        logger.error("Must be run inside a git repository.")
         raise typer.Exit(1)
 
     raw_url = resolve_url(source, git_root or cwd)
@@ -44,7 +46,7 @@ def add(
         discovered = rule_service.discover_rules(tmp_dir)
 
         if not discovered:
-            typer.echo("No rules found in repository.", err=True)
+            logger.error("No rules found in repository.")
             raise typer.Exit(1)
 
         to_install = []
@@ -55,7 +57,7 @@ def add(
                 if r.name in rules or r.name.replace(".md", "") in rules
             ]
             if not to_install:
-                typer.echo(f"No rules found matching: {', '.join(rules)}", err=True)
+                logger.error(f"No rules found matching: {', '.join(rules)}")
                 raise typer.Exit(1)
         elif extracted_path:
             # If a specific path was provided in the URL, try to find a rule matching that path
@@ -66,7 +68,7 @@ def add(
                 or (r.path and r.path.startswith(extracted_path + "/"))
             ]
             if not to_install:
-                typer.echo(f"No rules found at path '{extracted_path}'.", err=True)
+                logger.error(f"No rules found at path '{extracted_path}'.")
                 raise typer.Exit(1)
         elif len(discovered) == 1:
             to_install = discovered
@@ -101,21 +103,21 @@ def add(
                 copy_mode=copy_mode,
             )
             if target_agents:
-                typer.echo(
+                logger.info(
                     f"Installed rule '{rule.name}' to {', '.join(target_agents)}"
                 )
             else:
-                typer.echo(f"Installed rule '{rule.name}' to {cwd}")
+                logger.info(f"Installed rule '{rule.name}' to {cwd}")
 
         # Merge rules into AGENTS.md after adding
         try:
             rule_service.merge_rules_to_agents_md(git_root or cwd)
-            typer.echo("Successfully merged rules into AGENTS.md")
+            logger.info("Successfully merged rules into AGENTS.md")
         except Exception as e:
-            typer.echo(f"Failed to merge rules: {e}", err=True)
+            logger.error(f"Failed to merge rules: {e}")
 
     except RuneError as e:
-        typer.echo(f"Error: {e}", err=True)
+        logger.error(str(e))
         raise typer.Exit(1)
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -129,7 +131,7 @@ def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
     status = module_service.get_status(git_root, global_scope=global_scope)
     for mod, stat in status.items():
         if "/rules/" in mod or mod.startswith("rules/"):
-            typer.echo(f"{mod}: {stat}")
+            logger.info(f"{mod}: {stat}")
 
 
 @app.command("remove")
@@ -142,7 +144,7 @@ def remove(
     git_root = git_repository.get_git_root(cwd) or cwd
     for name in names:
         module_service.remove_module(git_root, name, "rules", global_scope=global_scope)
-        typer.echo(f"Removed rule '{name}'")
+        logger.info(f"Removed rule '{name}'")
 
 
 @app.command("update")
@@ -153,9 +155,9 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
 
     try:
         module_service.update_modules(git_root, type="rules", global_scope=global_scope)
-        typer.echo("Updated installed rule submodules.")
+        logger.info("Updated installed rule submodules.")
     except Exception as e:
-        typer.echo(f"Failed to update rule submodules: {e}", err=True)
+        logger.error(f"Failed to update rule submodules: {e}")
 
     # Also update any nested submodules inside rule directories (for authors)
     rule_dirs = rule_service.discover_rule_dirs(git_root)
@@ -164,17 +166,15 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
             try:
                 if (rule_dir / ".git").exists():
                     git_repository.update_submodules(rule_dir)
-                    typer.echo(f"Updated nested submodules in {rule_dir}")
+                    logger.info(f"Updated nested submodules in {rule_dir}")
             except Exception as e:
-                typer.echo(
-                    f"Failed to update nested submodules in {rule_dir}: {e}", err=True
-                )
+                logger.error(f"Failed to update nested submodules in {rule_dir}: {e}")
 
     try:
         rule_service.merge_rules_to_agents_md(git_root)
-        typer.echo("Successfully merged rules into AGENTS.md")
+        logger.info("Successfully merged rules into AGENTS.md")
     except Exception as e:
-        typer.echo(f"Failed to merge rules: {e}", err=True)
+        logger.error(f"Failed to merge rules: {e}")
         raise typer.Exit(1)
 
 
@@ -203,4 +203,4 @@ def init(name: str = typer.Argument(..., help="Name of the rule")):
     for file in files:
         (rule_dir / file).touch(exist_ok=True)
 
-    typer.echo(f"Created rule '{name}' with standard files at {rule_dir}")
+    logger.info(f"Created rule '{name}' with standard files at {rule_dir}")

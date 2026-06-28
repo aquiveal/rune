@@ -111,10 +111,8 @@ def test_modules_add_outside_skills_context(
 
     # Assert
     assert result.exit_code == 1
-    assert (
-        "Could not determine target agent directory. Please run inside a 'skills' directory."
-        in result.output
-    )
+    assert "Could not determine target agent directory" in result.output
+    assert "run inside a 'skills' directory" in result.output
 
 
 @patch("rune.commands.modules.Path.cwd")
