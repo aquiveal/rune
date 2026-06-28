@@ -1,7 +1,7 @@
-# Changelog v2.1.2
+# Changelog v2.1.3
 
-## Other
+### Improvements
 
-* **Submodule Map Generation Testing**
-  Added unit tests to ensure the submodule map generation logic correctly processes complex `.gitignore` patterns.
-  Commits: [520d965](https://github.com/aquiveal/rune/commit/520d9658), [9ddee1d](https://github.com/aquiveal/rune/commit/9ddee1d8)
+* **CLI Logging Refactor**
+  Migrated CLI console output from `typer.echo` to `worldline` structured logging to improve observability and separate operational logs from user-facing output.
+  * Commits: [822d05b](https://github.com/aquiveal/rune/commit/822d05be), [c94462a](https://github.com/aquiveal/rune/commit/c94462a1)
