@@ -1,3 +1,3 @@
-[runemodule ".agents/skills/lume-python/modules/lume-python"]
-	url = https://github.com/aurumorinc/lume-python/tree/main
-	path = .agents/skills/lume-python/modules/lume-python
+[runemodule ".agents/skills/worldline-python/modules/worldline-python"]
+	url = https://github.com/aurumorinc/worldline-python/tree/main
+	path = .agents/skills/worldline-python/modules/worldline-python

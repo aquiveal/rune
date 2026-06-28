@@ -2,7 +2,7 @@
 import sys
 import platform
 import ctypes
-from lume import structlog
+from worldline import structlog
 
 logger = structlog.get_logger()
 

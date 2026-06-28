@@ -468,7 +468,7 @@ public void processOrder(Order order) {
 - **Least Privilege**: ALWAYS run processes as unprivileged users, disable OS core dumps, and vault all secrets (KMS/Vault). NEVER log PII or secrets.
 
 #### 6. Observability & Control Plane
-- **Metrics & Logs**: ALWAYS inject Correlation/Trace IDs into logs. Log to stdout/external volume. Separate Host metrics (CPU/RAM) from Microservice metrics (RPS/Latency).
+- **Metrics & Logs**: ALWAYS inject Correlation/Trace IDs into logs. Log to stdout/external voworldline. Separate Host metrics (CPU/RAM) from Microservice metrics (RPS/Latency).
 - **Actionable Alerts**: ALWAYS restrict `ERROR`/`SEVERE` logs to actionable system failures requiring operator intervention. Log user errors as `WARN`/`INFO`. Every alert MUST have a Runbook.
 - **Governors**: ALWAYS implement "Governors" on automation scripts to hard-limit the blast radius of destructive actions (e.g., max 10% termination without human approval).
 - **Admin APIs**: ALWAYS expose administrative APIs on private/internal NICs. NEVER implement "flush cache" or schema wipe commands in production APIs.

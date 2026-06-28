@@ -5,7 +5,7 @@ description = "Rune CLI"
 authors = [
     {name = "Aryan Singh", email = "aquiveal@gmail.com"},
 ]
-dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.86.2", "pydantic-settings>=2.14.2", "lume @ git+https://github.com/aurumorinc/lume-python.git"]
+dependencies = ["typer>=0.15.2", "pydantic>=2.10.6", "pyyaml>=6.0.1", "questionary>=2.1.0", "aider-chat>=0.86.2", "pydantic-settings>=2.14.2", "worldline @ git+https://github.com/aurumorinc/worldline-python.git"]
 requires-python = "<3.13,>=3.11"
 license = {text = "MIT"}
 

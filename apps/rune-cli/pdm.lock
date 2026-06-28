@@ -942,9 +942,9 @@ files = [
 ]
 
 [[package]]
-name = "lume"
+name = "worldline"
 version = "1.0.1"
-git = "https://github.com/aurumorinc/lume-python.git"
+git = "https://github.com/aurumorinc/worldline-python.git"
 revision = "8ecdc10a460b35d6f6fbfae2a30b96cfa589b59a"
 summary = ""
 dependencies = [
