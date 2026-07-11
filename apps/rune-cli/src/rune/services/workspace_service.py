@@ -41,14 +41,8 @@ def resolve_target_agents(
     if global_scope or cwd == git_root:
         target_agents = agents_arg or detect_agents(git_root or cwd)
         if not target_agents and not agents_arg:
-            target_agents = questionary.checkbox(
-                "Select additional target agents (optional):",
-                choices=settings.agents,
-            ).ask()
-            if target_agents is None:  # ctrl+c abort
-                return None
-            for agent in target_agents:
-                config_repository.add_agent_name(git_root or cwd, agent)
+            target_agents = [".agents"]
+            config_repository.add_agent_name(git_root or cwd, ".agents")
 
         if target_agents is not None and ".agents" not in target_agents:
             target_agents.append(".agents")

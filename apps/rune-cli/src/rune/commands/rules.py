@@ -2,7 +2,7 @@ import typer
 import questionary
 from typing import List, Optional
 from pathlib import Path
-from worldline import structlog
+import structlog
 from rune.services import rule_service, module_service, workspace_service
 from rune.repositories import git_repository
 from rune.config.exceptions import RuneError

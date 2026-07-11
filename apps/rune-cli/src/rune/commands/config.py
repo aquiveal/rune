@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 from pathlib import Path
-from worldline import structlog
+import structlog
 
 logger = structlog.get_logger(__name__)
 

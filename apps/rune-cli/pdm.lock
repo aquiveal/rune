@@ -2328,9 +2328,9 @@ files = [
 
 [[package]]
 name = "worldline"
-version = "2.0.1"
+version = "2.0.0"
 git = "https://github.com/aurumorinc/worldline-python.git"
-revision = "c8158c5d99b7ba2e0b13f3179f60b6179c0bf55d"
+revision = "22f3d2f4a45b1f0f6f3947854e4fa26387ec4bc5"
 summary = ""
 dependencies = [
     "colorama",

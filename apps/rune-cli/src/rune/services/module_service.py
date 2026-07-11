@@ -1,7 +1,7 @@
 import shutil
 import os
 from pathlib import Path
-from worldline import structlog
+import structlog
 from typing import List, Optional, Dict
 from rune.config.exceptions import ModuleError
 from rune.repositories import git_repository, module_repository
@@ -36,6 +36,7 @@ def add_module(
             git_repository.sparse_checkout_init(cache_path)
             git_repository.sparse_checkout_set(cache_path, [path])
     else:
+        git_repository.run_git(["pull"], cwd=cache_path)
         if path and path != ".":
             git_repository.sparse_checkout_init(cache_path)
             git_repository.sparse_checkout_add(cache_path, [path])
@@ -108,9 +109,10 @@ def add_module(
         gitignore_path = base_dir / ".gitignore"
         if gitignore_path.exists():
             content = gitignore_path.read_text()
-            if rel_path not in content:
+            lines = [line.strip().replace("\\", "/") for line in content.splitlines()]
+            if rel_path not in lines:
                 with open(gitignore_path, "a") as f:
-                    if not content.endswith("\n"):
+                    if content and not content.endswith("\n"):
                         f.write("\n")
                     f.write(f"{rel_path}\n")
 

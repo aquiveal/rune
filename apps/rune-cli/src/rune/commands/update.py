@@ -1,5 +1,5 @@
 import typer
-from worldline import structlog
+import structlog
 from rune.commands import rules, skills
 
 logger = structlog.get_logger(__name__)

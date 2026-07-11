@@ -1,6 +1,6 @@
 import typer
 from pathlib import Path
-from worldline import structlog
+import structlog
 from rune.repositories import config_repository
 
 logger = structlog.get_logger(__name__)

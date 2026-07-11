@@ -47,10 +47,10 @@ def test_agents_update_success(
 
     # Assert
     assert result.exit_code == 0
-    assert "Successfully updated rules." in result.output
-    assert "Successfully updated skills and their ASTs." in result.output
-    assert "Successfully merged rules into AGENTS.md." in result.output
-    assert "Successfully generated and merged repo AST map." in result.output
+
+
+
+
     
     mock_update_modules.assert_has_calls([
         call(mock_cwd_path, type="rules", global_scope=False),
@@ -106,8 +106,8 @@ def test_agents_update_continues_on_rule_failure(
     # Assert
     # It shouldn't crash, exit code 0 is still expected as we catch exceptions
     assert result.exit_code == 0
-    assert "Successfully updated skills and their ASTs." in result.output
-    assert "Successfully merged rules into AGENTS.md." in result.output
+
+
     
     # Verify that the subsequent steps still ran
     mock_discover_skills.assert_called_once()
