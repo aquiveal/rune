@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 from pathlib import Path
-from worldline import structlog
+import structlog
 from rune.commands import skills
 from rune.repositories import git_repository
 from rune.services import skill_service
@@ -74,7 +74,7 @@ def add(
 
     try:
         # Scaffold if necessary
-        if context == "skills_root" and not target_dir.exists():
+        if context == "skills_root" and not (target_dir / "SKILL.md").exists():
             logger.info(f"Scaffolding new skill '{target_dir.name}'...")
             skills.scaffold_skill(target_dir.name, target_dir.parent)
 

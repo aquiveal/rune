@@ -1,6 +1,6 @@
 import typer
 from pathlib import Path
-from worldline import structlog
+import structlog
 from rune.repositories import git_repository
 from rune.services import rule_service, module_service, skill_service, map_service
 

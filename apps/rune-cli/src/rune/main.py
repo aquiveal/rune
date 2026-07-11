@@ -21,7 +21,9 @@ def callback():
 
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd)
-    if git_root and workspace_service.is_initialized(git_root):
+    if git_root:
+        if not workspace_service.is_initialized(git_root):
+            workspace_service.init_workspace(git_root)
         workspace_service.update_gitignore(git_root)
 
 

@@ -41,6 +41,7 @@ def list_modules(root_dir: Path) -> List[ModuleSchema]:
 def add_module(root_dir: Path, module: ModuleSchema):
     path = _get_modules_path(root_dir)
     section = f"runemodule.{module.name}"
+    git_repository.unset_config_section(section, path)
     git_repository.set_config(f"{section}.url", module.url, path)
     git_repository.set_config(f"{section}.path", module.path, path)
 
