@@ -1,7 +1,11 @@
-# Changelog v2.1.3
+# Changelog v2.1.4
 
-### Improvements
+## Improvements
 
-* **CLI Logging Refactor**
-  Migrated CLI console output from `typer.echo` to `worldline` structured logging to improve observability and separate operational logs from user-facing output.
-  * Commits: [822d05b](https://github.com/aquiveal/rune/commit/822d05be), [c94462a](https://github.com/aquiveal/rune/commit/c94462a1)
+* **Logging Framework Migration**
+  Replaced the internal `worldline` logging dependency with `structlog` to improve structured logging capabilities and updated associated configuration settings.
+  Commits: [181f3f0](https://github.com/aquiveal/rune/commit/181f3f08), [4859755](https://github.com/aquiveal/rune/commit/4859755f)
+
+* **Workspace Agent Resolution Logic**
+  Simplified the agent resolution process by removing interactive CLI prompts and defaulting exclusively to the `.agents` configuration file.
+  Commits: [181f3f0](https://github.com/aquiveal/rune/commit/181f3f08), [4859755](https://github.com/aquiveal/rune/commit/4859755f)
