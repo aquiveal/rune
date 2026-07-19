@@ -9,7 +9,7 @@ from pydantic_settings import (
     SettingsConfigDict,
     PydanticBaseSettingsSource,
 )
-from worldline import WorldlineSettings
+from worldline.config import WorldlineSettings
 
 
 class RepoMapSettings(BaseModel):
