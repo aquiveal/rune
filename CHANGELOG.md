@@ -1,11 +1,7 @@
-# Changelog v2.1.4
+# Changelog v2.1.5
 
-## Improvements
+## Fixes
 
-* **Logging Framework Migration**
-  Replaced the internal `worldline` logging dependency with `structlog` to improve structured logging capabilities and updated associated configuration settings.
-  Commits: [181f3f0](https://github.com/aquiveal/rune/commit/181f3f08), [4859755](https://github.com/aquiveal/rune/commit/4859755f)
-
-* **Workspace Agent Resolution Logic**
-  Simplified the agent resolution process by removing interactive CLI prompts and defaulting exclusively to the `.agents` configuration file.
-  Commits: [181f3f0](https://github.com/aquiveal/rune/commit/181f3f08), [4859755](https://github.com/aquiveal/rune/commit/4859755f)
+* **Corrected WorldlineSettings Import Path**
+  The import path for `WorldlineSettings` has been updated to correctly reference `worldline.config` instead of the direct `worldline` module. This resolves potential module resolution errors in environments strict about path exports.
+  * Commits: [e37e673](https://github.com/aquiveal/rune/commit/e37e673a), [cda114b](https://github.com/aquiveal/rune/commit/cda114b6)
