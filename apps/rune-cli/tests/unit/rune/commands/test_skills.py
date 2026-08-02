@@ -37,7 +37,6 @@ def test_skills_list(tmp_path, mock_git_repo):
     assert result.exit_code == 0
 
 
-
 def test_skills_validate(tmp_path):
     os.chdir(tmp_path)
     skill_dir = tmp_path / "test-skill"
@@ -49,12 +48,10 @@ def test_skills_validate(tmp_path):
     result = runner.invoke(app, ["skills", "validate", str(skill_dir)])
     assert result.exit_code == 0
 
-
     # Invalid name
     (skill_dir / "SKILL.md").write_text("---\nname: Invalid\ndescription: valid\n---\n")
     result = runner.invoke(app, ["skills", "validate", str(skill_dir)])
     assert result.exit_code == 1
-
 
 
 def test_skills_init(tmp_path):
@@ -78,5 +75,6 @@ def test_skills_update(tmp_path):
     assert result.exit_code == 0
 
     skill_md = (tmp_path / "my-skill" / "SKILL.md").read_text()
+    assert "name: my-skill" in skill_md
     assert "## File Tree" in skill_md
-    assert "modules" in skill_md
+    assert (tmp_path / "my-skill" / "modules").is_dir()

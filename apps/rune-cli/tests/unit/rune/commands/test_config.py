@@ -18,4 +18,3 @@ def test_config(tmp_path):
     with patch("rune.config.main.settings.agent.names", [".roo"]):
         result = runner.invoke(app, ["config", "agent.name"])
         assert result.exit_code == 0
-

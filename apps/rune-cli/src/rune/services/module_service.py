@@ -116,17 +116,6 @@ def add_module(
                         f.write("\n")
                     f.write(f"{rel_path}\n")
 
-        # Generate repomap for modules (submodules)
-        if type == "modules" and agent_path.is_dir():
-            from rune.services import map_service
-
-            try:
-                # Generate map using source_path (which has .git) so Aider tracks files properly
-                map_text = map_service.generate_submodule_map(source_path)
-                (agent_path / ".repomap.txt").write_text(map_text, encoding="utf-8")
-            except Exception as e:
-                logger.warning(f"Failed to generate repomap for {agent_path.name}: {e}")
-
 
 def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
     base_dir = (Path.home() / ".rune") if global_scope else git_root
@@ -236,19 +225,5 @@ def update_modules(
                         shutil.rmtree(git_dir, ignore_errors=True)
                 except Exception:
                     pass
-
-                if mod.inferred_type == "modules":
-                    from rune.services import map_service
-
-                    try:
-                        # Generate map using source_path (which has .git) so Aider tracks files properly
-                        map_text = map_service.generate_submodule_map(source_path)
-                        (agent_path / ".repomap.txt").write_text(
-                            map_text, encoding="utf-8"
-                        )
-                    except Exception as e:
-                        logger.warning(
-                            f"Failed to generate repomap for {agent_path.name}: {e}"
-                        )
             else:
                 shutil.copy2(source_path, agent_path)

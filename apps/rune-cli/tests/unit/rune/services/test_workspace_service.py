@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from pathlib import Path
 from rune.services.workspace_service import resolve_target_agents
 

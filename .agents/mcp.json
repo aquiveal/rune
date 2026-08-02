@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "probe": {
+      "disabled": false,
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@probelabs/probe@latest",
+        "agent",
+        "--mcp"
+      ]
+    }
+  }
+}

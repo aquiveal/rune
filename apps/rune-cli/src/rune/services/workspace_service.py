@@ -19,16 +19,30 @@ def init_workspace(root_dir: Path):
     (rune_dir / "index").touch(exist_ok=True)
     update_gitignore(root_dir)
 
+    # Automatically install probe MCP globally for all agents during init
+    try:
+        from rune.services import mcp_service
+
+        mcp_service.add_mcp_server(
+            "probelabs/probe", git_root=root_dir, cwd=root_dir, global_scope=True
+        )
+    except Exception:
+        pass
+
 
 def detect_agents(root_dir: Path) -> List[str]:
+    detected = []
     if settings.agent.names:
-        return [settings.agent.names[0]]
+        detected.extend(settings.agent.names)
 
     for agent in settings.agents:
-        if (root_dir / agent).is_dir():
-            return [agent]
+        if (root_dir / agent).is_dir() and agent not in detected:
+            detected.append(agent)
 
-    return []
+    if (root_dir / ".agents").is_dir() and ".agents" not in detected:
+        detected.append(".agents")
+
+    return detected
 
 
 def resolve_target_agents(
@@ -38,11 +52,24 @@ def resolve_target_agents(
     agents_arg: Optional[List[str]],
 ) -> Optional[List[str]]:
     target_agents = []
-    if global_scope or cwd == git_root:
-        target_agents = agents_arg or detect_agents(git_root or cwd)
+    if global_scope:
+        if agents_arg:
+            target_agents = list(agents_arg)
+        else:
+            choices = list(settings.agent_paths.keys())
+            try:
+                selected = questionary.checkbox(
+                    "Select target agent(s) for global scope:", choices=choices
+                ).ask()
+                target_agents = selected if selected else choices
+            except Exception:
+                target_agents = choices
+    elif git_root or cwd:
+        root_path = git_root or cwd
+        target_agents = list(agents_arg) if agents_arg else detect_agents(root_path)
         if not target_agents and not agents_arg:
             target_agents = [".agents"]
-            config_repository.add_agent_name(git_root or cwd, ".agents")
+            config_repository.add_agent_name(root_path, ".agents")
 
         if target_agents is not None and ".agents" not in target_agents:
             target_agents.append(".agents")

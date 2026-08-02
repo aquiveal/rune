@@ -1,8 +1,10 @@
-from typing import List, Dict, Tuple, Any, Type
+import sys
+import os
+from typing import List, Dict, Tuple, Any, Type, Optional
 from pathlib import Path
 import subprocess
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
@@ -19,6 +21,103 @@ class RepoMapSettings(BaseModel):
 
 class AgentSettings(BaseModel):
     names: List[str] = Field(default_factory=list)
+
+
+class AgentPaths(BaseModel):
+    rules: str
+    skills: str
+    mcp: str
+
+
+class Agent(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    workspace: AgentPaths
+    global_scope: AgentPaths = Field(alias="global")
+
+
+def get_default_agents() -> Dict[str, Agent]:
+    try:
+        home = Path.home()
+    except Exception:
+        home = Path("~")
+
+    app_data = (
+        os.environ.get("APPDATA", str(home / "AppData" / "Roaming"))
+        if sys.platform == "win32"
+        else ""
+    )
+
+    if sys.platform == "win32":
+        roo_mcp_global = str(Path(app_data) / "Roo-Code" / "MCP" / "mcp-settings.json")
+    elif sys.platform == "darwin":
+        roo_mcp_global = str(
+            home / ".local" / "share" / "Roo-Code" / "MCP" / "mcp-settings.json"
+        )
+    else:
+        roo_mcp_global = str(
+            home / ".local" / "share" / "Roo-Code" / "MCP" / "mcp-settings.json"
+        )
+
+    if sys.platform == "darwin":
+        cline_mcp_global = str(
+            home / "Documents" / "Cline" / "MCP" / "mcp-settings.json"
+        )
+    elif sys.platform == "win32":
+        cline_mcp_global = str(Path(app_data) / "Cline" / "MCP" / "mcp-settings.json")
+    else:
+        cline_mcp_global = str(
+            home / ".local" / "share" / "Cline" / "MCP" / "mcp-settings.json"
+        )
+
+    return {
+        ".agents": Agent(
+            workspace=AgentPaths(
+                rules=".agents/rules", skills=".agents/skills", mcp=".agents/mcp.json"
+            ),
+            global_scope=AgentPaths(
+                rules=".agents/rules",
+                skills=".agents/skills",
+                mcp=str(home / ".rune" / "mcp.json"),
+            ),
+        ),
+        ".roo": Agent(
+            workspace=AgentPaths(
+                rules=".roo/rules", skills=".roo/skills", mcp=".roo/mcp.json"
+            ),
+            global_scope=AgentPaths(
+                rules=".roo/rules", skills=".roo/skills", mcp=roo_mcp_global
+            ),
+        ),
+        ".claude": Agent(
+            workspace=AgentPaths(
+                rules=".claude/rules", skills=".claude/skills", mcp=".claude/mcp.json"
+            ),
+            global_scope=AgentPaths(
+                rules=".claude/rules",
+                skills=".claude/skills",
+                mcp=str(home / ".claude" / "claude_desktop_config.json"),
+            ),
+        ),
+        ".cursor": Agent(
+            workspace=AgentPaths(
+                rules=".cursor/rules", skills=".cursor/skills", mcp=".cursor/mcp.json"
+            ),
+            global_scope=AgentPaths(
+                rules=".cursor/rules",
+                skills=".cursor/skills",
+                mcp=str(home / ".cursor" / "mcp.json"),
+            ),
+        ),
+        ".cline": Agent(
+            workspace=AgentPaths(
+                rules=".cline/rules", skills=".cline/skills", mcp=".cline/mcp.json"
+            ),
+            global_scope=AgentPaths(
+                rules=".cline/rules", skills=".cline/skills", mcp=cline_mcp_global
+            ),
+        ),
+    }
 
 
 class RuneConfigSource(PydanticBaseSettingsSource):
@@ -99,12 +198,53 @@ class Settings(WorldlineSettings, BaseSettings):
 
     model_config = SettingsConfigDict(extra="ignore")
 
-    # Supported default agents
-    agents: List[str] = [".roo", ".claude", ".cursor", ".cline"]
-
     agent: AgentSettings = Field(default_factory=AgentSettings)
+    agent_paths: Dict[str, Agent] = Field(default_factory=get_default_agents)
     remotes: Dict[str, str] = Field(default_factory=dict)
     repomap: RepoMapSettings = Field(default_factory=RepoMapSettings)
+
+    @property
+    def agents(self) -> List[str]:
+        """Return list of supported default agent directory names (e.g. ['.roo', '.claude', ...])."""
+        return [k for k in self.agent_paths.keys() if k != ".agents"]
+
+    def get_agent(self, name: str) -> Optional[Agent]:
+        """Lookup an Agent object by name (accepts with or without leading dot)."""
+        key = name if name.startswith(".") else f".{name}"
+        if key in self.agent_paths:
+            return self.agent_paths[key]
+        if name in self.agent_paths:
+            return self.agent_paths[name]
+        return None
+
+    def get_skill_search_paths(self) -> List[str]:
+        """Return deduplicated relative skill search directory paths."""
+        paths = ["skills"]
+        for agent_cfg in self.agent_paths.values():
+            skills_path = agent_cfg.workspace.skills
+            if skills_path and skills_path not in paths:
+                paths.append(skills_path)
+        return paths
+
+    def get_rule_search_paths(self) -> List[str]:
+        """Return deduplicated relative rule search directory paths."""
+        paths = ["rules"]
+        for agent_cfg in self.agent_paths.values():
+            rules_path = agent_cfg.workspace.rules
+            if rules_path and rules_path not in paths:
+                paths.append(rules_path)
+        return paths
+
+    def get_mcp_search_paths(self, global_scope: bool = False) -> Dict[str, str]:
+        """Return mapping of agent key to MCP config file path."""
+        result = {}
+        for agent_key, agent_cfg in self.agent_paths.items():
+            normalized_key = agent_key.lstrip(".")
+            if global_scope:
+                result[normalized_key] = agent_cfg.global_scope.mcp
+            else:
+                result[normalized_key] = agent_cfg.workspace.mcp
+        return result
 
     @classmethod
     def settings_customise_sources(
