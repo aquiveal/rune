@@ -3,7 +3,7 @@ from rune.commands.init import init_cmd
 from rune.commands.config import config_cmd
 from rune.commands.status import status_cmd
 from rune.commands.update import update_cmd
-from rune.commands import remote, skills, rules, modules, agents
+from rune.commands import remote, skills, rules, modules, agents, mcp
 
 app = typer.Typer(
     name="rune",
@@ -39,6 +39,7 @@ app.add_typer(skills.app, name="skills")
 app.add_typer(rules.app, name="rules")
 app.add_typer(modules.app, name="modules")
 app.add_typer(agents.app, name="agents")
+app.add_typer(mcp.app, name="mcp")
 
 
 def main():

@@ -70,11 +70,10 @@ def discover_rules(repo_path: Path) -> List[RuleSchema]:
 
 def discover_rule_dirs(repo_path: Path) -> List[Path]:
     rule_dirs = []
-    # Search for directories named 'rules' inside agent folders
-    agent_folders = [".agents"] + settings.agents
+    rule_search_paths = settings.get_rule_search_paths()
 
-    for folder in agent_folders:
-        rules_dir = repo_path / folder / "rules"
+    for rel_path in rule_search_paths:
+        rules_dir = repo_path / Path(rel_path)
         if rules_dir.exists() and rules_dir.is_dir():
             # The rules can be subdirectories or standalone markdown files
             for child in rules_dir.iterdir():
