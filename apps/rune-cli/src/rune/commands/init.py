@@ -1,4 +1,3 @@
-import typer
 from pathlib import Path
 import structlog
 from rune.services import workspace_service

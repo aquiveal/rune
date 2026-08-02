@@ -35,7 +35,6 @@ def add(
     raw_url = resolve_url(source, git_root or cwd)
     url, extracted_path = parse_github_url(raw_url)
 
-    # Temp clone for discovery
     import uuid
     import shutil
 
@@ -50,7 +49,6 @@ def add(
             logger.error("No skills found in repository.")
             raise typer.Exit(1)
 
-        # Filter or prompt
         to_install = []
         if skills:
             to_install = [
@@ -82,7 +80,6 @@ def add(
                 return
             to_install = [s for s in discovered if s.name in selected]
 
-        # Detect agents
         target_agents = workspace_service.resolve_target_agents(
             git_root=git_root,
             cwd=cwd,
@@ -149,13 +146,11 @@ def scaffold_skill(name: str, base_dir: Path) -> Path:
     skill_dir = base_dir / name
     skill_dir.mkdir(exist_ok=True)
 
-    # Create standard directories
     (skill_dir / "scripts").mkdir(exist_ok=True)
     (skill_dir / "references").mkdir(exist_ok=True)
     (skill_dir / "assets").mkdir(exist_ok=True)
     (skill_dir / "modules").mkdir(exist_ok=True)
 
-    # Create SKILL.md
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():
         description = f"Provides specialized context, rules, and tools for implementing, configuring, and debugging {name}. Use this skill whenever modifying {name} configurations or adding related functionality."
@@ -182,7 +177,7 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
 
 @app.command("update")
 def update(global_scope: bool = typer.Option(False, "--global", "-g")):
-    """Update installed skills and sync SKILL.md for skills in the current context."""
+    """Update installed skills and sync SKILL.md instructions for skills in the current context."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
 
@@ -208,8 +203,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         skill_dir = (git_root / skill.path).resolve() if skill.path else git_root
 
         try:
-            # Update SKILL.md tree
-            skill_service.update_skill_tree(skill_dir)
+            skill_service.update_skill_instructions(skill_dir)
 
             updated_count += 1
             logger.info(f"Updated SKILL.md for '{skill.name}' at {skill_dir}")

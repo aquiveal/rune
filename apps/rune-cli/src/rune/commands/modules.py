@@ -105,8 +105,8 @@ def add(
         except Exception as e:
             raise Exception(f"Failed to fetch module: {e}")
 
-        logger.info("Syncing skill tree...")
-        skill_service.update_skill_tree(target_dir)
+        logger.info("Syncing skill instructions...")
+        skill_service.update_skill_instructions(target_dir)
 
         logger.info(f"Successfully added module and updated skill '{target_dir.name}'")
 
