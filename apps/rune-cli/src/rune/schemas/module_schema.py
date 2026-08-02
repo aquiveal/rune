@@ -8,15 +8,17 @@ class ModuleSchema(BaseModel):
 
     @property
     def specific_url(self) -> str:
-        return self.url.split(" ")[0] if " " in self.url else self.url
+        clean_url = self.url.strip()
+        return clean_url.split(" ")[0] if " " in clean_url else clean_url
 
     @property
     def base_url(self) -> str:
-        if " " in self.url:
-            return self.url.split(" ")[1]
-        if "/tree/" in self.url:
-            return self.url.split("/tree/")[0]
-        return self.url
+        clean_url = self.url.strip()
+        if " " in clean_url:
+            return clean_url.split(" ")[1]
+        if "/tree/" in clean_url:
+            return clean_url.split("/tree/")[0]
+        return clean_url
 
     @property
     def source_path(self) -> str:
