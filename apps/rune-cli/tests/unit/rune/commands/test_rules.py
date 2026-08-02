@@ -77,8 +77,6 @@ def test_rule_filtering(tmp_path, mock_git_repo):
     assert result.exit_code == 0
 
 
-
-
 @patch("rune.services.module_service.add_module")
 def test_implicit_agents_injection(mock_add_module, tmp_path, mock_git_repo):
     os.chdir(tmp_path)
@@ -114,7 +112,6 @@ def test_rule_filtering_edge_cases(tmp_path, mock_git_repo):
     )
     assert result.exit_code == 1
 
-
     # Test permutations with and without .md
     # Create another rule with frontmatter name `some-rule` but filename `some-rule.md`
     some_rule_file = mock_git_repo / "rules" / "some-rule.md"
@@ -142,5 +139,3 @@ def test_rule_filtering_edge_cases(tmp_path, mock_git_repo):
         ],
     )
     assert result.exit_code == 0
-
-
