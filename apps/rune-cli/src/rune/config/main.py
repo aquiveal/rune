@@ -11,7 +11,7 @@ from pydantic_settings import (
     SettingsConfigDict,
     PydanticBaseSettingsSource,
 )
-from worldline.config import WorldlineSettings
+from python_logging.config import LoggingSettings
 
 
 class RepoMapSettings(BaseModel):
@@ -190,7 +190,7 @@ class RuneConfigSource(PydanticBaseSettingsSource):
         return d
 
 
-class Settings(WorldlineSettings, BaseSettings):
+class Settings(LoggingSettings, BaseSettings):
     """
     Centralized configuration for Rune.
     Loads values from environment variables and .rune/config with sensible defaults.
