@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from rune.schemas.module_schema import ModuleSchema
 from rune.services import module_service
 

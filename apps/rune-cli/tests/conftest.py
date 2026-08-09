@@ -41,8 +41,9 @@ def mock_git_repo(tmp_path):
 @pytest.fixture
 def rune_workspace(tmp_path):
     os.chdir(tmp_path)
-    from rune.main import app
     from typer.testing import CliRunner
+
+    from rune.main import app
 
     runner = CliRunner()
     runner.invoke(app, ["init"])

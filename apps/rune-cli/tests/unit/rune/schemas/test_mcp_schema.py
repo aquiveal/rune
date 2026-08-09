@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from rune.schemas.mcp_schema import (
     McpRegistryEntry,
     McpSettings,

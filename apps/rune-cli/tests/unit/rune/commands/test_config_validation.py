@@ -1,7 +1,8 @@
 import os
 
-from rune.main import app
 from typer.testing import CliRunner
+
+from rune.main import app
 
 runner = CliRunner()
 

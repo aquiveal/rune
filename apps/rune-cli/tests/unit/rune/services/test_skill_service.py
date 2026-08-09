@@ -1,4 +1,5 @@
 import pytest
+
 from rune.config.exceptions import ValidationError
 from rune.schemas.skill_schema import SkillSchema
 from rune.services import skill_service

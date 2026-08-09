@@ -1,4 +1,5 @@
 import pytest
+
 from rune.config.exceptions import ValidationError
 from rune.schemas.config_schema import validate_config_key_value
 
