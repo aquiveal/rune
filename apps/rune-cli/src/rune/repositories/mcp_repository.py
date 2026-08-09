@@ -149,6 +149,36 @@ def add_server_config(
     config_path: Path, name: str, server_config: McpServerUnion
 ) -> None:
     settings = load_mcp_config(config_path)
+    if name in settings.mcpServers:
+        existing = settings.mcpServers[name]
+
+        # Preserve / merge alwaysAllow
+        existing_allow = getattr(existing, "alwaysAllow", None) or []
+        new_allow = getattr(server_config, "alwaysAllow", None) or []
+        combined_allow = list(dict.fromkeys(existing_allow + new_allow))
+        if combined_allow and hasattr(server_config, "alwaysAllow"):
+            server_config.alwaysAllow = combined_allow
+
+        # Preserve / merge env
+        existing_env = getattr(existing, "env", None) or {}
+        new_env = getattr(server_config, "env", None) or {}
+        if existing_env or new_env:
+            merged_env = {**existing_env, **new_env}
+            if hasattr(server_config, "env"):
+                server_config.env = merged_env
+
+        # Preserve disabled and timeout if not explicitly set in server_config
+        if (
+            hasattr(existing, "disabled")
+            and getattr(server_config, "disabled", None) is None
+        ):
+            server_config.disabled = existing.disabled
+        if (
+            hasattr(existing, "timeout")
+            and getattr(server_config, "timeout", None) is None
+        ):
+            server_config.timeout = existing.timeout
+
     settings.mcpServers[name] = server_config
     save_mcp_config(config_path, settings)
 

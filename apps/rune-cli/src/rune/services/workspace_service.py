@@ -26,12 +26,17 @@ def init_workspace(root_dir: Path):
     (rune_dir / "index").touch(exist_ok=True)
     update_gitignore(root_dir)
 
-    # Automatically install probe MCP globally for all agents during init
+    # Automatically install probe MCP for workspace agents during init
     try:
         from rune.services import mcp_service
 
+        detected = detect_agents(root_dir) or [".agents"]
         mcp_service.add_mcp_server(
-            "probelabs/probe", git_root=root_dir, cwd=root_dir, global_scope=True
+            "probelabs/probe",
+            git_root=root_dir,
+            cwd=root_dir,
+            global_scope=False,
+            agent_override=detected,
         )
     except Exception:  # noqa: BLE001, S110
         pass
@@ -78,7 +83,10 @@ def resolve_target_agents(
                 selected = questionary.checkbox(
                     "Select target agent(s) for global scope:", choices=choices
                 ).ask()
-                target_agents = selected if selected else choices
+                if selected is None:
+                    # User cancelled prompt (Ctrl+C / Esc)
+                    return None
+                target_agents = selected
             except Exception:  # noqa: BLE001
                 target_agents = choices
     elif git_root or cwd:
