@@ -1,9 +1,17 @@
-import yaml
 from pathlib import Path
-from typing import List
-from rune.schemas.rule_schema import RuleSchema
-from rune.config.main import settings
+
+import yaml
+
 from rune.config.exceptions import ValidationError
+from rune.config.main import settings
+from rune.schemas.rule_schema import RuleSchema
+
+__all__ = [
+    "discover_rule_dirs",
+    "discover_rules",
+    "merge_rules_to_agents_md",
+    "validate_rule_file",
+]
 
 
 def validate_rule_file(path: Path) -> RuleSchema:
@@ -23,11 +31,11 @@ def validate_rule_file(path: Path) -> RuleSchema:
 
         # Fallback for files without frontmatter (like .clinerules)
         return RuleSchema(name=path.name, description=f"Rule from {path.name}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ValidationError(f"Validation failed: {e}")
 
 
-def discover_rules(repo_path: Path) -> List[RuleSchema]:
+def discover_rules(repo_path: Path) -> list[RuleSchema]:
     rules = []
     # Search for .clinerules, .cursorrules, and RULE.md
     patterns = [".clinerules", ".cursorrules", "RULE.md", "rules/*.md"]
@@ -68,7 +76,7 @@ def discover_rules(repo_path: Path) -> List[RuleSchema]:
     return rules
 
 
-def discover_rule_dirs(repo_path: Path) -> List[Path]:
+def discover_rule_dirs(repo_path: Path) -> list[Path]:
     rule_dirs = []
     rule_search_paths = settings.get_rule_search_paths()
 

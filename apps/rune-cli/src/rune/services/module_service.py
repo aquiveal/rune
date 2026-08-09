@@ -1,12 +1,14 @@
-import shutil
 import os
+import shutil
 from pathlib import Path
+
 import structlog
-from typing import List, Optional, Dict
+
 from rune.config.exceptions import ModuleError
 from rune.repositories import git_repository, module_repository
 from rune.schemas.module_schema import ModuleSchema
 
+__all__ = ["add_module", "get_status", "remove_module", "update_modules"]
 
 logger = structlog.get_logger(__name__)
 
@@ -18,7 +20,7 @@ def add_module(
     path: str,
     name: str,
     type: str,
-    agents: List[str],
+    agents: list[str],
     global_scope: bool = False,
     copy_mode: bool = False,
 ):
@@ -94,7 +96,7 @@ def add_module(
             try:
                 if git_dir.exists():
                     shutil.rmtree(git_dir, ignore_errors=True)
-            except Exception:
+            except Exception:  # noqa: BLE001, S110
                 pass
         else:
             shutil.copy2(source_path, agent_path)
@@ -117,7 +119,7 @@ def add_module(
                     f.write(f"{rel_path}\n")
 
 
-def get_status(git_root: Path, global_scope: bool = False) -> Dict[str, str]:
+def get_status(git_root: Path, global_scope: bool = False) -> dict[str, str]:
     base_dir = (Path.home() / ".rune") if global_scope else git_root
     modules = module_repository.list_modules(base_dir)
 
@@ -163,9 +165,7 @@ def remove_module(git_root: Path, name: str, type: str, global_scope: bool = Fal
         module_repository.remove_module(base_dir, mod.name)
 
 
-def update_modules(
-    git_root: Path, type: Optional[str] = None, global_scope: bool = False
-):
+def update_modules(git_root: Path, type: str | None = None, global_scope: bool = False):
     base_dir = (Path.home() / ".rune") if global_scope else git_root
     modules = module_repository.list_modules(base_dir)
 
@@ -223,7 +223,7 @@ def update_modules(
                 try:
                     if git_dir.exists():
                         shutil.rmtree(git_dir, ignore_errors=True)
-                except Exception:
+                except Exception:  # noqa: BLE001, S110
                     pass
             else:
                 shutil.copy2(source_path, agent_path)
