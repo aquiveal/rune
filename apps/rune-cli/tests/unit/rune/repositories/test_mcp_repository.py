@@ -56,6 +56,36 @@ def test_add_and_remove_server_config(tmp_path: Path):
     assert "my-server" not in loaded_after.mcpServers
 
 
+def test_add_server_config_preserves_always_allow_and_env(tmp_path: Path):
+    path = tmp_path / "mcp.json"
+    existing_srv = McpStdioServer(
+        type="stdio",
+        command="node",
+        args=["index.js"],
+        alwaysAllow=["custom_tool_1", "custom_tool_2"],
+        env={"EXISTING_VAR": "FOO", "OVERRIDDEN_VAR": "OLD"},
+    )
+    mcp_repository.add_server_config(path, "my-server", existing_srv)
+
+    updated_srv = McpStdioServer(
+        type="stdio",
+        command="node",
+        args=["index.js", "--updated"],
+        alwaysAllow=["new_tool_3"],
+        env={"OVERRIDDEN_VAR": "NEW", "NEW_VAR": "BAR"},
+    )
+    mcp_repository.add_server_config(path, "my-server", updated_srv)
+
+    loaded = mcp_repository.load_mcp_config(path)
+    server = loaded.mcpServers["my-server"]
+    assert server.alwaysAllow == ["custom_tool_1", "custom_tool_2", "new_tool_3"]
+    assert server.env == {
+        "EXISTING_VAR": "FOO",
+        "OVERRIDDEN_VAR": "NEW",
+        "NEW_VAR": "BAR",
+    }
+
+
 def test_load_corrupted_json(tmp_path: Path):
     path = tmp_path / "corrupted.json"
     path.write_text("{ invalid json }", encoding="utf-8")
