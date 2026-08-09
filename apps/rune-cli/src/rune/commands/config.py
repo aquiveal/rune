@@ -1,21 +1,32 @@
-import typer
-from typing import Optional
 from pathlib import Path
+
 import structlog
+import typer
+
+__all__ = ["config_cmd"]
 
 logger = structlog.get_logger(__name__)
 
 
 def config_cmd(
     key: str = typer.Argument(...),
-    value: Optional[str] = typer.Argument(None),
+    value: str | None = typer.Argument(None),
     add: bool = typer.Option(False, "--add", help="Add a new line to the option"),
     get_all: bool = typer.Option(False, "--get-all", help="Get all values"),
 ):
     """Get or set options in .rune/config"""
+    from rune.config.exceptions import ValidationError
+    from rune.schemas.config_schema import validate_config_key_value
+
+    try:
+        validate_config_key_value(key, value)
+    except ValidationError as e:
+        logger.error(str(e))
+        raise typer.Exit(1)
+
     root_dir = Path.cwd()
-    from rune.repositories import git_repository
     from rune.config.main import settings
+    from rune.repositories import git_repository
 
     config_path = root_dir / ".rune" / "config"
 
@@ -27,6 +38,14 @@ def config_cmd(
         if key == "agent.name":
             for a in settings.agent.names:
                 typer.echo(a)
+        elif key == "submodule.path":
+            if get_all:
+                values = git_repository.get_config_all(key, config_path)
+                for v in values:
+                    typer.echo(v)
+            else:
+                for s in settings.submodules:
+                    typer.echo(s)
         elif key.startswith("remote.") and key.endswith(".url"):
             alias = key.split(".")[1]
             val = settings.remotes.get(alias)

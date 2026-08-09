@@ -1,11 +1,16 @@
-import typer
-from typing import Optional
 from pathlib import Path
+from typing import Annotated
+
 import structlog
+import typer
+
 from rune.commands import skills
+from rune.config.exceptions import RuneError
 from rune.repositories import git_repository
 from rune.services import skill_service
 from rune.utils.url import parse_github_url, resolve_url
+
+__all__ = []
 
 app = typer.Typer(no_args_is_help=True, help="Manage modules contextually")
 logger = structlog.get_logger(__name__)
@@ -13,11 +18,15 @@ logger = structlog.get_logger(__name__)
 
 @app.command("add")
 def add(
-    url: str = typer.Argument(..., help="URL of the git repository to add as a module"),
-    target_name: Optional[str] = typer.Argument(
-        None, help="Name of the skill/rule to add the module to"
-    ),
-    force: bool = typer.Option(False, "--force", "-f", help="Force add the module"),
+    url: Annotated[
+        str, typer.Argument(help="URL of the git repository to add as a module")
+    ],
+    target_name: Annotated[
+        str | None, typer.Argument(help="Name of the skill/rule to add the module to")
+    ] = None,
+    force: Annotated[
+        bool, typer.Option("--force", "-f", help="Force add the module")
+    ] = False,
 ):
     """Add a module contextually based on the current directory."""
     cwd = Path.cwd()
@@ -30,8 +39,7 @@ def add(
 
     # Extract repo name from base_url
     repo_name = base_url.rstrip("/").split("/")[-1]
-    if repo_name.endswith(".git"):
-        repo_name = repo_name[:-4]
+    repo_name = repo_name.removesuffix(".git")
 
     target_dir = None
     context = None
@@ -103,7 +111,7 @@ def add(
                 copy_mode=False,
             )
         except Exception as e:
-            raise Exception(f"Failed to fetch module: {e}")
+            raise RuneError(f"Failed to fetch module: {e}") from e
 
         logger.info("Syncing skill instructions...")
         skill_service.update_skill_instructions(target_dir)
@@ -112,6 +120,6 @@ def add(
 
     except typer.Exit:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to add module: {e}")
         raise typer.Exit(1)

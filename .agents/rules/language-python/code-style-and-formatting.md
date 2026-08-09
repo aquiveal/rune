@@ -39,9 +39,9 @@ globs: *.py
 ### ✅ DO
 ```python
 for rank, (name, calories) in enumerate(snacks, 1):
-    print(f'#{rank}: {name} has {calories} calories')
+    print(f"#{rank}: {name} has {calories} calories")
 
-if (count := fresh_fruit.get('banana', 0)) >= 2:
+if (count := fresh_fruit.get("banana", 0)) >= 2:
     make_smoothies(count)
 ```
 
