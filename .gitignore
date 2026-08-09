@@ -223,6 +223,6 @@ __marimo__/
 # Aider
 .aider.*
 
-# Agents
+# Agent
 plans/
-.agents/skills/worldline-python/modules/worldline-python
+.agents/rules/language-python
