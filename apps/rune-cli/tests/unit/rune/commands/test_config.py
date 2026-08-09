@@ -1,8 +1,9 @@
 import os
 from unittest.mock import patch
 
-from rune.main import app
 from typer.testing import CliRunner
+
+from rune.main import app
 
 runner = CliRunner()
 
