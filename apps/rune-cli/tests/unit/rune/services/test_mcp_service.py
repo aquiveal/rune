@@ -15,8 +15,12 @@ def test_builtin_registry():
     assert "roo" in probe_entry.agent_configs
     crawl_entry = registry["crawl4ai"]
     assert crawl_entry.name == "crawl4ai"
-    assert crawl_entry.default_config.type == "sse"
-    assert crawl_entry.default_config.url == "http://localhost:11235/mcp/sse"
+    assert crawl_entry.default_config.type == "stdio"
+    assert crawl_entry.default_config.command == "npx"
+    assert "mcp-crawl4ai-ts" in crawl_entry.default_config.args
+    assert (
+        crawl_entry.default_config.env["CRAWL4AI_BASE_URL"] == "http://localhost:11235"
+    )
 
 
 def test_ensure_crawl4ai_docker_container_already_running(monkeypatch):
@@ -102,7 +106,8 @@ def test_add_crawl4ai_mcp_server(tmp_path: Path, monkeypatch):
     assert roo_json.exists()
     content = roo_json.read_text(encoding="utf-8")
     assert "crawl4ai" in content
-    assert "http://localhost:11235/mcp/sse" in content
+    assert "mcp-crawl4ai-ts" in content
+    assert "http://localhost:11235" in content
 
 
 def test_search_registry():

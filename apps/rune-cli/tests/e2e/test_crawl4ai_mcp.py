@@ -39,7 +39,8 @@ def test_crawl4ai_mcp_e2e_setup_and_usability(tmp_path: Path, monkeypatch):
 
     content = mcp_config_path.read_text(encoding="utf-8")
     assert "crawl4ai" in content
-    assert "http://localhost:11235/mcp/sse" in content
+    assert "mcp-crawl4ai-ts" in content
+    assert "http://localhost:11235" in content
 
     # Step 3: Validate Usability - Docker readiness check was triggered
     assert len(docker_invocations) > 0

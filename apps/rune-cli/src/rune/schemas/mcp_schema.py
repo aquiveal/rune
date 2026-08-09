@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
     "McpBase",
@@ -82,9 +82,12 @@ class McpSettings(BaseModel):
 
 
 class McpRegistryEntry(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     name: str
     description: str
     repository: str | None = None
     package: str | None = None
     agent_configs: dict[str, McpServerUnion] = Field(default_factory=dict)
     default_config: McpServerUnion | None = None
+    init: Any | None = None

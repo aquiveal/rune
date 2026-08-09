@@ -47,10 +47,13 @@ def test_crawl4ai_internal_service_integration_flow(tmp_path: Path, monkeypatch)
     assert "crawl4ai" in roo_cfg.mcpServers
     assert "crawl4ai" in claude_cfg.mcpServers
 
-    assert roo_cfg.mcpServers["crawl4ai"].type == "sse"
-    assert roo_cfg.mcpServers["crawl4ai"].url == "http://localhost:11235/mcp/sse"
+    assert roo_cfg.mcpServers["crawl4ai"].type == "stdio"
+    assert roo_cfg.mcpServers["crawl4ai"].command == "npx"
 
     # Verify mcp_service.list_mcp_servers integration retrieval
     servers = mcp_service.list_mcp_servers(git_root, global_scope=False)
     assert "crawl4ai" in servers
-    assert servers["crawl4ai"]["config"]["url"] == "http://localhost:11235/mcp/sse"
+    assert (
+        servers["crawl4ai"]["config"]["env"]["CRAWL4AI_BASE_URL"]
+        == "http://localhost:11235"
+    )
