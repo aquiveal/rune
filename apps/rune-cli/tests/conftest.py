@@ -6,9 +6,10 @@ sys.modules["aider.repomap"] = MagicMock()
 sys.modules["aider.io"] = MagicMock()
 sys.modules["aider.models"] = MagicMock()
 
-import pytest  # noqa: E402
-import subprocess  # noqa: E402
-import os  # noqa: E402
+import os
+import subprocess
+
+import pytest
 
 
 @pytest.fixture
