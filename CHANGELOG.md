@@ -1,5 +1,3 @@
-## Infrastructure
+## Features
 
-* **Update GitHub Actions Release Job Name**
-  * Description: Renamed the workflow job from `release` to `tag-release` in the CI/CD pipeline for improved clarity and naming consistency.
-  * Commits: [19eb0ca](https://github.com/aquiveal/rune/commit/19eb0caa), [391d464](https://github.com/aquiveal/rune/commit/391d464e)
+* **Mutagen Sync CLI Command**: Added the `mutagen` CLI command for sync configuration management, backed by the new `mutagen_service` module which includes gitignore parsing and unit tests ([2d132ab](https://github.com/aquiveal/rune/commit/2d132ab7), [52ca635](https://github.com/aquiveal/rune/commit/52ca6352), [53fe2f1](https://github.com/aquiveal/rune/commit/53fe2f10)).
