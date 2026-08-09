@@ -1,9 +1,9 @@
 import os
 import subprocess
 from pathlib import Path
-from typer.testing import CliRunner
 
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

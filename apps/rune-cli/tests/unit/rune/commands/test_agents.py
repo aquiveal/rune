@@ -1,6 +1,7 @@
-from unittest.mock import patch, call, MagicMock
-from typer.testing import CliRunner
+from unittest.mock import MagicMock, call, patch
+
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -93,7 +94,7 @@ def test_agents_update_continues_on_rule_failure(
 
     def update_modules_side_effect(path, type, global_scope):
         if type == "rules":
-            raise Exception("Rule update failed")
+            raise RuntimeError("Rule update failed")
 
     mock_update_modules.side_effect = update_modules_side_effect
 
