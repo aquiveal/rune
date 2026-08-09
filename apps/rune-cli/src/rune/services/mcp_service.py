@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -14,6 +15,7 @@ from rune.schemas.mcp_schema import (
     McpRegistryEntry,
     McpServerUnion,
     McpSettings,
+    McpSseServer,
     McpStdioServer,
 )
 from rune.services import workspace_service
