@@ -1,5 +1,6 @@
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
+
 from rune.services.workspace_service import resolve_target_agents
 
 
