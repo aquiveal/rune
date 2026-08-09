@@ -325,8 +325,8 @@ CREATE TABLE sales_fact (
 ## DO: Safe distributed locking with Fencing Tokens
 lock_token = coordination_service.acquire_lock("resource_x")
 db.execute(
-    "UPDATE table SET val = %s WHERE id = %s AND last_token <= %s", 
-    (new_val, resource_id, lock_token)
+    "UPDATE table SET val = %s WHERE id = %s AND last_token <= %s",
+    (new_val, resource_id, lock_token),
 )
 ```
 
@@ -359,7 +359,7 @@ CREATE TABLE sales_fact (
 ```python
 ## DON'T: Naive read-modify-write vulnerable to Lost Updates
 row = db.execute("SELECT value FROM counters WHERE id = ?", counter_id)
-new_value = row['value'] + 1
+new_value = row["value"] + 1
 db.execute("UPDATE counters SET value = ? WHERE id = ?", new_value, counter_id)
 ```
 
@@ -763,14 +763,14 @@ project_name/
 
 ##### ❌ DON'T
 ```python
-@app.route("/allocate", methods=['POST'])
+@app.route("/allocate", methods=["POST"])
 def allocate_endpoint():
     session = get_session()
     batches = session.query(Batch).all()
-    line = OrderLine(request.json['orderid'], request.json['sku'], request.json['qty'])
+    line = OrderLine(request.json["orderid"], request.json["sku"], request.json["qty"])
     model.allocate(line, batches)
     session.commit()
-    return jsonify({'status': 'ok'})
+    return jsonify({"status": "ok"})
 ```
 
 ### Code Style and Formatting Standards
@@ -810,9 +810,9 @@ def allocate_endpoint():
 ##### ✅ DO
 ```python
 for rank, (name, calories) in enumerate(snacks, 1):
-    print(f'#{rank}: {name} has {calories} calories')
+    print(f"#{rank}: {name} has {calories} calories")
 
-if (count := fresh_fruit.get('banana', 0)) >= 2:
+if (count := fresh_fruit.get("banana", 0)) >= 2:
     make_smoothies(count)
 ```
 
@@ -820,9 +820,9 @@ if (count := fresh_fruit.get('banana', 0)) >= 2:
 ```python
 for i in range(len(snacks)):
     item = snacks[i]
-    print('#%d: %s has %d calories' % (i + 1, item[0], item[1]))
+    print("#%d: %s has %d calories" % (i + 1, item[0], item[1]))
 
-count = fresh_fruit.get('banana', 0)
+count = fresh_fruit.get("banana", 0)
 if count >= 2:
     make_smoothies(count)
 ```
@@ -888,6 +888,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 ### db_wrapper.py
 import external_orm_library
 
+
 class DatabaseAPI:
     def get_user(self, user_id: int) -> dict:
         return external_orm_library.fetch(user_id)
@@ -896,7 +897,8 @@ class DatabaseAPI:
 ##### ❌ DON'T
 ```python
 ### business_logic.py
-import external_orm_library # Leaking external dependency into core logic
+import external_orm_library  # Leaking external dependency into core logic
+
 
 def process_user(user_id: int):
     user = external_orm_library.fetch(user_id)
@@ -923,15 +925,17 @@ def process_user(user_id: int):
 ```python
 import warnings
 
+
 def calculate_velocity(distance: float, time: float) -> float:
     """Calculate velocity given distance and time.
-    
+
     >>> calculate_velocity(100.0, 2.0)
     50.0
     """
     if time <= 0:
         raise ValueError("Time must be positive")
     return distance / time
+
 
 def old_calculate(d: float, t: float) -> float:
     """
@@ -974,11 +978,14 @@ def calc(d, t):
 class MyModuleError(Exception):
     pass
 
+
 class InvalidInputError(MyModuleError):
     pass
 
+
 class OutOfStock(MyModuleError):
     pass
+
 
 def process_data(data: str) -> dict:
     try:
@@ -996,7 +1003,7 @@ def process_data(data: str):
         parsed = parse_json(data)
         return enrich_data(parsed)
     except Exception:
-        return None # Silent failure, returns None
+        return None  # Silent failure, returns None
 ```
 
 ### Logging and Observability Standards
@@ -1018,6 +1025,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def process_payment(order_id: str, amount: float) -> None:
     logger.info("Processing payment for order %s: $%.2f", order_id, amount)
     try:
@@ -1034,7 +1042,7 @@ def process_payment(order_id: str, amount: float) -> None:
     try:
         charge_card(amount)
     except PaymentGatewayError as e:
-        print(f"Error: {e}") # Loses the stack trace
+        print(f"Error: {e}")  # Loses the stack trace
 ```
 
 ### Naming Conventions Standards
@@ -1059,12 +1067,14 @@ def process_payment(order_id: str, amount: float) -> None:
 ```python
 MAX_RETRIES = 3
 
+
 class OrderProcessor:
     def __init__(self):
         self._internal_cache = {}
-        
+
     def process_order(self, order_id: str) -> None:
         pass
+
 
 @dataclass
 class OrderCreated(Event):
@@ -1075,12 +1085,14 @@ class OrderCreated(Event):
 ```python
 MaxRetries = 3
 
+
 class order_processor:
     def ProcessOrder(self, OrderId: str):
         pass
 
+
 @dataclass
-class CreateOrderEvent(Event): # Imperative mood for an event
+class CreateOrderEvent(Event):  # Imperative mood for an event
     order_id: str
 ```
 
@@ -1130,27 +1142,29 @@ import collections
 
 queue = collections.deque()
 queue.append(item)
-processed = queue.popleft() # O(1)
+processed = queue.popleft()  # O(1)
 ```
 
 ##### ❌ DON'T
 ```python
 queue = []
 queue.append(item)
-processed = queue.pop(0) # O(N)
+processed = queue.pop(0)  # O(N)
 ```
 
 ##### ✅ DO
 ```python
 import functools
 
+
 @functools.lru_cache(maxsize=128)
 def expensive_computation(x: int) -> int:
     return x * x
 
+
 def process_items(items: list[str]) -> str:
     # Fast local variable lookup and efficient string concatenation
-    valid_items = {"apple", "banana", "orange"} # O(1) lookup
+    valid_items = {"apple", "banana", "orange"}  # O(1) lookup
     return "".join(item for item in items if item in valid_items)
 ```
 
@@ -1158,11 +1172,11 @@ def process_items(items: list[str]) -> str:
 ```python
 ### Global scope loop is slow due to LOAD_GLOBAL
 result = ""
-valid_items = ["apple", "banana", "orange"] # O(N) lookup
+valid_items = ["apple", "banana", "orange"]  # O(N) lookup
 
 for item in items:
     if item in valid_items:
-        result += item # Quadratic memory reallocation
+        result += item  # Quadratic memory reallocation
 ```
 
 ### Security and Validation Standards
@@ -1186,10 +1200,12 @@ for item in items:
 from pydantic.dataclasses import dataclass
 from pydantic import PositiveInt, constr
 
+
 @dataclass
 class UserProfile:
     username: constr(min_length=3, max_length=30)
     age: PositiveInt
+
 
 ### Safe SQL execution
 cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
@@ -1200,7 +1216,8 @@ cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
 class UserProfile:
     def __init__(self, username: str, age: int):
         self.username = username
-        self.age = age # No runtime validation
+        self.age = age  # No runtime validation
+
 
 ### SQL Injection vulnerability
 cursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
@@ -1284,20 +1301,22 @@ my-python-project/
 import pytest
 from unittest.mock import patch, call
 
+
 @pytest.fixture
 def db_session():
     db = setup_db()
     yield db
     db.teardown()
 
+
 @patch("app.services.send_email", spec=True)
 def test_user_registration_sends_email(mock_send_email, db_session):
     # Arrange
     user_data = {"email": "test@example.com"}
-    
+
     # Act
     register_user(user_data, db_session)
-    
+
     # Assert
     assert mock_send_email.call_args == call("test@example.com", "Welcome!")
 ```
@@ -1310,7 +1329,7 @@ def test_user_registration():
     with patch("app.email_module.send_email") as mock_send:
         register_user({"email": "test@example.com"}, db)
         mock_send.assert_called_with("test@example.com", "Welcome!")
-    db.teardown() # Skipped if assert fails
+    db.teardown()  # Skipped if assert fails
 ```
 
 ### Type Safety Standards
@@ -1336,8 +1355,10 @@ def test_user_registration():
 ```python
 from typing import Optional, Protocol
 
+
 class EmailSender(Protocol):
     def send(self, address: str, body: str) -> bool: ...
+
 
 def notify_user(user_id: int, sender: EmailSender) -> Optional[str]:
     if user_id < 0:
@@ -1349,6 +1370,7 @@ def notify_user(user_id: int, sender: EmailSender) -> Optional[str]:
 ##### ❌ DON'T
 ```python
 from typing import Any
+
 
 ### Missing return type, implicit None, uses Any, tightly coupled to concrete class
 def notify_user(user_id, sender: Any):
