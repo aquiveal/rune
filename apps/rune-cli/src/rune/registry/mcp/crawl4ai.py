@@ -105,7 +105,11 @@ CRAWL4AI_ENTRY = McpRegistryEntry(
         type="stdio",
         command="npx",
         args=["-y", "mcp-crawl4ai-ts"],
-        env={"CRAWL4AI_BASE_URL": "http://localhost:11235"},
+        env={
+            "CRAWL4AI_BASE_URL": "http://localhost:11235",
+            "CRAWL4AI_API_KEY": "crawl4ai-token",
+            "CRAWL4AI_API_TOKEN": "crawl4ai-token",
+        },
     ),
     init=init_crawl4ai,
 )
