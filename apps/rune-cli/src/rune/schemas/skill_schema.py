@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional
 import re
+
+from pydantic import BaseModel, Field, field_validator
+
+__all__ = ["SkillMetadata", "SkillSchema"]
 
 
 class SkillMetadata(BaseModel):
@@ -10,10 +12,10 @@ class SkillMetadata(BaseModel):
 class SkillSchema(BaseModel):
     name: str = Field(..., min_length=1, max_length=64)
     description: str = Field(..., min_length=1, max_length=1024)
-    license: Optional[str] = None
-    compatibility: Optional[str] = Field(None, max_length=500)
-    metadata: Optional[SkillMetadata] = Field(default_factory=SkillMetadata)
-    path: Optional[str] = None  # Path within the repo
+    license: str | None = None
+    compatibility: str | None = Field(None, max_length=500)
+    metadata: SkillMetadata | None = Field(default_factory=SkillMetadata)
+    path: str | None = None  # Path within the repo
 
     @field_validator("name")
     @classmethod
