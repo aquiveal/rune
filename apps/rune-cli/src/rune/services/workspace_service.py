@@ -1,10 +1,17 @@
 from pathlib import Path
-from typing import List, Optional
 
 import questionary
 
 from rune.config.main import settings
 from rune.repositories import config_repository
+
+__all__ = [
+    "detect_agents",
+    "init_workspace",
+    "is_initialized",
+    "resolve_target_agents",
+    "update_gitignore",
+]
 
 
 def is_initialized(root_dir: Path) -> bool:
@@ -26,11 +33,21 @@ def init_workspace(root_dir: Path):
         mcp_service.add_mcp_server(
             "probelabs/probe", git_root=root_dir, cwd=root_dir, global_scope=True
         )
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
+        pass
+
+    # Prompt user for submodules setup (optional, no auto-enable) and propagate templates
+    try:
+        from rune.services import submodule_service
+
+        submodule_dirs = submodule_service.prompt_and_configure_submodules(root_dir)
+        for sub_dir in submodule_dirs:
+            submodule_service.propagate_workspace_to_submodule(root_dir, sub_dir)
+    except Exception:  # noqa: BLE001, S110
         pass
 
 
-def detect_agents(root_dir: Path) -> List[str]:
+def detect_agents(root_dir: Path) -> list[str]:
     detected = []
     if settings.agent.names:
         detected.extend(settings.agent.names)
@@ -46,11 +63,11 @@ def detect_agents(root_dir: Path) -> List[str]:
 
 
 def resolve_target_agents(
-    git_root: Optional[Path],
+    git_root: Path | None,
     cwd: Path,
     global_scope: bool,
-    agents_arg: Optional[List[str]],
-) -> Optional[List[str]]:
+    agents_arg: list[str] | None,
+) -> list[str] | None:
     target_agents = []
     if global_scope:
         if agents_arg:
@@ -62,7 +79,7 @@ def resolve_target_agents(
                     "Select target agent(s) for global scope:", choices=choices
                 ).ask()
                 target_agents = selected if selected else choices
-            except Exception:
+            except Exception:  # noqa: BLE001
                 target_agents = choices
     elif git_root or cwd:
         root_path = git_root or cwd

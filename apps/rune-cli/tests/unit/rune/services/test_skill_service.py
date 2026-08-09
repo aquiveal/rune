@@ -1,5 +1,5 @@
 import pytest
-
+from rune.config.exceptions import ValidationError
 from rune.schemas.skill_schema import SkillSchema
 from rune.services import skill_service
 
@@ -32,7 +32,7 @@ def test_validate_skill_invalid_name(tmp_path):
         encoding="utf-8",
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         skill_service.validate_skill_file(skill_file)
 
 
@@ -45,7 +45,7 @@ def test_validate_skill_name_mismatch(tmp_path):
         encoding="utf-8",
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         skill_service.validate_skill_file(skill_file)
 
 
@@ -59,7 +59,7 @@ def test_validate_skill_description_too_long(tmp_path):
         encoding="utf-8",
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         skill_service.validate_skill_file(skill_file)
 
 

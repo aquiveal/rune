@@ -1,11 +1,30 @@
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+
 from rune.config.exceptions import GitError
+
+__all__ = [
+    "add_config",
+    "add_submodule",
+    "clone",
+    "get_config",
+    "get_config_all",
+    "get_default_branch",
+    "get_git_root",
+    "get_short_sha",
+    "is_git_repo",
+    "run_git",
+    "set_config",
+    "sparse_checkout_add",
+    "sparse_checkout_init",
+    "sparse_checkout_set",
+    "unset_config_section",
+    "update_submodules",
+]
 
 
 def run_git(
-    args: List[str], cwd: Optional[Path] = None, capture_output: bool = True
+    args: list[str], cwd: Path | None = None, capture_output: bool = True
 ) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(
@@ -19,7 +38,7 @@ def run_git(
         raise GitError(f"Git command failed: {' '.join(e.cmd)}\nError: {e.stderr}")
 
 
-def clone(url: str, target_path: Path, depth: Optional[int] = None):
+def clone(url: str, target_path: Path, depth: int | None = None):
     args = ["clone"]
     if depth:
         args += ["--depth", str(depth)]
@@ -48,11 +67,11 @@ def sparse_checkout_init(cwd: Path):
     run_git(["sparse-checkout", "init"], cwd=cwd)
 
 
-def sparse_checkout_set(cwd: Path, paths: List[str]):
+def sparse_checkout_set(cwd: Path, paths: list[str]):
     run_git(["sparse-checkout", "set", "--skip-checks"] + paths, cwd=cwd)
 
 
-def sparse_checkout_add(cwd: Path, paths: List[str]):
+def sparse_checkout_add(cwd: Path, paths: list[str]):
     run_git(["sparse-checkout", "add", "--skip-checks"] + paths, cwd=cwd)
 
 
@@ -64,7 +83,7 @@ def is_git_repo(cwd: Path) -> bool:
         return False
 
 
-def get_git_root(cwd: Path) -> Optional[Path]:
+def get_git_root(cwd: Path) -> Path | None:
     try:
         result = run_git(["rev-parse", "--show-toplevel"], cwd=cwd)
         return Path(result.stdout.strip())
@@ -72,7 +91,7 @@ def get_git_root(cwd: Path) -> Optional[Path]:
         return None
 
 
-def get_short_sha(cwd: Path) -> Optional[str]:
+def get_short_sha(cwd: Path) -> str | None:
     try:
         result = run_git(["rev-parse", "--short", "HEAD"], cwd=cwd)
         return result.stdout.strip()
@@ -80,7 +99,7 @@ def get_short_sha(cwd: Path) -> Optional[str]:
         return None
 
 
-def get_config(key: str, file_path: Path) -> Optional[str]:
+def get_config(key: str, file_path: Path) -> str | None:
     try:
         result = run_git(["config", "--file", str(file_path), key])
         return result.stdout.strip()
@@ -88,7 +107,7 @@ def get_config(key: str, file_path: Path) -> Optional[str]:
         return None
 
 
-def get_config_all(key: str, file_path: Path) -> List[str]:
+def get_config_all(key: str, file_path: Path) -> list[str]:
     try:
         result = run_git(["config", "--file", str(file_path), "--get-all", key])
         return [line for line in result.stdout.strip().split("\n") if line]

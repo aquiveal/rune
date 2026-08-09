@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+
+__all__ = ["RuleMetadata", "RuleSchema"]
 
 
 class RuleMetadata(BaseModel):
@@ -9,5 +10,5 @@ class RuleMetadata(BaseModel):
 class RuleSchema(BaseModel):
     name: str
     description: str
-    metadata: Optional[RuleMetadata] = Field(default_factory=RuleMetadata)
-    path: Optional[str] = None
+    metadata: RuleMetadata | None = Field(default_factory=RuleMetadata)
+    path: str | None = None

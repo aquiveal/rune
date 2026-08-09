@@ -1,12 +1,16 @@
-import typer
-import questionary
-from typing import List, Optional
 from pathlib import Path
+from typing import Annotated
+
+import questionary
 import structlog
-from rune.services import rule_service, module_service, workspace_service
-from rune.repositories import git_repository
+import typer
+
 from rune.config.exceptions import RuneError
+from rune.repositories import git_repository
+from rune.services import module_service, rule_service, workspace_service
 from rune.utils.url import parse_github_url, resolve_url
+
+__all__ = []
 
 app = typer.Typer(no_args_is_help=True, help="Manage agent context and guidelines")
 logger = structlog.get_logger(__name__)
@@ -14,15 +18,23 @@ logger = structlog.get_logger(__name__)
 
 @app.command("add")
 def add(
-    source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
-    agents: Optional[List[str]] = typer.Option(
-        None, "--agent", "-a", help="Target agents"
-    ),
-    rules: Optional[List[str]] = typer.Option(
-        None, "--rule", "-r", help="Specific rules to install"
-    ),
-    global_scope: bool = typer.Option(False, "--global", "-g", help="Install globally"),
-    copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink"),
+    source: Annotated[
+        str, typer.Argument(help="Source URL, owner/repo, or remote alias")
+    ],
+    agents: Annotated[
+        list[str] | None,
+        typer.Option("--agent", "-a", help="Target agents"),
+    ] = None,
+    rules: Annotated[
+        list[str] | None,
+        typer.Option("--rule", "-r", help="Specific rules to install"),
+    ] = None,
+    global_scope: Annotated[
+        bool, typer.Option("--global", "-g", help="Install globally")
+    ] = False,
+    copy_mode: Annotated[
+        bool, typer.Option("--copy", help="Copy instead of symlink")
+    ] = False,
 ):
     """Install rules from a repository."""
     cwd = Path.cwd()
@@ -35,8 +47,8 @@ def add(
     raw_url = resolve_url(source, git_root or cwd)
     url, extracted_path = parse_github_url(raw_url)
 
-    import uuid
     import shutil
+    import uuid
 
     tmp_dir = (git_root or cwd) / ".rune" / "tmp" / str(uuid.uuid4())
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -113,7 +125,7 @@ def add(
         try:
             rule_service.merge_rules_to_agents_md(git_root or cwd)
             logger.info("Successfully merged rules into AGENTS.md")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to merge rules: {e}")
 
     except RuneError as e:
@@ -124,7 +136,9 @@ def add(
 
 
 @app.command("list")
-def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
+def list_rules(
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
+):
     """List installed rules."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
@@ -136,8 +150,8 @@ def list_rules(global_scope: bool = typer.Option(False, "--global", "-g")):
 
 @app.command("remove")
 def remove(
-    names: List[str] = typer.Argument(..., help="Names of rules to remove"),
-    global_scope: bool = typer.Option(False, "--global", "-g"),
+    names: Annotated[list[str], typer.Argument(help="Names of rules to remove")],
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
 ):
     """Remove installed rules."""
     cwd = Path.cwd()
@@ -148,7 +162,9 @@ def remove(
 
 
 @app.command("update")
-def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+def update(
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
+):
     """Update installed rules and merge them into AGENTS.md."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
@@ -156,7 +172,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     try:
         module_service.update_modules(git_root, type="rules", global_scope=global_scope)
         logger.info("Updated installed rule submodules.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to update rule submodules: {e}")
 
     # Also update any nested submodules inside rule directories (for authors)
@@ -167,19 +183,21 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
                 if (rule_dir / ".git").exists():
                     git_repository.update_submodules(rule_dir)
                     logger.info(f"Updated nested submodules in {rule_dir}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to update nested submodules in {rule_dir}: {e}")
 
     try:
         rule_service.merge_rules_to_agents_md(git_root)
         logger.info("Successfully merged rules into AGENTS.md")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to merge rules: {e}")
         raise typer.Exit(1)
 
 
 @app.command("init")
-def init(name: str = typer.Argument(..., help="Name of the rule")):
+def init(
+    name: Annotated[str, typer.Argument(help="Name of the rule")],
+):
     """Scaffold a new rule with standard markdown files."""
     rule_dir = Path.cwd() / name
     rule_dir.mkdir(exist_ok=True)

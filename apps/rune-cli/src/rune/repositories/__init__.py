@@ -1,12 +1,19 @@
-from rune.repositories import config_repository
-from rune.repositories import git_repository
-from rune.repositories import module_repository
-from rune.repositories import mcp_repository
+"""Repository package for Rune CLI."""
 
+from rune.repositories import (
+    config_repository,
+    git_repository,
+    index_repository,
+    mcp_repository,
+    module_repository,
+)
 from rune.repositories.config_repository import (
     add_agent_name,
+    add_submodule_path,
+    get_submodule_paths,
     set_agent_name,
     set_remote_url,
+    set_submodule_path,
 )
 from rune.repositories.git_repository import (
     add_config,
@@ -26,18 +33,25 @@ from rune.repositories.git_repository import (
     unset_config_section,
     update_submodules,
 )
+from rune.repositories.index_repository import (
+    get_items_by_scope,
+    get_items_by_type,
+    load_index,
+    record_item,
+    save_index,
+)
+from rune.repositories.mcp_repository import (
+    add_server_config,
+    get_agent_mcp_config_path,
+    get_all_agent_mcp_config_paths,
+    load_mcp_config,
+    remove_server_config,
+    save_mcp_config,
+)
 from rune.repositories.module_repository import (
     add_module,
     list_modules,
     remove_module,
-)
-from rune.repositories.mcp_repository import (
-    get_agent_mcp_config_path,
-    get_all_agent_mcp_config_paths,
-    load_mcp_config,
-    save_mcp_config,
-    add_server_config,
-    remove_server_config,
 )
 
 __all__ = [
@@ -46,6 +60,7 @@ __all__ = [
     "add_module",
     "add_server_config",
     "add_submodule",
+    "add_submodule_path",
     "clone",
     "config_repository",
     "get_agent_mcp_config_path",
@@ -54,20 +69,28 @@ __all__ = [
     "get_config_all",
     "get_default_branch",
     "get_git_root",
+    "get_items_by_scope",
+    "get_items_by_type",
     "get_short_sha",
+    "get_submodule_paths",
     "git_repository",
+    "index_repository",
     "is_git_repo",
     "list_modules",
+    "load_index",
     "load_mcp_config",
     "mcp_repository",
     "module_repository",
+    "record_item",
     "remove_module",
     "remove_server_config",
     "run_git",
+    "save_index",
     "save_mcp_config",
     "set_agent_name",
     "set_config",
     "set_remote_url",
+    "set_submodule_path",
     "sparse_checkout_add",
     "sparse_checkout_init",
     "sparse_checkout_set",

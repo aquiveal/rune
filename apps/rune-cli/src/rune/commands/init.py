@@ -1,6 +1,10 @@
 from pathlib import Path
+
 import structlog
+
 from rune.services import workspace_service
+
+__all__ = ["init_cmd"]
 
 logger = structlog.get_logger(__name__)
 

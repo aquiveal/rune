@@ -1,8 +1,9 @@
-import pytest
 from pathlib import Path
 from unittest.mock import patch
-from rune.services import module_service
+
+import pytest
 from rune.schemas.module_schema import ModuleSchema
+from rune.services import module_service
 
 
 @pytest.fixture
@@ -54,12 +55,12 @@ def test_add_module_local_clone(tmp_path, mock_git_repo, mock_module_repo):
             return True
         return original_is_dir(self)
 
-    with patch("pathlib.Path.exists", new=mock_exists):
-        with patch("pathlib.Path.is_dir", new=mock_is_dir):
-            with patch("rune.services.module_service.shutil.copytree") as mock_copytree:
-                module_service.add_module(
-                    root_dir, root_dir, url, path, name, type, agents
-                )
+    with (
+        patch("pathlib.Path.exists", new=mock_exists),
+        patch("pathlib.Path.is_dir", new=mock_is_dir),
+        patch("rune.services.module_service.shutil.copytree") as mock_copytree,
+    ):
+        module_service.add_module(root_dir, root_dir, url, path, name, type, agents)
 
     # Assert
     mock_git_repo.clone.assert_called_once()
@@ -99,12 +100,14 @@ def test_add_module_global_clone(tmp_path, mock_git_repo, mock_module_repo):
             return True
         return original_is_dir(self)
 
-    with patch("pathlib.Path.exists", new=mock_exists):
-        with patch("pathlib.Path.is_dir", new=mock_is_dir):
-            with patch("rune.services.module_service.shutil.copytree") as mock_copytree:
-                module_service.add_module(
-                    root_dir, root_dir, url, path, name, type, agents, global_scope=True
-                )
+    with (
+        patch("pathlib.Path.exists", new=mock_exists),
+        patch("pathlib.Path.is_dir", new=mock_is_dir),
+        patch("rune.services.module_service.shutil.copytree") as mock_copytree,
+    ):
+        module_service.add_module(
+            root_dir, root_dir, url, path, name, type, agents, global_scope=True
+        )
 
     # Assert
     mock_git_repo.clone.assert_called_once()
@@ -133,12 +136,13 @@ def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo):
             return True
         return original_is_dir(self)
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("pathlib.Path.is_dir", new=mock_is_dir):
-            with patch("rune.services.module_service.shutil.copytree") as mock_copytree:
-                # Also mock is_symlink to prevent unlink
-                with patch("pathlib.Path.is_symlink", return_value=False):
-                    module_service.update_modules(tmp_path, type="rules")
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_dir", new=mock_is_dir),
+        patch("rune.services.module_service.shutil.copytree") as mock_copytree,
+        patch("pathlib.Path.is_symlink", return_value=False),
+    ):
+        module_service.update_modules(tmp_path, type="rules")
 
     # Assert
     assert mock_git_repo.run_git.call_count == 1

@@ -1,5 +1,6 @@
 from pathlib import Path
 from unittest.mock import patch
+
 from rune.repositories.config_repository import (
     add_agent_name,
     set_agent_name,

@@ -1,8 +1,11 @@
 # src/roo/utils/os.py
-import sys
-import platform
 import ctypes
+import platform
+import sys
+
 import structlog
+
+__all__ = ["elevate_and_run", "is_admin"]
 
 logger = structlog.get_logger()
 
@@ -14,7 +17,7 @@ def is_admin() -> bool:
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
     except AttributeError:
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 

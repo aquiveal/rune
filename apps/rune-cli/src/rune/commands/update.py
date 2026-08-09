@@ -1,6 +1,9 @@
-import typer
 import structlog
+import typer
+
 from rune.commands import rules, skills
+
+__all__ = ["update_cmd"]
 
 logger = structlog.get_logger(__name__)
 

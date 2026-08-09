@@ -1,6 +1,8 @@
-from typing import Optional
 from pathlib import Path
+
 from rune.config.main import settings
+
+__all__ = ["parse_github_url", "resolve_url"]
 
 
 def resolve_url(source: str, root_dir: Path) -> str:
@@ -17,7 +19,7 @@ def resolve_url(source: str, root_dir: Path) -> str:
     return source
 
 
-def parse_github_url(url: str) -> tuple[str, Optional[str]]:
+def parse_github_url(url: str) -> tuple[str, str | None]:
     """Parse a GitHub URL into base repo URL and optional path."""
     if "github.com" in url:
         for delimiter in ["/tree/", "/blob/"]:

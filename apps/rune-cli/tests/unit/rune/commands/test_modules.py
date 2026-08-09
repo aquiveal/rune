@@ -1,8 +1,8 @@
-import pytest
 from unittest.mock import patch
-from typer.testing import CliRunner
 
+import pytest
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

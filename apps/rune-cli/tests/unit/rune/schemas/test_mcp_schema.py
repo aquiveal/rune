@@ -1,12 +1,11 @@
 import pytest
 from pydantic import ValidationError
-
 from rune.schemas.mcp_schema import (
-    McpStdioServer,
-    McpSseServer,
-    McpStreamableHttpServer,
-    McpSettings,
     McpRegistryEntry,
+    McpSettings,
+    McpSseServer,
+    McpStdioServer,
+    McpStreamableHttpServer,
 )
 
 

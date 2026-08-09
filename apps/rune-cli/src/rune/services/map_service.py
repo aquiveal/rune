@@ -1,6 +1,8 @@
 import re
 from pathlib import Path
 
+__all__ = ["generate_submodule_map", "merge_ast_to_agents_md"]
+
 
 def generate_submodule_map(module_path: Path, max_tokens: int | None = None) -> str:
     rel_path = module_path.name

@@ -1,37 +1,47 @@
-from typing import List, Dict, Optional, Literal, Union
+from typing import Literal
+
 from pydantic import BaseModel, Field, model_validator
+
+__all__ = [
+    "McpBase",
+    "McpRegistryEntry",
+    "McpServerUnion",
+    "McpSettings",
+    "McpSseServer",
+    "McpStdioServer",
+    "McpStreamableHttpServer",
+]
 
 
 class McpBase(BaseModel):
     disabled: bool = False
     timeout: int = Field(60, ge=1, le=3600)
-    alwaysAllow: Optional[List[str]] = None
-    disabledTools: Optional[List[str]] = None
-    watchPaths: Optional[List[str]] = None
+    alwaysAllow: list[str] | None = None
+    disabledTools: list[str] | None = None
+    watchPaths: list[str] | None = None
 
 
 class McpStdioServer(McpBase):
     type: Literal["stdio"] = "stdio"
     command: str = Field(..., min_length=1)
-    args: Optional[List[str]] = None
-    env: Optional[Dict[str, str]] = None
-    cwd: Optional[str] = None
+    args: list[str] | None = None
+    env: dict[str, str] | None = None
+    cwd: str | None = None
 
     @model_validator(mode="before")
     @classmethod
     def validate_no_http_fields(cls, data: object) -> object:
-        if isinstance(data, dict):
-            if "url" in data or "headers" in data:
-                raise ValueError(
-                    "stdio transport must not contain 'url' or 'headers' fields."
-                )
+        if isinstance(data, dict) and ("url" in data or "headers" in data):
+            raise ValueError(
+                "stdio transport must not contain 'url' or 'headers' fields."
+            )
         return data
 
 
 class McpSseServer(McpBase):
     type: Literal["sse"] = "sse"
     url: str = Field(..., min_length=1)
-    headers: Optional[Dict[str, str]] = None
+    headers: dict[str, str] | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -49,7 +59,7 @@ class McpSseServer(McpBase):
 class McpStreamableHttpServer(McpBase):
     type: Literal["streamable-http"] = "streamable-http"
     url: str = Field(..., min_length=1)
-    headers: Optional[Dict[str, str]] = None
+    headers: dict[str, str] | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -64,17 +74,17 @@ class McpStreamableHttpServer(McpBase):
         return data
 
 
-McpServerUnion = Union[McpStdioServer, McpSseServer, McpStreamableHttpServer]
+McpServerUnion = McpStdioServer | McpSseServer | McpStreamableHttpServer
 
 
 class McpSettings(BaseModel):
-    mcpServers: Dict[str, McpServerUnion] = Field(default_factory=dict)
+    mcpServers: dict[str, McpServerUnion] = Field(default_factory=dict)
 
 
 class McpRegistryEntry(BaseModel):
     name: str
     description: str
-    repository: Optional[str] = None
-    package: Optional[str] = None
-    agent_configs: Dict[str, McpServerUnion] = Field(default_factory=dict)
-    default_config: Optional[McpServerUnion] = None
+    repository: str | None = None
+    package: str | None = None
+    agent_configs: dict[str, McpServerUnion] = Field(default_factory=dict)
+    default_config: McpServerUnion | None = None

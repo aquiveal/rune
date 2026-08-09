@@ -1,6 +1,6 @@
 from pathlib import Path
-import pytest
 
+import pytest
 from rune.config.exceptions import ConfigError
 from rune.repositories import mcp_repository
 from rune.schemas.mcp_schema import McpSettings, McpStdioServer

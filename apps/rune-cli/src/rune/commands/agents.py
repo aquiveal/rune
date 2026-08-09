@@ -1,16 +1,21 @@
 import shutil
-import typer
 from pathlib import Path
+
 import structlog
+import typer
+
 from rune.repositories import git_repository
 from rune.services import (
-    rule_service,
-    module_service,
-    skill_service,
     map_service,
     mcp_service,
+    module_service,
+    rule_service,
+    skill_service,
+    submodule_service,
     workspace_service,
 )
+
+__all__ = []
 
 app = typer.Typer(
     no_args_is_help=True, help="Manage agents context, rules, skills, and map."
@@ -24,6 +29,13 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
 
+    # Phase 1: Update all tracked submodules first
+    try:
+        submodule_service.update_all_submodules(git_root, global_scope=global_scope)
+    except Exception:
+        logger.exception("Failed to update submodules.")
+
+    # Phase 2: Update Parent Workspace second
     # Step 1: Rules
     try:
         module_service.update_modules(git_root, type="rules", global_scope=global_scope)
@@ -100,3 +112,10 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         logger.info("Successfully updated MCP configurations.")
     except Exception:
         logger.exception("Failed to update MCP configurations.")
+
+    # Phase 3: Merge Submodules UPWARD into Workspace third
+    try:
+        submodule_service.merge_submodules_upward_to_workspace(git_root)
+        logger.info("Successfully merged submodules context UPWARD into workspace.")
+    except Exception:
+        logger.exception("Failed to merge submodules context upward into workspace.")

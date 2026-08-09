@@ -1,12 +1,16 @@
-import typer
-import questionary
-from typing import List, Optional
 from pathlib import Path
+from typing import Annotated
+
+import questionary
 import structlog
-from rune.services import skill_service, module_service, workspace_service
-from rune.repositories import git_repository
+import typer
+
 from rune.config.exceptions import RuneError, ValidationError
+from rune.repositories import git_repository
+from rune.services import module_service, skill_service, workspace_service
 from rune.utils.url import parse_github_url, resolve_url
+
+__all__ = ["scaffold_skill"]
 
 app = typer.Typer(no_args_is_help=True, help="Manage executable agent skills")
 logger = structlog.get_logger(__name__)
@@ -14,15 +18,23 @@ logger = structlog.get_logger(__name__)
 
 @app.command("add")
 def add(
-    source: str = typer.Argument(..., help="Source URL, owner/repo, or remote alias"),
-    agents: Optional[List[str]] = typer.Option(
-        None, "--agent", "-a", help="Target agents"
-    ),
-    skills: Optional[List[str]] = typer.Option(
-        None, "--skill", "-s", help="Specific skills to install"
-    ),
-    global_scope: bool = typer.Option(False, "--global", "-g", help="Install globally"),
-    copy_mode: bool = typer.Option(False, "--copy", help="Copy instead of symlink"),
+    source: Annotated[
+        str, typer.Argument(help="Source URL, owner/repo, or remote alias")
+    ],
+    agents: Annotated[
+        list[str] | None,
+        typer.Option("--agent", "-a", help="Target agents"),
+    ] = None,
+    skills: Annotated[
+        list[str] | None,
+        typer.Option("--skill", "-s", help="Specific skills to install"),
+    ] = None,
+    global_scope: Annotated[
+        bool, typer.Option("--global", "-g", help="Install globally")
+    ] = False,
+    copy_mode: Annotated[
+        bool, typer.Option("--copy", help="Copy instead of symlink")
+    ] = False,
 ):
     """Install skills from a repository."""
     cwd = Path.cwd()
@@ -35,8 +47,8 @@ def add(
     raw_url = resolve_url(source, git_root or cwd)
     url, extracted_path = parse_github_url(raw_url)
 
-    import uuid
     import shutil
+    import uuid
 
     tmp_dir = (git_root or cwd) / ".rune" / "tmp" / str(uuid.uuid4())
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -116,7 +128,9 @@ def add(
 
 
 @app.command("list")
-def list_skills(global_scope: bool = typer.Option(False, "--global", "-g")):
+def list_skills(
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
+):
     """List installed skills."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
@@ -128,8 +142,8 @@ def list_skills(global_scope: bool = typer.Option(False, "--global", "-g")):
 
 @app.command("remove")
 def remove(
-    names: List[str] = typer.Argument(..., help="Names of skills to remove"),
-    global_scope: bool = typer.Option(False, "--global", "-g"),
+    names: Annotated[list[str], typer.Argument(help="Names of skills to remove")],
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
 ):
     """Remove installed skills."""
     cwd = Path.cwd()
@@ -162,7 +176,9 @@ def scaffold_skill(name: str, base_dir: Path) -> Path:
 
 
 @app.command("init")
-def init(name: str = typer.Argument(..., help="Name of the skill")):
+def init(
+    name: Annotated[str, typer.Argument(help="Name of the skill")],
+):
     """Scaffold a new skill with standard folder structure."""
     sanitized_name = skill_service.sanitize_skill_name(name)
     if not sanitized_name:
@@ -176,7 +192,9 @@ def init(name: str = typer.Argument(..., help="Name of the skill")):
 
 
 @app.command("update")
-def update(global_scope: bool = typer.Option(False, "--global", "-g")):
+def update(
+    global_scope: Annotated[bool, typer.Option("--global", "-g")] = False,
+):
     """Update installed skills and sync SKILL.md instructions for skills in the current context."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd) or cwd
@@ -189,7 +207,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
             git_root, type="modules", global_scope=global_scope
         )
         logger.info("Updated installed skills and their internal submodules.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to update skill submodules: {e}")
 
     discovered = skill_service.discover_skills(git_root)
@@ -207,7 +225,7 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
 
             updated_count += 1
             logger.info(f"Updated SKILL.md for '{skill.name}' at {skill_dir}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to update skill '{skill.name}': {e}")
 
     logger.info(f"Successfully compiled {updated_count} skill(s).")
@@ -215,15 +233,17 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
 
 @app.command("validate")
 def validate(
-    path: Path = typer.Argument(
-        Path.cwd(), help="Path to the skill directory or SKILL.md"
-    ),
+    path: Annotated[
+        Path | None,
+        typer.Argument(help="Path to the skill directory or SKILL.md"),
+    ] = None,
 ):
     """Validate a skill's metadata against the specification."""
-    if path.is_dir():
-        skill_file = path / "SKILL.md"
+    target_path = path or Path.cwd()
+    if target_path.is_dir():
+        skill_file = target_path / "SKILL.md"
     else:
-        skill_file = path
+        skill_file = target_path
 
     try:
         skill = skill_service.validate_skill_file(skill_file)
@@ -231,6 +251,6 @@ def validate(
     except ValidationError as e:
         logger.error(f"Validation failed: {e}")
         raise typer.Exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"An unexpected error occurred: {e}")
         raise typer.Exit(1)

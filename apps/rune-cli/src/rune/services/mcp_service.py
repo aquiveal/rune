@@ -1,25 +1,38 @@
+import os
 import shutil
+import sys
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 
+import questionary
 import structlog
 
 from rune.config.exceptions import ValidationError
-from rune.repositories import mcp_repository, git_repository
-from rune.services import workspace_service
+from rune.repositories import git_repository, mcp_repository
 from rune.schemas.mcp_schema import (
     McpRegistryEntry,
     McpServerUnion,
     McpSettings,
     McpStdioServer,
 )
-from rune.utils.url import resolve_url, parse_github_url
+from rune.services import workspace_service
+from rune.utils.url import parse_github_url, resolve_url
+
+__all__ = [
+    "add_mcp_server",
+    "discover_mcp_servers_in_repo",
+    "get_builtin_registry",
+    "list_mcp_servers",
+    "remove_mcp_server",
+    "search_registry",
+    "validate_mcp_file",
+]
 
 logger = structlog.get_logger(__name__)
 
 
-def get_builtin_registry() -> Dict[str, McpRegistryEntry]:
+def get_builtin_registry() -> dict[str, McpRegistryEntry]:
     probe_entry = McpRegistryEntry(
         name="probe",
         description="Probe is a code and markdown context engine with a built-in agent, made to work on enterprise-scale codebases.",
@@ -109,7 +122,7 @@ def get_builtin_registry() -> Dict[str, McpRegistryEntry]:
     }
 
 
-def search_registry(query: str) -> List[McpRegistryEntry]:
+def search_registry(query: str) -> list[McpRegistryEntry]:
     q = query.lower().strip()
     registry = get_builtin_registry()
     seen = set()
@@ -127,8 +140,8 @@ def search_registry(query: str) -> List[McpRegistryEntry]:
     return results
 
 
-def discover_mcp_servers_in_repo(repo_path: Path) -> Dict[str, McpServerUnion]:
-    discovered: Dict[str, McpServerUnion] = {}
+def discover_mcp_servers_in_repo(repo_path: Path) -> dict[str, McpServerUnion]:
+    discovered: dict[str, McpServerUnion] = {}
 
     mcp_json = repo_path / "mcp.json"
     mcp_servers_json = repo_path / "mcp-servers.json"
@@ -143,7 +156,7 @@ def discover_mcp_servers_in_repo(repo_path: Path) -> Dict[str, McpServerUnion]:
         try:
             settings = mcp_repository.load_mcp_config(target_file)
             discovered.update(settings.mcpServers)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Could not parse MCP config in {target_file}: {e}")
 
     return discovered
@@ -151,15 +164,15 @@ def discover_mcp_servers_in_repo(repo_path: Path) -> Dict[str, McpServerUnion]:
 
 def add_mcp_server(
     source: str,
-    git_root: Optional[Path] = None,
-    cwd: Optional[Path] = None,
+    git_root: Path | None = None,
+    cwd: Path | None = None,
     global_scope: bool = False,
-    agent_override: Optional[List[str]] = None,
-    custom_config: Optional[McpServerUnion] = None,
-) -> List[Path]:
+    agent_override: list[str] | None = None,
+    custom_config: McpServerUnion | None = None,
+) -> list[Path]:
     working_dir = cwd or Path.cwd()
     base_dir = (Path.home() / ".rune") if global_scope else (git_root or working_dir)
-    updated_paths: List[Path] = []
+    updated_paths: list[Path] = []
 
     target_agents = (
         workspace_service.resolve_target_agents(
@@ -180,12 +193,47 @@ def add_mcp_server(
 
         for agent_key in target_agents:
             norm_key = agent_key.lstrip(".")
-            cfg = entry.agent_configs.get(norm_key) or entry.default_config
-            if not cfg:
+            base_cfg = entry.agent_configs.get(norm_key) or entry.default_config
+            if not base_cfg:
                 continue
+
             config_path = mcp_repository.get_agent_mcp_config_path(
                 base_dir, agent_key, global_scope=global_scope
             )
+
+            cfg = base_cfg.model_copy(deep=True)
+
+            if server_name == "probe":
+                existing_mcp = mcp_repository.load_mcp_config(config_path)
+                existing_key = None
+                if server_name in existing_mcp.mcpServers:
+                    existing_server = existing_mcp.mcpServers[server_name]
+                    if hasattr(existing_server, "env") and existing_server.env:
+                        existing_key = existing_server.env.get(
+                            "GOOGLE_GENERATIVE_AI_API_KEY"
+                        )
+
+                api_key = (
+                    existing_key
+                    or os.environ.get("GOOGLE_GENERATIVE_AI_API_KEY")
+                    or os.environ.get("GEMINI_API_KEY")
+                )
+
+                if not api_key and sys.stdin.isatty():
+                    try:
+                        prompted = questionary.password(
+                            "Enter GOOGLE_GENERATIVE_AI_API_KEY for Probe MCP (press Enter to skip):"
+                        ).ask()
+                        if prompted:
+                            api_key = prompted.strip()
+                    except Exception:  # noqa: BLE001, S110
+                        pass
+
+                if api_key and isinstance(cfg, McpStdioServer):
+                    if not cfg.env:
+                        cfg.env = {}
+                    cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = api_key
+
             mcp_repository.add_server_config(config_path, server_name, cfg)
             updated_paths.append(config_path)
 
@@ -259,11 +307,11 @@ def add_mcp_server(
 
 def list_mcp_servers(
     base_dir: Path, global_scope: bool = False
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     agent_paths = mcp_repository.get_all_agent_mcp_config_paths(
         base_dir, global_scope=global_scope
     )
-    result: Dict[str, Dict[str, Any]] = {}
+    result: dict[str, dict[str, Any]] = {}
 
     for agent_key, cfg_path in agent_paths.items():
         if not cfg_path.exists():
@@ -280,19 +328,19 @@ def list_mcp_servers(
                 else:
                     result[s_name]["agents"].append(agent_key)
                     result[s_name]["paths"].append(str(cfg_path))
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
     return result
 
 
 def remove_mcp_server(
-    names: List[str], base_dir: Path, global_scope: bool = False
-) -> List[Path]:
+    names: list[str], base_dir: Path, global_scope: bool = False
+) -> list[Path]:
     agent_paths = mcp_repository.get_all_agent_mcp_config_paths(
         base_dir, global_scope=global_scope
     )
-    modified_paths: List[Path] = []
+    modified_paths: list[Path] = []
 
     for name in names:
         for cfg_path in agent_paths.values():

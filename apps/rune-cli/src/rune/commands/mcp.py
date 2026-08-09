@@ -1,21 +1,23 @@
-from pathlib import Path
-from typing import List, Optional, Dict
 import json
+from pathlib import Path
+from typing import Annotated
 
-import typer
 import questionary
 import structlog
+import typer
 
 from rune.config.exceptions import RuneError, ValidationError
 from rune.repositories import git_repository
 from rune.schemas.mcp_schema import (
-    McpStdioServer,
-    McpSseServer,
-    McpStreamableHttpServer,
     McpServerUnion,
     McpSettings,
+    McpSseServer,
+    McpStdioServer,
+    McpStreamableHttpServer,
 )
 from rune.services import mcp_service
+
+__all__ = []
 
 app = typer.Typer(
     no_args_is_help=True, help="Manage Model Context Protocol (MCP) servers and tools"
@@ -23,7 +25,7 @@ app = typer.Typer(
 logger = structlog.get_logger(__name__)
 
 
-def _parse_env_list(env_list: Optional[List[str]]) -> Optional[Dict[str, str]]:
+def _parse_env_list(env_list: list[str] | None) -> dict[str, str] | None:
     if not env_list:
         return None
     env_dict = {}
@@ -38,38 +40,54 @@ def _parse_env_list(env_list: Optional[List[str]]) -> Optional[Dict[str, str]]:
 
 @app.command("add")
 def add(
-    source: str = typer.Argument(
-        ...,
-        help="Registry key (e.g. probelabs/probe), Git owner/repo, URL, or local file",
-    ),
-    global_scope: bool = typer.Option(
-        False, "--global", "-g", help="Install globally across agent settings"
-    ),
-    agents: Optional[List[str]] = typer.Option(
-        None, "--agent", "-a", help="Target agents"
-    ),
-    transport: Optional[str] = typer.Option(
-        None, "--transport", "-t", help="Transport type: stdio, sse, streamable-http"
-    ),
-    command: Optional[str] = typer.Option(
-        None, "--command", "-c", help="Command executable for stdio transport"
-    ),
-    args: Optional[List[str]] = typer.Option(
-        None, "--arg", help="Arguments for stdio command"
-    ),
-    env: Optional[List[str]] = typer.Option(
-        None, "--env", help="Environment variables as KEY=VALUE"
-    ),
-    url: Optional[str] = typer.Option(
-        None, "--url", help="Endpoint URL for sse or streamable-http transport"
-    ),
-    disabled: bool = typer.Option(
-        False, "--disabled", help="Add server in disabled state"
-    ),
-    timeout: int = typer.Option(60, "--timeout", help="Server timeout in seconds"),
-    always_allow: Optional[List[str]] = typer.Option(
-        None, "--always-allow", help="Auto-approved tool names"
-    ),
+    source: Annotated[
+        str,
+        typer.Argument(
+            help="Registry key (e.g. probelabs/probe), Git owner/repo, URL, or local file"
+        ),
+    ],
+    global_scope: Annotated[
+        bool,
+        typer.Option("--global", "-g", help="Install globally across agent settings"),
+    ] = False,
+    agents: Annotated[
+        list[str] | None,
+        typer.Option("--agent", "-a", help="Target agents"),
+    ] = None,
+    transport: Annotated[
+        str | None,
+        typer.Option(
+            "--transport", "-t", help="Transport type: stdio, sse, streamable-http"
+        ),
+    ] = None,
+    command: Annotated[
+        str | None,
+        typer.Option("--command", "-c", help="Command executable for stdio transport"),
+    ] = None,
+    args: Annotated[
+        list[str] | None,
+        typer.Option("--arg", help="Arguments for stdio command"),
+    ] = None,
+    env: Annotated[
+        list[str] | None,
+        typer.Option("--env", help="Environment variables as KEY=VALUE"),
+    ] = None,
+    url: Annotated[
+        str | None,
+        typer.Option("--url", help="Endpoint URL for sse or streamable-http transport"),
+    ] = None,
+    disabled: Annotated[
+        bool,
+        typer.Option("--disabled", help="Add server in disabled state"),
+    ] = False,
+    timeout: Annotated[
+        int,
+        typer.Option("--timeout", help="Server timeout in seconds"),
+    ] = 60,
+    always_allow: Annotated[
+        list[str] | None,
+        typer.Option("--always-allow", help="Auto-approved tool names"),
+    ] = None,
 ):
     """Add or install an MCP server configuration."""
     cwd = Path.cwd()
@@ -81,7 +99,7 @@ def add(
         typer.echo(msg, err=True)
         raise typer.Exit(1)
 
-    custom_config: Optional[McpServerUnion] = None
+    custom_config: McpServerUnion | None = None
     if transport or command or url:
         env_dict = _parse_env_list(env)
         transport_type = (transport or ("stdio" if command else "sse")).lower()
@@ -160,7 +178,7 @@ def add(
         logger.error(str(e))
         typer.echo(str(e), err=True)
         raise typer.Exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         msg = f"Unexpected error adding MCP server: {e}"
         logger.error(msg)
         typer.echo(msg, err=True)
@@ -169,9 +187,10 @@ def add(
 
 @app.command("list")
 def list_servers(
-    global_scope: bool = typer.Option(
-        False, "--global", "-g", help="List global MCP servers"
-    ),
+    global_scope: Annotated[
+        bool,
+        typer.Option("--global", "-g", help="List global MCP servers"),
+    ] = False,
 ):
     """List configured MCP servers."""
     cwd = Path.cwd()
@@ -204,10 +223,14 @@ def list_servers(
 
 @app.command("remove")
 def remove(
-    names: List[str] = typer.Argument(..., help="Names of MCP servers to remove"),
-    global_scope: bool = typer.Option(
-        False, "--global", "-g", help="Remove from global scope"
-    ),
+    names: Annotated[
+        list[str],
+        typer.Argument(help="Names of MCP servers to remove"),
+    ],
+    global_scope: Annotated[
+        bool,
+        typer.Option("--global", "-g", help="Remove from global scope"),
+    ] = False,
 ):
     """Remove MCP server configurations."""
     cwd = Path.cwd()
@@ -231,7 +254,10 @@ def remove(
 
 @app.command("init")
 def init(
-    name: str = typer.Argument("custom-mcp", help="Name of the MCP server"),
+    name: Annotated[
+        str,
+        typer.Argument(help="Name of the MCP server"),
+    ] = "custom-mcp",
 ):
     """Scaffold a new mcp.json file interactively."""
     cwd = Path.cwd()
@@ -284,9 +310,10 @@ def init(
 
 @app.command("update")
 def update(
-    global_scope: bool = typer.Option(
-        False, "--global", "-g", help="Update global MCP configurations"
-    ),
+    global_scope: Annotated[
+        bool,
+        typer.Option("--global", "-g", help="Update global MCP configurations"),
+    ] = False,
 ):
     """Sync and validate MCP configurations across agents."""
     cwd = Path.cwd()
@@ -301,23 +328,25 @@ def update(
 
 @app.command("validate")
 def validate(
-    path: Path = typer.Argument(
-        Path.cwd() / "mcp.json", help="Path to mcp.json file to validate"
-    ),
+    path: Annotated[
+        Path | None,
+        typer.Argument(help="Path to mcp.json file to validate"),
+    ] = None,
 ):
     """Validate an mcp.json file against the MCP specification."""
+    target_path = path or (Path.cwd() / "mcp.json")
     try:
-        settings = mcp_service.validate_mcp_file(path)
+        settings = mcp_service.validate_mcp_file(target_path)
         count = len(settings.mcpServers)
-        msg = f"Configuration file '{path}' is valid! Contains {count} server definition(s)."
+        msg = f"Configuration file '{target_path}' is valid! Contains {count} server definition(s)."
         logger.info(msg)
         typer.echo(msg)
     except ValidationError as e:
-        msg = f"Validation failed for '{path}': {e}"
+        msg = f"Validation failed for '{target_path}': {e}"
         logger.error(msg)
         typer.echo(msg, err=True)
         raise typer.Exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         msg = f"An unexpected error occurred: {e}"
         logger.error(msg)
         typer.echo(msg, err=True)
@@ -326,7 +355,10 @@ def validate(
 
 @app.command("registry")
 def registry_cmd(
-    query: Optional[str] = typer.Argument(None, help="Search term for MCP registry"),
+    query: Annotated[
+        str | None,
+        typer.Argument(help="Search term for MCP registry"),
+    ] = None,
 ):
     """Search or list built-in MCP server registry entries."""
     if query:

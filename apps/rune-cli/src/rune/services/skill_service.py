@@ -1,11 +1,21 @@
-import yaml
 import re
 from pathlib import Path
-from typing import List, Optional
-from rune.schemas.skill_schema import SkillSchema
+
+import yaml
+
 from rune.config.exceptions import ValidationError
 from rune.config.main import settings
 from rune.repositories import git_repository, module_repository
+from rune.schemas.skill_schema import SkillSchema
+
+__all__ = [
+    "discover_skills",
+    "ensure_skill_md",
+    "generate_tree",
+    "sanitize_skill_name",
+    "update_skill_instructions",
+    "validate_skill_file",
+]
 
 
 def sanitize_skill_name(name: str) -> str:
@@ -50,7 +60,7 @@ def validate_skill_file(path: Path) -> SkillSchema:
 
         try:
             skill = SkillSchema(**frontmatter)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise ValidationError(f"Schema validation failed: {e}")
 
         # Check if name matches parent directory name
@@ -63,11 +73,11 @@ def validate_skill_file(path: Path) -> SkillSchema:
         return skill
     except ValidationError:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ValidationError(f"Validation failed: {e}")
 
 
-def discover_skills(repo_path: Path) -> List[SkillSchema]:
+def discover_skills(repo_path: Path) -> list[SkillSchema]:
     skills = []
     # Search in configured skill locations
     search_paths = [repo_path / Path(p) for p in settings.get_skill_search_paths()]
@@ -115,12 +125,12 @@ def discover_skills(repo_path: Path) -> List[SkillSchema]:
 def generate_tree(
     dir_path: Path,
     prefix: str = "",
-    ignore: Optional[List[str]] = None,
-    ast_maps: Optional[dict] = None,
-    root_dir: Optional[Path] = None,
+    ignore: list[str] | None = None,
+    ast_maps: dict | None = None,
+    root_dir: Path | None = None,
     max_depth: int = 3,
     current_depth: int = 0,
-    modules_map: Optional[dict] = None,
+    modules_map: dict | None = None,
 ) -> str:
     if ignore is None:
         ignore = [
@@ -214,9 +224,9 @@ def update_skill_instructions(skill_dir: Path):
             "\n> **Agent Instructions:** The `modules/` directory contains full source code repositories. "
             "Probe is configured for this workspace. Use Probe MCP tools to inspect and search code dynamically "
             "across target folder paths instead of raw static AST dumps:\n"
-            "> - `probe search \"<query>\" [path]` - Search code semantically with Elasticsearch-style syntax.\n"
+            '> - `probe search "<query>" [path]` - Search code semantically with Elasticsearch-style syntax.\n'
             "> - `probe extract <file>:<line>` - Extract complete AST semantic blocks.\n"
-            "> - `probe query \"<pattern>\"` - Perform AST structural pattern matching.\n"
+            '> - `probe query "<pattern>"` - Perform AST structural pattern matching.\n'
             "> - `probe symbols <file>` - List code symbols (functions, classes, constants) in target file.\n"
         )
 

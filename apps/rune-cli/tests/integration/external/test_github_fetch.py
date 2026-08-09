@@ -1,5 +1,5 @@
-import vcr
 import requests
+import vcr
 
 
 @vcr.use_cassette("tests/integration/external/cassettes/github_api.yaml")

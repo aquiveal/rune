@@ -1,6 +1,9 @@
-import typer
 from pathlib import Path
+
 import structlog
+import typer
+
+__all__ = ["diff_cmd"]
 
 logger = structlog.get_logger(__name__)
 
