@@ -1,9 +1,12 @@
 import typer
-from rune.commands.init import init_cmd
+
+from rune.commands import agents, mcp, modules, remote, rules, skills
 from rune.commands.config import config_cmd
+from rune.commands.init import init_cmd
 from rune.commands.status import status_cmd
 from rune.commands.update import update_cmd
-from rune.commands import remote, skills, rules, modules, agents, mcp
+
+__all__ = ["app", "callback", "main"]
 
 app = typer.Typer(
     name="rune",
@@ -16,6 +19,7 @@ app = typer.Typer(
 @app.callback()
 def callback():
     from pathlib import Path
+
     from rune.repositories import git_repository
     from rune.services import workspace_service
 
