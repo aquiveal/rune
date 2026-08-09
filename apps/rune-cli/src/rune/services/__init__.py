@@ -4,6 +4,7 @@ from rune.services import (
     map_service,
     mcp_service,
     module_service,
+    mutagen_service,
     rule_service,
     skill_service,
     submodule_service,
@@ -27,6 +28,10 @@ from rune.services.module_service import (
     get_status,
     remove_module,
     update_modules,
+)
+from rune.services.mutagen_service import (
+    parse_gitignore,
+    update_mutagen_ignore,
 )
 from rune.services.rule_service import (
     discover_rule_dirs,
@@ -82,6 +87,8 @@ __all__ = [
     "merge_rules_to_agents_md",
     "merge_submodules_upward_to_workspace",
     "module_service",
+    "mutagen_service",
+    "parse_gitignore",
     "prompt_and_configure_submodules",
     "propagate_workspace_to_submodule",
     "remove_mcp_server",
@@ -95,6 +102,7 @@ __all__ = [
     "update_all_submodules",
     "update_gitignore",
     "update_modules",
+    "update_mutagen_ignore",
     "update_skill_instructions",
     "validate_mcp_file",
     "validate_rule_file",

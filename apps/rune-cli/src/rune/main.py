@@ -1,6 +1,6 @@
 import typer
 
-from rune.commands import agents, mcp, modules, remote, rules, skills
+from rune.commands import agents, mcp, modules, mutagen, remote, rules, skills
 from rune.commands.config import config_cmd
 from rune.commands.init import init_cmd
 from rune.commands.status import status_cmd
@@ -44,6 +44,7 @@ app.add_typer(rules.app, name="rules")
 app.add_typer(modules.app, name="modules")
 app.add_typer(agents.app, name="agents")
 app.add_typer(mcp.app, name="mcp")
+app.add_typer(mutagen.app, name="mutagen")
 
 
 def main():
