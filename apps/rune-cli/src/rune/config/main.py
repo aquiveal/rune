@@ -1,17 +1,28 @@
-import sys
 import os
-from typing import List, Dict, Tuple, Any, Type, Optional
-from pathlib import Path
 import subprocess
+import sys
+from pathlib import Path
+from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
-    SettingsConfigDict,
     PydanticBaseSettingsSource,
+    SettingsConfigDict,
 )
 from python_logging.config import LoggingSettings
+
+__all__ = [
+    "Agent",
+    "AgentPaths",
+    "AgentSettings",
+    "RepoMapSettings",
+    "RuneConfigSource",
+    "Settings",
+    "get_default_agents",
+    "settings",
+]
 
 
 class RepoMapSettings(BaseModel):
@@ -20,7 +31,7 @@ class RepoMapSettings(BaseModel):
 
 
 class AgentSettings(BaseModel):
-    names: List[str] = Field(default_factory=list)
+    names: list[str] = Field(default_factory=list)
 
 
 class AgentPaths(BaseModel):
@@ -36,10 +47,10 @@ class Agent(BaseModel):
     global_scope: AgentPaths = Field(alias="global")
 
 
-def get_default_agents() -> Dict[str, Agent]:
+def get_default_agents() -> dict[str, Agent]:
     try:
         home = Path.home()
-    except Exception:
+    except Exception:  # noqa: BLE001
         home = Path("~")
 
     app_data = (
@@ -123,11 +134,11 @@ def get_default_agents() -> Dict[str, Agent]:
 class RuneConfigSource(PydanticBaseSettingsSource):
     def get_field_value(
         self, field: FieldInfo, field_name: str
-    ) -> Tuple[Any, str, bool]:
+    ) -> tuple[Any, str, bool]:
         return None, field_name, False
 
-    def __call__(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {}
+    def __call__(self) -> dict[str, Any]:
+        d: dict[str, Any] = {}
         cwd = Path.cwd()
         root_dir = cwd
         try:
@@ -139,7 +150,7 @@ class RuneConfigSource(PydanticBaseSettingsSource):
                 check=True,
             )
             root_dir = Path(result.stdout.strip())
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
         config_path = root_dir / ".rune" / "config"
@@ -155,9 +166,10 @@ class RuneConfigSource(PydanticBaseSettingsSource):
             )
             lines = result.stdout.splitlines()
 
-            remotes: Dict[str, str] = {}
-            repomap: Dict[str, Any] = {}
-            names: List[str] = []
+            remotes: dict[str, str] = {}
+            repomap: dict[str, Any] = {}
+            names: list[str] = []
+            submodules: list[str] = []
 
             for line in lines:
                 if "=" not in line:
@@ -165,6 +177,8 @@ class RuneConfigSource(PydanticBaseSettingsSource):
                 key, val = line.split("=", 1)
                 if key == "agent.name":
                     names.append(val)
+                elif key == "submodule.path":
+                    submodules.append(val)
                 elif key.startswith("remote.") and key.endswith(".url"):
                     alias = key.split(".")[1]
                     remotes[alias] = val
@@ -179,12 +193,14 @@ class RuneConfigSource(PydanticBaseSettingsSource):
 
             if names:
                 d["agent"] = {"names": names}
+            if submodules:
+                d["submodules"] = submodules
             if remotes:
                 d["remotes"] = remotes
             if repomap:
                 d["repomap"] = repomap
 
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
         return d
@@ -199,16 +215,29 @@ class Settings(LoggingSettings, BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
 
     agent: AgentSettings = Field(default_factory=AgentSettings)
-    agent_paths: Dict[str, Agent] = Field(default_factory=get_default_agents)
-    remotes: Dict[str, str] = Field(default_factory=dict)
+    agent_paths: dict[str, Agent] = Field(default_factory=get_default_agents)
+    submodules: list[str] = Field(default_factory=list)
+    remotes: dict[str, str] = Field(default_factory=dict)
     repomap: RepoMapSettings = Field(default_factory=RepoMapSettings)
 
-    @property
-    def agents(self) -> List[str]:
-        """Return list of supported default agent directory names (e.g. ['.roo', '.claude', ...])."""
-        return [k for k in self.agent_paths.keys() if k != ".agents"]
+    def get_submodule_paths(self, root_dir: Path) -> list[Path]:
+        """Return list of existing relative submodule directory paths explicitly configured in submodule.path."""
+        paths: list[Path] = []
+        for sub in self.submodules:
+            clean_sub = sub.strip().replace("\\", "/")
+            if not clean_sub:
+                continue
+            sub_path = root_dir / Path(clean_sub)
+            if sub_path.exists() and sub_path.is_dir() and sub_path not in paths:
+                paths.append(sub_path)
+        return paths
 
-    def get_agent(self, name: str) -> Optional[Agent]:
+    @property
+    def agents(self) -> list[str]:
+        """Return list of supported default agent directory names (e.g. ['.roo', '.claude', ...])."""
+        return [k for k in self.agent_paths if k != ".agents"]
+
+    def get_agent(self, name: str) -> Agent | None:
         """Lookup an Agent object by name (accepts with or without leading dot)."""
         key = name if name.startswith(".") else f".{name}"
         if key in self.agent_paths:
@@ -217,25 +246,47 @@ class Settings(LoggingSettings, BaseSettings):
             return self.agent_paths[name]
         return None
 
-    def get_skill_search_paths(self) -> List[str]:
-        """Return deduplicated relative skill search directory paths."""
+    def get_skill_search_paths(self) -> list[str]:
+        """Return deduplicated relative skill search directory paths including configured submodules."""
         paths = ["skills"]
         for agent_cfg in self.agent_paths.values():
             skills_path = agent_cfg.workspace.skills
             if skills_path and skills_path not in paths:
                 paths.append(skills_path)
+        for sub in self.submodules:
+            clean_sub = sub.strip().replace("\\", "/")
+            if not clean_sub:
+                continue
+            for agent_cfg in self.agent_paths.values():
+                sub_skills = f"{clean_sub}/{agent_cfg.workspace.skills}"
+                if sub_skills not in paths:
+                    paths.append(sub_skills)
+            sub_default_skills = f"{clean_sub}/skills"
+            if sub_default_skills not in paths:
+                paths.append(sub_default_skills)
         return paths
 
-    def get_rule_search_paths(self) -> List[str]:
-        """Return deduplicated relative rule search directory paths."""
+    def get_rule_search_paths(self) -> list[str]:
+        """Return deduplicated relative rule search directory paths including configured submodules."""
         paths = ["rules"]
         for agent_cfg in self.agent_paths.values():
             rules_path = agent_cfg.workspace.rules
             if rules_path and rules_path not in paths:
                 paths.append(rules_path)
+        for sub in self.submodules:
+            clean_sub = sub.strip().replace("\\", "/")
+            if not clean_sub:
+                continue
+            for agent_cfg in self.agent_paths.values():
+                sub_rules = f"{clean_sub}/{agent_cfg.workspace.rules}"
+                if sub_rules not in paths:
+                    paths.append(sub_rules)
+            sub_default_rules = f"{clean_sub}/rules"
+            if sub_default_rules not in paths:
+                paths.append(sub_default_rules)
         return paths
 
-    def get_mcp_search_paths(self, global_scope: bool = False) -> Dict[str, str]:
+    def get_mcp_search_paths(self, global_scope: bool = False) -> dict[str, str]:
         """Return mapping of agent key to MCP config file path."""
         result = {}
         for agent_key, agent_cfg in self.agent_paths.items():
@@ -249,12 +300,12 @@ class Settings(LoggingSettings, BaseSettings):
     @classmethod
     def settings_customise_sources(
         cls,
-        settings_cls: Type[BaseSettings],
+        settings_cls: type[BaseSettings],
         init_settings: PydanticBaseSettingsSource,
         env_settings: PydanticBaseSettingsSource,
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
-    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
         return (
             init_settings,
             env_settings,
