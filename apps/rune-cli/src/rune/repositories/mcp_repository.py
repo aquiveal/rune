@@ -2,11 +2,19 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict
 
 from rune.config.exceptions import ConfigError
 from rune.config.main import settings
-from rune.schemas.mcp_schema import McpSettings, McpServerUnion
+from rune.schemas.mcp_schema import McpServerUnion, McpSettings
+
+__all__ = [
+    "add_server_config",
+    "get_agent_mcp_config_path",
+    "get_all_agent_mcp_config_paths",
+    "load_mcp_config",
+    "remove_server_config",
+    "save_mcp_config",
+]
 
 
 def _normalize_agent_name(agent: str) -> str:
@@ -84,10 +92,10 @@ def get_agent_mcp_config_path(
 
 def get_all_agent_mcp_config_paths(
     base_dir: Path, global_scope: bool = False
-) -> Dict[str, Path]:
+) -> dict[str, Path]:
     mcp_map = settings.get_mcp_search_paths(global_scope=global_scope)
     paths = {}
-    for agent_key in mcp_map.keys():
+    for agent_key in mcp_map:
         paths[agent_key] = get_agent_mcp_config_path(base_dir, agent_key, global_scope)
 
     # If in global scope, also explicitly include Zoo Code path if distinct from Roo Code path
@@ -123,7 +131,7 @@ def load_mcp_config(config_path: Path) -> McpSettings:
         raise ConfigError(
             f"Invalid JSON in MCP configuration file '{config_path}': {e}"
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ConfigError(f"Failed to load MCP configuration from '{config_path}': {e}")
 
 
@@ -133,7 +141,7 @@ def save_mcp_config(config_path: Path, settings: McpSettings) -> None:
         dump_data = settings.model_dump(exclude_none=True, mode="json")
         json_str = json.dumps(dump_data, indent=2)
         config_path.write_text(json_str, encoding="utf-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ConfigError(f"Failed to save MCP configuration to '{config_path}': {e}")
 
 

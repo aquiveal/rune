@@ -1,14 +1,16 @@
 from pathlib import Path
-from typing import List
+
 from rune.repositories import git_repository
 from rune.schemas.module_schema import ModuleSchema
+
+__all__ = ["add_module", "list_modules", "remove_module"]
 
 
 def _get_modules_path(root_dir: Path) -> Path:
     return root_dir / ".runemodules"
 
 
-def list_modules(root_dir: Path) -> List[ModuleSchema]:
+def list_modules(root_dir: Path) -> list[ModuleSchema]:
     path = _get_modules_path(root_dir)
     if not path.exists():
         return []
@@ -16,7 +18,7 @@ def list_modules(root_dir: Path) -> List[ModuleSchema]:
     try:
         # We use git config --list to parse the .runemodules file
         result = git_repository.run_git(["config", "--file", str(path), "--list"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
     modules_dict = {}
