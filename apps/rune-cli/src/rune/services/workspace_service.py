@@ -26,21 +26,6 @@ def init_workspace(root_dir: Path):
     (rune_dir / "index").touch(exist_ok=True)
     update_gitignore(root_dir)
 
-    # Automatically install probe MCP for workspace agents during init
-    try:
-        from rune.services import mcp_service
-
-        detected = detect_agents(root_dir) or [".agents"]
-        mcp_service.add_mcp_server(
-            "probelabs/probe",
-            git_root=root_dir,
-            cwd=root_dir,
-            global_scope=False,
-            agent_override=detected,
-        )
-    except Exception:  # noqa: BLE001, S110
-        pass
-
     # Prompt user for submodules setup (optional, no auto-enable) and propagate templates
     try:
         from rune.services import submodule_service
