@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from rune.utils.url import is_git, is_site
+
 __all__ = ["ModuleSchema"]
 
 
@@ -31,6 +33,14 @@ class ModuleSchema(BaseModel):
                 if len(path_parts) > 1:
                     return path_parts[1]
         return ""
+
+    @property
+    def is_git(self) -> bool:
+        return is_git(self.url)
+
+    @property
+    def is_site(self) -> bool:
+        return is_site(self.url)
 
     @property
     def inferred_type(self) -> str:

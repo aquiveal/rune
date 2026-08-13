@@ -52,7 +52,9 @@ def update_mutagen_ignore(
         if not isinstance(data, dict):
             data = {}
     except Exception as e:
-        raise RuneError(f"Failed to parse mutagen.yml at '{target_mutagen}': {e}") from e
+        raise RuneError(
+            f"Failed to parse mutagen.yml at '{target_mutagen}': {e}"
+        ) from e
 
     # Ensure sync.defaults.ignore.paths structure exists
     sync_data = data.setdefault("sync", {})
@@ -85,6 +87,8 @@ def update_mutagen_ignore(
         updated_content = yaml.dump(data, sort_keys=False, default_flow_style=False)
         target_mutagen.write_text(updated_content, encoding="utf-8")
     except Exception as e:
-        raise RuneError(f"Failed to write mutagen.yml at '{target_mutagen}': {e}") from e
+        raise RuneError(
+            f"Failed to write mutagen.yml at '{target_mutagen}': {e}"
+        ) from e
 
     return target_mutagen, added_count

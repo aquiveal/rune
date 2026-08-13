@@ -3,9 +3,8 @@ import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from typer.testing import CliRunner
-
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -69,7 +68,10 @@ def test_rules_add_doc_integration_flow(tmp_path: Path, monkeypatch):
     assert "crawl4ai" in content
     assert "Auth Guide" in content
     assert "OAuth and LWA guide" in content
-    assert "https://developer-docs.amazon/sp-api/docs/authorization-and-authentication" in content
+    assert (
+        "https://developer-docs.amazon/sp-api/docs/authorization-and-authentication"
+        in content
+    )
 
     # Verify AGENTS.md updated
     agents_md = tmp_path / "AGENTS.md"

@@ -45,3 +45,21 @@ def test_module_schema_inferred_type():
 
     # Unknown
     assert ModuleSchema(name="x", url="y", path="foo/bar").inferred_type == "unknown"
+
+
+def test_module_schema_is_git_and_is_site():
+    git_mod = ModuleSchema(
+        name="git-mod",
+        url="https://github.com/aurumorcom/.agents/tree/main/rules/language-python",
+        path=".agents/rules/language-python",
+    )
+    assert git_mod.is_git is True
+    assert git_mod.is_site is False
+
+    site_mod = ModuleSchema(
+        name="doc-mod",
+        url="https://developer-docs.amazon/sp-api/",
+        path=".agents/rules/amazon-sp-api.md",
+    )
+    assert site_mod.is_git is False
+    assert site_mod.is_site is True

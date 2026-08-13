@@ -4,8 +4,21 @@ from pathlib import Path
 
 from rune.config.main import settings
 
+KNOWN_GIT_HOSTS = (
+    "github.com",
+    "gitlab.com",
+    "bitbucket.org",
+    "dev.azure.com",
+    "ssh.dev.azure.com",
+    "gitea.com",
+    "codeberg.org",
+)
+
 __all__ = [
+    "KNOWN_GIT_HOSTS",
+    "is_git",
     "is_git_source",
+    "is_site",
     "is_web_url",
     "parse_github_url",
     "resolve_relative_url",
@@ -47,19 +60,17 @@ def parse_github_url(url: str) -> tuple[str, str | None]:
     return url, None
 
 
-def is_web_url(source: str) -> bool:
-    """Check if the source is an HTTP/HTTPS web or documentation URL."""
-    if not source.startswith(("http://", "https://")):
-        return False
-    if source.endswith(".git"):
-        return False
-    return True
-
-
-def is_git_source(source: str) -> bool:
-    """Check if the source is explicitly a Git repository URL or remote."""
+def is_git(source: str) -> bool:
+    """Check if the source is explicitly a Git repository URL, provider repo, or remote."""
     if source.endswith(".git") or source.startswith(("git@", "file://")):
         return True
+    if source.startswith(("http://", "https://")):
+        try:
+            parsed = urllib.parse.urlparse(source)
+            netloc = parsed.netloc.lower()
+            return any(host in netloc for host in KNOWN_GIT_HOSTS)
+        except Exception:  # noqa: BLE001
+            return False
     return bool(
         "/" in source
         and not source.startswith(("http://", "https://"))
@@ -67,10 +78,27 @@ def is_git_source(source: str) -> bool:
     )
 
 
+def is_site(source: str) -> bool:
+    """Check if the source is an HTTP/HTTPS web or documentation URL."""
+    if not source.startswith(("http://", "https://")):
+        return False
+    return not is_git(source)
+
+
+is_git_source = is_git
+is_web_url = is_site
+
+
 def slugify_url(url: str) -> str:
     """Generate a clean rule name slug from a web or documentation URL."""
     parsed = urllib.parse.urlparse(url)
     path = parsed.path.strip("/")
+
+    # Strip /llms.txt or /llms-full.txt before extracting segments
+    for suffix in ["/llms.txt", "/llms-full.txt", "llms.txt", "llms-full.txt"]:
+        if path.endswith(suffix):
+            path = path[: -len(suffix)].strip("/")
+            break
 
     if path:
         # Extract meaningful path segments (up to the last 2 segments)
@@ -106,5 +134,3 @@ def resolve_relative_url(base_url: str, relative_url: str) -> str:
         )
     )
     return clean_url
-
-
