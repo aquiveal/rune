@@ -2,7 +2,6 @@ from pathlib import Path
 
 import requests
 import vcr
-
 from rune.services import rule_service
 
 CASSETTE_PATH = str(Path(__file__).parent / "cassettes" / "test_rule_service.yaml")

@@ -63,4 +63,3 @@ __all__ = [
     "skill_schema",
     "validate_config_key_value",
 ]
-

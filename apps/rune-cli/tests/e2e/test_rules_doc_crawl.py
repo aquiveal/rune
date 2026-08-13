@@ -3,9 +3,8 @@ import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from typer.testing import CliRunner
-
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -103,4 +102,3 @@ def test_rules_doc_crawl_e2e_workflow(tmp_path: Path, monkeypatch):
     # 7. Verify rules list CLI
     res_list = runner.invoke(app, ["rules", "list"])
     assert res_list.exit_code == 0
-

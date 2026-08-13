@@ -12,7 +12,9 @@ from rune.utils.os import (
     is_admin,
 )
 from rune.utils.url import (
+    is_git,
     is_git_source,
+    is_site,
     is_web_url,
     parse_github_url,
     resolve_relative_url,
@@ -26,9 +28,11 @@ __all__ = [
     "get_git_root",
     "git",
     "is_admin",
+    "is_git",
     "is_git_source",
     "is_github_folder_url",
     "is_github_url",
+    "is_site",
     "is_web_url",
     "os",
     "parse_github_url",
@@ -37,4 +41,3 @@ __all__ = [
     "slugify_url",
     "url",
 ]
-

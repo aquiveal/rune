@@ -25,9 +25,11 @@ __all__ = [
     "discover_rules",
     "extract_html_documentation_site",
     "extract_seo_excerpt",
+    "fetch_llms_txt",
     "generate_site_rule_markdown",
     "merge_rules_to_agents_md",
     "parse_llms_txt",
+    "refresh_documentation_rule",
     "validate_rule_file",
 ]
 
@@ -171,9 +173,7 @@ def extract_seo_excerpt(html_or_metadata: dict[str, Any] | str) -> str | None:
     parser = _DocHTMLParser(base_url="")
     parser.feed(html_or_metadata)
     desc = (
-        parser.meta_description
-        or parser.og_description
-        or parser.twitter_description
+        parser.meta_description or parser.og_description or parser.twitter_description
     )
     return desc.strip()[:250] if desc else None
 
@@ -239,14 +239,8 @@ def crawl_with_crawl4ai(
         base_parsed = urllib.parse.urlparse(url)
 
         for link_obj in internal_links:
-            href = (
-                link_obj.get("href")
-                if isinstance(link_obj, dict)
-                else str(link_obj)
-            )
-            if not href or href.startswith(
-                ("#", "mailto:", "javascript:", "tel:")
-            ):
+            href = link_obj.get("href") if isinstance(link_obj, dict) else str(link_obj)
+            if not href or href.startswith(("#", "mailto:", "javascript:", "tel:")):
                 continue
             full_url = resolve_relative_url(url, href)
             parsed_link = urllib.parse.urlparse(full_url)
@@ -267,13 +261,9 @@ def crawl_with_crawl4ai(
                 else slugify_url(full_url).replace("-", " ").title()
             )
             link_desc = (
-                link_obj.get("description")
-                if isinstance(link_obj, dict)
-                else None
+                link_obj.get("description") if isinstance(link_obj, dict) else None
             )
-            pages.append(
-                Page(title=link_title, url=full_url, description=link_desc)
-            )
+            pages.append(Page(title=link_title, url=full_url, description=link_desc))
 
         name = slugify_url(url)
         return Site(
@@ -330,7 +320,7 @@ def parse_llms_txt(
     current_section = None
 
     link_regex = re.compile(
-        r"^-\s*\[(?P<title>[^\]]+)\]\((?P<url>[^\)]+)\)(?::\s*(?P<desc>.*))?$"
+        r"^-\s*\[(?P<title>[^\]]+)\]\((?P<url>[^\)]+)\)(?:(?:\s*[:\-]\s*|\s+)(?P<desc>.*))?$"
     )
 
     for line in lines:
@@ -347,14 +337,9 @@ def parse_llms_txt(
             match = link_regex.match(stripped)
             if match:
                 l_title = match.group("title").strip()
-                l_url = resolve_relative_url(
-                    source_url, match.group("url").strip()
-                )
-                l_desc = (
-                    match.group("desc").strip()
-                    if match.group("desc")
-                    else None
-                )
+                raw_url = match.group("url").strip()
+                l_url = resolve_relative_url(source_url, raw_url)
+                l_desc = match.group("desc").strip() if match.group("desc") else None
                 pages.append(
                     Page(
                         title=l_title,
@@ -374,6 +359,54 @@ def parse_llms_txt(
         description=" ".join(description_lines).strip(),
         pages=pages,
     )
+
+
+def fetch_llms_txt(url: str, default_name: str = "") -> Site | None:
+    """Probe and fetch llms.txt / llms-full.txt from documentation endpoint or root."""
+    parsed_base = urllib.parse.urlparse(url)
+    domain_root = f"{parsed_base.scheme}://{parsed_base.netloc}"
+    clean_url = url.rstrip("/")
+
+    if clean_url.endswith(("/llms.txt", "/llms-full.txt", "llms.txt", "llms-full.txt")):
+        probed_urls = [url]
+    else:
+        probed_urls = [
+            f"{clean_url}/llms.txt",
+            f"{clean_url}/llms-full.txt",
+        ]
+        if clean_url != domain_root:
+            probed_urls.extend(
+                [
+                    f"{domain_root}/llms.txt",
+                    f"{domain_root}/llms-full.txt",
+                ]
+            )
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Rune/1.0",
+        "Accept": "text/markdown, text/plain, */*",
+    }
+
+    for p_url in probed_urls:
+        try:
+            req = urllib.request.Request(p_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=5) as response:
+                if response.status == 200:
+                    content = response.read().decode("utf-8", errors="ignore")
+                    stripped_low = content.strip().lower()
+                    # Skip if server returns an HTML page as 200
+                    if stripped_low.startswith(
+                        ("<!doctype html", "<html", "<head", "<body")
+                    ):
+                        continue
+                    if content and ("# " in content or "- [" in content):
+                        return parse_llms_txt(
+                            content, source_url=p_url, default_name=default_name
+                        )
+        except Exception:  # noqa: BLE001, S110
+            pass
+
+    return None
 
 
 def generate_site_rule_markdown(site: Site) -> str:
@@ -436,33 +469,7 @@ def create_rule_from_doc_url(
     site = None
 
     # 2. Check for llms.txt first
-    parsed_base = urllib.parse.urlparse(url)
-    domain_root = f"{parsed_base.scheme}://{parsed_base.netloc}"
-    probed_urls = [
-        f"{url.rstrip('/')}/llms.txt",
-        f"{domain_root}/llms.txt",
-        f"{url.rstrip('/')}/llms-full.txt",
-        f"{domain_root}/llms-full.txt",
-    ]
-
-    for p_url in probed_urls:
-        try:
-            req = urllib.request.Request(
-                p_url,
-                headers={
-                    "User-Agent": "Rune-Doc-Crawler/1.0 (LLM Rules Indexer)"
-                },
-            )
-            with urllib.request.urlopen(req, timeout=5) as response:
-                if response.status == 200:
-                    content = response.read().decode("utf-8")
-                    if content and "# " in content:
-                        site = parse_llms_txt(
-                            content, source_url=url, default_name=rule_name
-                        )
-                        break
-        except Exception:  # noqa: BLE001, S110
-            pass
+    site = fetch_llms_txt(url, default_name=rule_name)
 
     # 3. If llms.txt not found, attempt Crawl4AI crawl
     if site is None:
@@ -474,7 +481,8 @@ def create_rule_from_doc_url(
             req = urllib.request.Request(
                 url,
                 headers={
-                    "User-Agent": "Rune-Doc-Crawler/1.0 (LLM Rules Indexer)"
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Rune/1.0",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 },
             )
             with urllib.request.urlopen(req, timeout=15) as response:
@@ -547,6 +555,42 @@ def create_rule_from_doc_url(
         logger.error(f"Failed to merge rules: {e}")
 
     return target_rule_paths[0] if target_rule_paths else (cwd / f"{rule_name}.md")
+
+
+def refresh_documentation_rule(base_dir: Path, module: ModuleSchema) -> Path | None:
+    """Refresh an existing documentation rule from its source URL."""
+    rule_path = base_dir / module.path
+    rule_name = rule_path.stem
+    url = module.url
+
+    site = fetch_llms_txt(url, default_name=rule_name)
+    if site is None:
+        site = crawl_with_crawl4ai(url)
+
+    if site is None or not site.pages:
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Rune/1.0",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                },
+            )
+            with urllib.request.urlopen(req, timeout=15) as response:
+                html_text = response.read().decode("utf-8", errors="ignore")
+                site = extract_html_documentation_site(
+                    url, html_text, default_name=rule_name
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Direct refresh fetch of {url} encountered an error: {e}")
+            return None
+
+    site.name = rule_name
+    rule_markdown = generate_site_rule_markdown(site)
+    rule_path.parent.mkdir(parents=True, exist_ok=True)
+    rule_path.write_text(rule_markdown, encoding="utf-8")
+    logger.info(f"Refreshed documentation rule '{rule_name}' at {rule_path}")
+    return rule_path
 
 
 def validate_rule_file(path: Path) -> RuleSchema:
@@ -659,9 +703,7 @@ def merge_rules_to_agents_md(repo_path: Path):
                         content = parts[2].strip()
 
                 # Shift headings in the content by 2 levels to maintain hierarchy under ## {rule_item.name}
-                content = re.sub(
-                    r"^(#+)\s", r"##\1 ", content, flags=re.MULTILINE
-                )
+                content = re.sub(r"^(#+)\s", r"##\1 ", content, flags=re.MULTILINE)
 
                 # Handle unclosed code blocks
                 code_block_count = len(
@@ -686,9 +728,7 @@ def merge_rules_to_agents_md(repo_path: Path):
             content = re.sub(r"^(#+)\s", r"#\1 ", content, flags=re.MULTILINE)
 
             # Handle unclosed code blocks
-            code_block_count = len(
-                re.findall(r"^\s*```", content, flags=re.MULTILINE)
-            )
+            code_block_count = len(re.findall(r"^\s*```", content, flags=re.MULTILINE))
             if code_block_count % 2 != 0:
                 content += "\n```"
 
@@ -704,10 +744,7 @@ def merge_rules_to_agents_md(repo_path: Path):
             new_content = pattern.sub(rules_block.strip(), content)
         else:
             # If no block found, append it
-            new_content = (
-                content.rstrip() + "\n\n" + rules_block.strip() + "\n"
-            )
+            new_content = content.rstrip() + "\n\n" + rules_block.strip() + "\n"
         agents_md.write_text(new_content, encoding="utf-8")
     else:
         agents_md.write_text(rules_block, encoding="utf-8")
-

@@ -1,6 +1,5 @@
 import pytest
 import yaml
-
 from rune.config.exceptions import RuneError
 from rune.services.mutagen_service import parse_gitignore, update_mutagen_ignore
 

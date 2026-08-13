@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -12,7 +11,11 @@ import structlog
 from rune.config.exceptions import ValidationError
 from rune.registry import (
     get_builtin_registry as _get_builtin_registry,
+)
+from rune.registry import (
     get_registry as _get_registry,
+)
+from rune.registry import (
     search_registry as _search_registry,
 )
 from rune.registry.mcp.crawl4ai import (
@@ -257,9 +260,7 @@ def add_mcp_server(
                         cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = (
                             "${GOOGLE_GENERATIVE_AI_API_KEY}"
                         )
-                        cfg.env["LLM_PROVIDER"] = (
-                            f"${{LLM_PROVIDER:-{model}}}"
-                        )
+                        cfg.env["LLM_PROVIDER"] = f"${{LLM_PROVIDER:-{model}}}"
 
             mcp_repository.add_server_config(config_path, server_name, cfg)
             updated_paths.append(config_path)

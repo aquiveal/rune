@@ -40,9 +40,11 @@ from rune.services.rule_service import (
     discover_rules,
     extract_html_documentation_site,
     extract_seo_excerpt,
+    fetch_llms_txt,
     generate_site_rule_markdown,
     merge_rules_to_agents_md,
     parse_llms_txt,
+    refresh_documentation_rule,
     validate_rule_file,
 )
 from rune.services.skill_service import (
@@ -83,6 +85,7 @@ __all__ = [
     "ensure_skill_md",
     "extract_html_documentation_site",
     "extract_seo_excerpt",
+    "fetch_llms_txt",
     "generate_site_rule_markdown",
     "generate_submodule_map",
     "generate_tree",
@@ -103,6 +106,7 @@ __all__ = [
     "parse_llms_txt",
     "prompt_and_configure_submodules",
     "propagate_workspace_to_submodule",
+    "refresh_documentation_rule",
     "remove_mcp_server",
     "remove_module",
     "resolve_target_agents",
@@ -121,4 +125,3 @@ __all__ = [
     "validate_skill_file",
     "workspace_service",
 ]
-

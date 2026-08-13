@@ -8,7 +8,7 @@ import typer
 from rune.config.exceptions import RuneError
 from rune.repositories import git_repository
 from rune.services import module_service, rule_service, workspace_service
-from rune.utils.url import is_web_url, parse_github_url, resolve_url
+from rune.utils.url import is_site, parse_github_url, resolve_url
 
 __all__ = []
 
@@ -26,9 +26,7 @@ def add(
     ],
     name: Annotated[
         str | None,
-        typer.Argument(
-            help="Custom rule name (inferred from URL if omitted)"
-        ),
+        typer.Argument(help="Custom rule name (inferred from URL if omitted)"),
     ] = None,
     agents: Annotated[
         list[str] | None,
@@ -54,7 +52,7 @@ def add(
         raise typer.Exit(1)
 
     # If source is a web / documentation URL, route to doc crawler flow
-    if is_web_url(source):
+    if is_site(source):
         target_agents = workspace_service.resolve_target_agents(
             git_root=git_root,
             cwd=cwd,
@@ -78,9 +76,7 @@ def add(
                     f"Installed documentation rule '{rule_path.stem}' to {', '.join(target_agents)}"
                 )
             else:
-                logger.info(
-                    f"Installed documentation rule '{rule_path.stem}' to {cwd}"
-                )
+                logger.info(f"Installed documentation rule '{rule_path.stem}' to {cwd}")
             return
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to create documentation rule: {e}")
@@ -175,7 +171,6 @@ def add(
         raise typer.Exit(1)
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
-
 
 
 @app.command("list")

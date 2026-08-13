@@ -1,9 +1,8 @@
 import os
 
 import yaml
-from typer.testing import CliRunner
-
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -29,7 +28,9 @@ def test_mutagen_update_command_with_options(tmp_path):
     custom_gitignore.write_text("dist/\n", encoding="utf-8")
 
     custom_mutagen = tmp_path / "mutagen_custom.yml"
-    custom_mutagen.write_text(yaml.dump({"sync": {}}, sort_keys=False), encoding="utf-8")
+    custom_mutagen.write_text(
+        yaml.dump({"sync": {}}, sort_keys=False), encoding="utf-8"
+    )
 
     result = runner.invoke(
         app,

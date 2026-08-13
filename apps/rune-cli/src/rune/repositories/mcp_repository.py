@@ -208,7 +208,6 @@ def is_server_configured_globally(server_name: str) -> bool:
                 settings = load_mcp_config(path)
                 if server_name in settings.mcpServers:
                     return True
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S110
                 pass
     return False
-

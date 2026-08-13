@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from rune.schemas.module_schema import ModuleSchema
 from rune.services import module_service
 
@@ -151,3 +150,43 @@ def test_update_modules_local(tmp_path, mock_git_repo, mock_module_repo):
     assert args[0] == "pull"
     mock_copytree.assert_called_once()
     assert mock_copytree.call_args.kwargs.get("ignore_dangling_symlinks") is True
+
+
+def test_update_modules_doc_rule_refresh(tmp_path, mock_git_repo, mock_module_repo):
+    # Arrange
+    mock_module_repo.list_modules.return_value = [
+        ModuleSchema(
+            name=".agents/rules/amazon-sp-api.md",
+            url="https://developer-docs.amazon/sp-api/",
+            path=".agents/rules/amazon-sp-api.md",
+        )
+    ]
+
+    with patch("rune.services.rule_service.refresh_documentation_rule") as mock_refresh:
+        module_service.update_modules(tmp_path, type="rules")
+
+    # Assert
+    mock_refresh.assert_called_once()
+    assert mock_git_repo.clone.call_count == 0
+    assert mock_git_repo.run_git.call_count == 0
+
+
+def test_update_modules_handles_git_failure_gracefully(
+    tmp_path, mock_git_repo, mock_module_repo
+):
+    from rune.utils.git import GitError
+
+    mock_module_repo.list_modules.return_value = [
+        ModuleSchema(
+            name=".agents/rules/failing-repo",
+            url="https://github.com/aurumorinc/python-even",
+            path=".agents/rules/failing-repo",
+        )
+    ]
+    mock_git_repo.clone.side_effect = GitError("Repository not found")
+
+    with patch("pathlib.Path.exists", return_value=False):
+        # Should not raise exception
+        module_service.update_modules(tmp_path, type="rules")
+
+    mock_git_repo.clone.assert_called_once()

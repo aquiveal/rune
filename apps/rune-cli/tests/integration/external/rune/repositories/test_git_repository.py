@@ -3,9 +3,7 @@ from pathlib import Path
 import requests
 import vcr
 
-CASSETTE_PATH = str(
-    Path(__file__).parent / "cassettes" / "test_git_repository.yaml"
-)
+CASSETTE_PATH = str(Path(__file__).parent / "cassettes" / "test_git_repository.yaml")
 
 
 @vcr.use_cassette(CASSETTE_PATH)

@@ -2,9 +2,8 @@ import os
 import subprocess
 from unittest.mock import patch
 
-from typer.testing import CliRunner
-
 from rune.main import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
@@ -166,7 +165,36 @@ def test_rules_add_documentation_url(mock_create_doc_rule, tmp_path):
     assert result.exit_code == 0
     assert mock_create_doc_rule.called
     kwargs = mock_create_doc_rule.call_args.kwargs
-    assert kwargs["url"] == "https://developer-docs.amazon/sp-api/reference/welcome-to-api-references"
+    assert (
+        kwargs["url"]
+        == "https://developer-docs.amazon/sp-api/reference/welcome-to-api-references"
+    )
     assert kwargs["name"] == "amazon-sp-api"
     assert ".roo" in kwargs["target_agents"]
 
+
+@patch("rune.services.rule_service.create_rule_from_doc_url")
+def test_rules_add_llms_txt_url(mock_create_doc_rule, tmp_path):
+    os.chdir(tmp_path)
+    runner.invoke(app, ["init"])
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True)
+
+    mock_create_doc_rule.return_value = tmp_path / ".roo" / "rules" / "amazon-sp-api.md"
+
+    result = runner.invoke(
+        app,
+        [
+            "rules",
+            "add",
+            "https://developer-docs.amazon/sp-api/llms.txt",
+            "amazon-sp-api",
+            "--agent",
+            ".roo",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert mock_create_doc_rule.called
+    kwargs = mock_create_doc_rule.call_args.kwargs
+    assert kwargs["url"] == "https://developer-docs.amazon/sp-api/llms.txt"
+    assert kwargs["name"] == "amazon-sp-api"

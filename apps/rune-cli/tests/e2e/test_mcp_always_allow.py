@@ -2,11 +2,10 @@ import os
 import subprocess
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from rune.main import app
 from rune.repositories import mcp_repository
 from rune.schemas.mcp_schema import McpStdioServer
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

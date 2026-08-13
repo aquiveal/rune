@@ -1,4 +1,4 @@
-from rune.schemas.rule_schema import Page, RuleMetadata, RuleSchema, Site
+from rune.schemas.rule_schema import Page, RuleSchema, Site
 
 
 def test_rule_schema_defaults():

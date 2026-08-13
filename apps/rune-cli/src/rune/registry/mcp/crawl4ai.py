@@ -10,9 +10,7 @@ __all__ = ["CRAWL4AI_ENTRY", "init_crawl4ai"]
 logger = structlog.get_logger(__name__)
 
 
-def init_crawl4ai(
-    api_token: str | None = None, model: str | None = None
-) -> bool:
+def init_crawl4ai(api_token: str | None = None, model: str | None = None) -> bool:
     """Ensure Crawl4AI Docker container is running on port 11235."""
     if not shutil.which("docker"):
         logger.warning(

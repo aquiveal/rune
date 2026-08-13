@@ -37,21 +37,55 @@ def test_parse_llms_txt():
 
 ## API Reference
 - [Orders API](https://developer-docs.amazon/sp-api/orders): Endpoints for fetching seller orders
-- [Reports API](https://developer-docs.amazon/sp-api/reports): Scheduled report generation
+- [Reports API](https://developer-docs.amazon/sp-api/reports) - Scheduled report generation
+- [Feeds API](/sp-api/feeds)
 """
     site = rule_service.parse_llms_txt(
         llms_content,
-        source_url="https://developer-docs.amazon/sp-api",
+        source_url="https://developer-docs.amazon/sp-api/",
         default_name="amazon-sp-api",
     )
     assert site.name == "amazon-sp-api"
     assert site.title == "Amazon Selling Partner API"
     assert site.description == "Comprehensive documentation index for developers"
-    assert len(site.pages) == 2
+    assert len(site.pages) == 3
     assert site.pages[0].title == "Orders API"
     assert site.pages[0].url == "https://developer-docs.amazon/sp-api/orders"
     assert site.pages[0].description == "Endpoints for fetching seller orders"
     assert site.pages[0].section == "API Reference"
+    assert site.pages[1].title == "Reports API"
+    assert site.pages[1].description == "Scheduled report generation"
+    assert site.pages[2].title == "Feeds API"
+    assert site.pages[2].url == "https://developer-docs.amazon/sp-api/feeds"
+
+
+@patch("rune.services.rule_service.urllib.request.urlopen")
+def test_fetch_llms_txt_success(mock_urlopen):
+    llms_content = (
+        "# Test Doc\n> Description\n\n- [Guide](https://example.com/guide): Test Guide"
+    )
+    mock_resp = MagicMock()
+    mock_resp.status = 200
+    mock_resp.read.return_value = llms_content.encode("utf-8")
+    mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+    site = rule_service.fetch_llms_txt("https://example.com/docs")
+    assert site is not None
+    assert site.title == "Test Doc"
+    assert len(site.pages) == 1
+    assert site.pages[0].title == "Guide"
+
+
+@patch("rune.services.rule_service.urllib.request.urlopen")
+def test_fetch_llms_txt_ignores_html_error(mock_urlopen):
+    html_error = "<!DOCTYPE html><html><body>404 Not Found</body></html>"
+    mock_resp = MagicMock()
+    mock_resp.status = 200
+    mock_resp.read.return_value = html_error.encode("utf-8")
+    mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+    site = rule_service.fetch_llms_txt("https://example.com/docs")
+    assert site is None
 
 
 def test_extract_html_documentation_site():
@@ -108,7 +142,10 @@ def test_generate_site_rule_markdown():
     assert "# Amazon SP-API - Documentation & Live Crawl Index" in md
     assert "crawl4ai" in md
     assert "### Core" in md
-    assert "- [Orders](https://developer-docs.amazon/sp-api/orders): Orders endpoints" in md
+    assert (
+        "- [Orders](https://developer-docs.amazon/sp-api/orders): Orders endpoints"
+        in md
+    )
 
 
 @patch("rune.services.rule_service.urllib.request.urlopen")
@@ -145,9 +182,7 @@ def test_crawl_with_crawl4ai_success(mock_urlopen):
     assert site.title == "Amazon SP-API Docs"
     assert site.description == "Live developer reference for selling partners"
     assert len(site.pages) == 1
-    assert (
-        site.pages[0].url == "https://developer-docs.amazon/sp-api/reference/orders"
-    )
+    assert site.pages[0].url == "https://developer-docs.amazon/sp-api/reference/orders"
 
 
 def test_merge_rules_to_agents_md_creates_new_file(tmp_path):
@@ -263,3 +298,32 @@ def test_merge_rules_to_agents_md_ignores_empty_files(tmp_path):
     assert "## whitespace-rule" not in content
     assert "## valid-rule" not in content
     assert "## Valid Rule" in content
+
+
+@patch("rune.services.rule_service.fetch_llms_txt")
+def test_refresh_documentation_rule(mock_fetch_llms, tmp_path):
+    from rune.schemas.module_schema import ModuleSchema
+
+    rule_file = tmp_path / ".agents" / "rules" / "test-doc.md"
+    rule_file.parent.mkdir(parents=True, exist_ok=True)
+    rule_file.write_text("old content", encoding="utf-8")
+
+    mock_fetch_llms.return_value = Site(
+        name="test-doc",
+        title="Refreshed Doc",
+        source_url="https://example.com/docs",
+        description="Updated summary",
+        pages=[Page(title="Overview", url="https://example.com/docs/overview")],
+    )
+
+    module = ModuleSchema(
+        name=".agents/rules/test-doc.md",
+        url="https://example.com/docs",
+        path=".agents/rules/test-doc.md",
+    )
+
+    updated_path = rule_service.refresh_documentation_rule(tmp_path, module)
+    assert updated_path == rule_file
+    new_content = rule_file.read_text(encoding="utf-8")
+    assert "Refreshed Doc" in new_content
+    assert "Overview" in new_content

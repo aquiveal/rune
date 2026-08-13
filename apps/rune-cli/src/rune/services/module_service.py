@@ -174,56 +174,72 @@ def update_modules(git_root: Path, type: str | None = None, global_scope: bool =
 
     updated_repos = set()
 
+    from rune.services import rule_service
+
     for mod in modules:
-        repo_name = mod.base_url.rstrip("/").split("/")[-1].replace(".git", "")
-        cache_path = base_dir / ".rune" / "modules" / mod.inferred_type / repo_name
+        if mod.is_site:
+            try:
+                rule_service.refresh_documentation_rule(base_dir, mod)
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Failed to refresh documentation rule '{mod.name}': {e}")
+            continue
 
-        if cache_path not in updated_repos:
-            if cache_path.exists():
-                git_repository.run_git(["pull"], cwd=cache_path)
-                if mod.source_path and mod.source_path != ".":
-                    git_repository.sparse_checkout_init(cache_path)
-                    git_repository.sparse_checkout_add(cache_path, [mod.source_path])
-            else:
-                cache_path.parent.mkdir(parents=True, exist_ok=True)
-                git_repository.clone(mod.base_url, cache_path)
-                if mod.source_path and mod.source_path != ".":
-                    git_repository.sparse_checkout_init(cache_path)
-                    git_repository.sparse_checkout_set(cache_path, [mod.source_path])
-            updated_repos.add(cache_path)
+        try:
+            repo_name = mod.base_url.rstrip("/").split("/")[-1].replace(".git", "")
+            cache_path = base_dir / ".rune" / "modules" / mod.inferred_type / repo_name
 
-        source_path = cache_path / mod.source_path
-        if source_path.exists():
-            agent_path = base_dir / mod.path
-            if not agent_path.exists():
-                agent_path.parent.mkdir(parents=True, exist_ok=True)
-
-            def on_rm_error(func, path, exc_info):
-                import stat
-
-                os.chmod(path, stat.S_IWRITE)
-                func(path)
-
-            if agent_path.exists():
-                if agent_path.is_symlink():
-                    agent_path.unlink(missing_ok=True)
-                elif agent_path.is_dir():
-                    shutil.rmtree(agent_path, onerror=on_rm_error)
+            if cache_path not in updated_repos:
+                if cache_path.exists():
+                    git_repository.run_git(["pull"], cwd=cache_path)
+                    if mod.source_path and mod.source_path != ".":
+                        git_repository.sparse_checkout_init(cache_path)
+                        git_repository.sparse_checkout_add(
+                            cache_path, [mod.source_path]
+                        )
                 else:
-                    agent_path.unlink(missing_ok=True)
+                    cache_path.parent.mkdir(parents=True, exist_ok=True)
+                    git_repository.clone(mod.base_url, cache_path)
+                    if mod.source_path and mod.source_path != ".":
+                        git_repository.sparse_checkout_init(cache_path)
+                        git_repository.sparse_checkout_set(
+                            cache_path, [mod.source_path]
+                        )
+                updated_repos.add(cache_path)
 
-            if source_path.is_dir():
-                shutil.copytree(
-                    source_path,
-                    agent_path,
-                    dirs_exist_ok=True,
-                    ignore_dangling_symlinks=True,
-                )
-                git_dir = agent_path / ".git"
-                try:
-                    if git_dir.exists():
-                        shutil.rmtree(git_dir, ignore_errors=True)
-                except Exception:  # noqa: BLE001, S110
-                    pass
-            else:
-                shutil.copy2(source_path, agent_path)
+            source_path = cache_path / mod.source_path
+            if source_path.exists():
+                agent_path = base_dir / mod.path
+                if not agent_path.exists():
+                    agent_path.parent.mkdir(parents=True, exist_ok=True)
+
+                def on_rm_error(func, path, exc_info):
+                    import stat
+
+                    os.chmod(path, stat.S_IWRITE)
+                    func(path)
+
+                if agent_path.exists():
+                    if agent_path.is_symlink():
+                        agent_path.unlink(missing_ok=True)
+                    elif agent_path.is_dir():
+                        shutil.rmtree(agent_path, onerror=on_rm_error)
+                    else:
+                        agent_path.unlink(missing_ok=True)
+
+                if source_path.is_dir():
+                    shutil.copytree(
+                        source_path,
+                        agent_path,
+                        dirs_exist_ok=True,
+                        ignore_dangling_symlinks=True,
+                    )
+                    git_dir = agent_path / ".git"
+                    try:
+                        if git_dir.exists():
+                            shutil.rmtree(git_dir, ignore_errors=True)
+                    except Exception:  # noqa: BLE001, S110
+                        pass
+                else:
+                    shutil.copy2(source_path, agent_path)
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Failed to update module '{mod.name}' from '{mod.url}': {e}")

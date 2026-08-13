@@ -3,10 +3,9 @@ import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from typer.testing import CliRunner
-
 from rune.main import app
 from rune.repositories import mcp_repository
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
