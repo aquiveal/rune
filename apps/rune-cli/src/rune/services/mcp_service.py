@@ -110,6 +110,14 @@ def add_mcp_server(
         entry = registry[cleaned_source]
         server_name = entry.name
 
+        if not global_scope and mcp_repository.is_server_configured_globally(
+            server_name
+        ):
+            logger.info(
+                f"MCP server '{server_name}' is already configured in global agent settings. Skipping workspace configuration."
+            )
+            return []
+
         probe_api_key = None
         api_token = None
         model = None
@@ -181,17 +189,20 @@ def add_mcp_server(
                     if prompted_token:
                         api_token = prompted_token.strip()
                         os.environ["GEMINI_API_TOKEN"] = api_token
+                    else:
+                        logger.info("Skipped configuring 'crawl4ai' MCP server.")
+                        return []
                 except Exception:  # noqa: BLE001, S110
                     pass
 
             if not model:
                 model = os.environ.get("LLM_PROVIDER") or os.environ.get("GEMINI_MODEL")
 
-            if not model and _is_tty():
+            if not model and _is_tty() and api_token:
                 try:
                     prompted_model = questionary.text(
                         "Enter Gemini Model for Crawl4AI:",
-                        default="gemini/gemini-2.0-flash",
+                        default="gemini/gemini-3.5-flash-lite",
                     ).ask()
                     if prompted_model:
                         model = prompted_model.strip()
@@ -200,7 +211,7 @@ def add_mcp_server(
                     pass
 
             if not model:
-                model = "gemini/gemini-2.0-flash"
+                model = "gemini/gemini-3.5-flash-lite"
 
             if entry.init:
                 entry.init(api_token=api_token, model=model)
@@ -218,20 +229,34 @@ def add_mcp_server(
             cfg = base_cfg.model_copy(deep=True)
 
             if isinstance(cfg, McpStdioServer):
-                if server_name == "probe" and probe_api_key:
+                if server_name == "probe":
                     if not cfg.env:
                         cfg.env = {}
-                    cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = probe_api_key
+                    if global_scope and probe_api_key:
+                        cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = probe_api_key
+                    else:
+                        cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = (
+                            "${GOOGLE_GENERATIVE_AI_API_KEY}"
+                        )
                 elif server_name == "crawl4ai":
                     if not cfg.env:
                         cfg.env = {}
-                    if api_token:
-                        cfg.env["GEMINI_API_TOKEN"] = api_token
-                        cfg.env["GEMINI_API_KEY"] = api_token
-                        cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = api_token
-                    if model:
-                        cfg.env["LLM_PROVIDER"] = model
-                        cfg.env["GEMINI_MODEL"] = model
+                    if global_scope:
+                        if api_token:
+                            cfg.env["GEMINI_API_TOKEN"] = api_token
+                            cfg.env["GEMINI_API_KEY"] = api_token
+                            cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = api_token
+                        if model:
+                            cfg.env["LLM_PROVIDER"] = model
+                            cfg.env["GEMINI_MODEL"] = model
+                    else:
+                        cfg.env["GEMINI_API_TOKEN"] = "${GEMINI_API_TOKEN}"
+                        cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = (
+                            "${GOOGLE_GENERATIVE_AI_API_KEY}"
+                        )
+                        cfg.env["LLM_PROVIDER"] = (
+                            f"${{LLM_PROVIDER:-{model}}}"
+                        )
 
             mcp_repository.add_server_config(config_path, server_name, cfg)
             updated_paths.append(config_path)

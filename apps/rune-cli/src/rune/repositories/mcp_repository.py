@@ -11,6 +11,7 @@ __all__ = [
     "add_server_config",
     "get_agent_mcp_config_path",
     "get_all_agent_mcp_config_paths",
+    "is_server_configured_globally",
     "load_mcp_config",
     "remove_server_config",
     "save_mcp_config",
@@ -163,7 +164,12 @@ def add_server_config(
         existing_env = getattr(existing, "env", None) or {}
         new_env = getattr(server_config, "env", None) or {}
         if existing_env or new_env:
-            merged_env = {**existing_env, **new_env}
+            merged_env = {**existing_env}
+            for k, v in new_env.items():
+                if k not in merged_env or (
+                    isinstance(v, str) and not v.startswith("$")
+                ):
+                    merged_env[k] = v
             if isinstance(server_config, McpStdioServer):
                 server_config.env = merged_env
 
@@ -190,3 +196,19 @@ def remove_server_config(config_path: Path, name: str) -> bool:
         save_mcp_config(config_path, settings)
         return True
     return False
+
+
+def is_server_configured_globally(server_name: str) -> bool:
+    """Check whether an MCP server is configured in any global agent configuration."""
+    home = Path.home()
+    global_paths = get_all_agent_mcp_config_paths(home / ".rune", global_scope=True)
+    for path in global_paths.values():
+        if path.exists():
+            try:
+                settings = load_mcp_config(path)
+                if server_name in settings.mcpServers:
+                    return True
+            except Exception:  # noqa: BLE001
+                pass
+    return False
+

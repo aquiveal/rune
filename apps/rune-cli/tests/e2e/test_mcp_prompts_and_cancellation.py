@@ -38,7 +38,9 @@ def test_e2e_global_mcp_add_prompts_once_across_agents(tmp_path: Path, monkeypat
         # Assert questionary.password was called exactly ONCE (not once per agent)
         assert mock_password.call_count == 1
 
-    # Verify both agent config files received the API key
+    # Verify environment variable was set in runtime and workspace config uses env reference
+    assert os.environ.get("GOOGLE_GENERATIVE_AI_API_KEY") == "SECRET_PROBE_API_KEY_999"
+
     roo_cfg = mcp_repository.load_mcp_config(tmp_path / ".roo" / "mcp.json")
     claude_cfg = mcp_repository.load_mcp_config(tmp_path / ".claude" / "mcp.json")
 
@@ -47,11 +49,11 @@ def test_e2e_global_mcp_add_prompts_once_across_agents(tmp_path: Path, monkeypat
 
     assert (
         roo_cfg.mcpServers["probe"].env["GOOGLE_GENERATIVE_AI_API_KEY"]
-        == "SECRET_PROBE_API_KEY_999"
+        == "${GOOGLE_GENERATIVE_AI_API_KEY}"
     )
     assert (
         claude_cfg.mcpServers["probe"].env["GOOGLE_GENERATIVE_AI_API_KEY"]
-        == "SECRET_PROBE_API_KEY_999"
+        == "${GOOGLE_GENERATIVE_AI_API_KEY}"
     )
 
 
