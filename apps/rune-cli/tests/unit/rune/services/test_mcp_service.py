@@ -73,14 +73,14 @@ def test_ensure_crawl4ai_docker_container_new(monkeypatch):
     monkeypatch.setattr("subprocess.run", mock_run)
 
     res = mcp_service.ensure_crawl4ai_docker_container(
-        api_token="my-token", model="gemini/gemini-2.0-flash"
+        api_token="my-token", model="gemini/gemini-3.5-flash-lite"
     )
     assert res is True
     run_cmd = ran_cmds[-1]
     assert run_cmd[0] == "docker"
     assert run_cmd[1] == "run"
     assert "GEMINI_API_TOKEN=my-token" in run_cmd
-    assert "LLM_PROVIDER=gemini/gemini-2.0-flash" in run_cmd
+    assert "LLM_PROVIDER=gemini/gemini-3.5-flash-lite" in run_cmd
 
 
 def test_add_crawl4ai_mcp_server(tmp_path: Path, monkeypatch):
@@ -108,6 +108,62 @@ def test_add_crawl4ai_mcp_server(tmp_path: Path, monkeypatch):
     assert "crawl4ai" in content
     assert "mcp-crawl4ai-ts" in content
     assert "http://localhost:11235" in content
+
+
+def test_add_crawl4ai_mcp_server_full_skip_when_prompt_skipped(
+    tmp_path: Path, monkeypatch
+):
+    from unittest.mock import MagicMock, patch
+
+    monkeypatch.setattr("shutil.which", lambda x: "/usr/bin/docker")
+    monkeypatch.delenv("GEMINI_API_TOKEN", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GOOGLE_GENERATIVE_AI_API_KEY", raising=False)
+
+    prompt_mock = MagicMock()
+    prompt_mock.ask.return_value = ""  # User pressed Enter to skip
+
+    git_root = tmp_path
+    (git_root / ".roo").mkdir()
+
+    with (
+        patch("rune.services.mcp_service._is_tty", return_value=True),
+        patch("questionary.password", return_value=prompt_mock),
+    ):
+        updated = mcp_service.add_mcp_server(
+            source="crawl4ai",
+            git_root=git_root,
+            cwd=git_root,
+            global_scope=False,
+        )
+
+    # Full skip: no files modified and no broken mcp.json stub created
+    assert updated == []
+    roo_json = git_root / ".roo" / "mcp.json"
+    assert not roo_json.exists()
+
+
+def test_add_mcp_server_skips_when_configured_globally(tmp_path: Path):
+    from unittest.mock import patch
+
+    git_root = tmp_path
+    (git_root / ".roo").mkdir()
+
+    with patch(
+        "rune.repositories.mcp_repository.is_server_configured_globally",
+        return_value=True,
+    ):
+        updated = mcp_service.add_mcp_server(
+            source="crawl4ai",
+            git_root=git_root,
+            cwd=git_root,
+            global_scope=False,
+        )
+
+    # Skipped due to global configuration
+    assert updated == []
+    roo_json = git_root / ".roo" / "mcp.json"
+    assert not roo_json.exists()
 
 
 def test_search_registry():
