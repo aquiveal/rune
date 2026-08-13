@@ -534,6 +534,7 @@ def create_rule_from_doc_url(
             cwd=cwd,
             global_scope=global_scope,
             agent_override=target_agents,
+            skip_if_global=True,
         )
     except Exception as e:  # noqa: BLE001
         logger.debug(f"Crawl4AI MCP server setup notification: {e}")
