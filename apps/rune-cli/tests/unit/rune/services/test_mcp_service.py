@@ -158,6 +158,7 @@ def test_add_mcp_server_skips_when_configured_globally(tmp_path: Path):
             git_root=git_root,
             cwd=git_root,
             global_scope=False,
+            skip_if_global=True,
         )
 
     # Skipped due to global configuration
