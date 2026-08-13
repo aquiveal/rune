@@ -111,6 +111,8 @@ def add_mcp_server(
         server_name = entry.name
 
         probe_api_key = None
+        api_token = None
+        model = None
         if server_name == "probe":
             for ag in target_agents:
                 cfg_path = mcp_repository.get_agent_mcp_config_path(
@@ -215,20 +217,21 @@ def add_mcp_server(
 
             cfg = base_cfg.model_copy(deep=True)
 
-            if server_name == "probe" and probe_api_key:
-                if not getattr(cfg, "env", None):
-                    cfg.env = {}
-                cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = probe_api_key
-            elif server_name == "crawl4ai":
-                if not getattr(cfg, "env", None):
-                    cfg.env = {}
-                if api_token:
-                    cfg.env["GEMINI_API_TOKEN"] = api_token
-                    cfg.env["GEMINI_API_KEY"] = api_token
-                    cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = api_token
-                if model:
-                    cfg.env["LLM_PROVIDER"] = model
-                    cfg.env["GEMINI_MODEL"] = model
+            if isinstance(cfg, McpStdioServer):
+                if server_name == "probe" and probe_api_key:
+                    if not cfg.env:
+                        cfg.env = {}
+                    cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = probe_api_key
+                elif server_name == "crawl4ai":
+                    if not cfg.env:
+                        cfg.env = {}
+                    if api_token:
+                        cfg.env["GEMINI_API_TOKEN"] = api_token
+                        cfg.env["GEMINI_API_KEY"] = api_token
+                        cfg.env["GOOGLE_GENERATIVE_AI_API_KEY"] = api_token
+                    if model:
+                        cfg.env["LLM_PROVIDER"] = model
+                        cfg.env["GEMINI_MODEL"] = model
 
             mcp_repository.add_server_config(config_path, server_name, cfg)
             updated_paths.append(config_path)

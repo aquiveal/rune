@@ -34,9 +34,15 @@ from rune.services.mutagen_service import (
     update_mutagen_ignore,
 )
 from rune.services.rule_service import (
+    crawl_with_crawl4ai,
+    create_rule_from_doc_url,
     discover_rule_dirs,
     discover_rules,
+    extract_html_documentation_site,
+    extract_seo_excerpt,
+    generate_site_rule_markdown,
     merge_rules_to_agents_md,
+    parse_llms_txt,
     validate_rule_file,
 )
 from rune.services.skill_service import (
@@ -66,6 +72,8 @@ from rune.services.workspace_service import (
 __all__ = [
     "add_mcp_server",
     "add_module",
+    "crawl_with_crawl4ai",
+    "create_rule_from_doc_url",
     "detect_agents",
     "detect_potential_submodules",
     "discover_mcp_servers_in_repo",
@@ -73,6 +81,9 @@ __all__ = [
     "discover_rules",
     "discover_skills",
     "ensure_skill_md",
+    "extract_html_documentation_site",
+    "extract_seo_excerpt",
+    "generate_site_rule_markdown",
     "generate_submodule_map",
     "generate_tree",
     "get_builtin_registry",
@@ -89,6 +100,7 @@ __all__ = [
     "module_service",
     "mutagen_service",
     "parse_gitignore",
+    "parse_llms_txt",
     "prompt_and_configure_submodules",
     "propagate_workspace_to_submodule",
     "remove_mcp_server",
@@ -109,3 +121,4 @@ __all__ = [
     "validate_skill_file",
     "workspace_service",
 ]
+

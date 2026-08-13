@@ -8,7 +8,7 @@ import typer
 from rune.config.exceptions import RuneError
 from rune.repositories import git_repository
 from rune.services import module_service, rule_service, workspace_service
-from rune.utils.url import parse_github_url, resolve_url
+from rune.utils.url import is_web_url, parse_github_url, resolve_url
 
 __all__ = []
 
@@ -19,8 +19,17 @@ logger = structlog.get_logger(__name__)
 @app.command("add")
 def add(
     source: Annotated[
-        str, typer.Argument(help="Source URL, owner/repo, or remote alias")
+        str,
+        typer.Argument(
+            help="Source URL, owner/repo, web documentation URL, or remote alias"
+        ),
     ],
+    name: Annotated[
+        str | None,
+        typer.Argument(
+            help="Custom rule name (inferred from URL if omitted)"
+        ),
+    ] = None,
     agents: Annotated[
         list[str] | None,
         typer.Option("--agent", "-a", help="Target agents"),
@@ -36,13 +45,46 @@ def add(
         bool, typer.Option("--copy", help="Copy instead of symlink")
     ] = False,
 ):
-    """Install rules from a repository."""
+    """Install rules from a repository or website documentation URL."""
     cwd = Path.cwd()
     git_root = git_repository.get_git_root(cwd)
 
     if not global_scope and not git_root:
         logger.error("Must be run inside a git repository.")
         raise typer.Exit(1)
+
+    # If source is a web / documentation URL, route to doc crawler flow
+    if is_web_url(source):
+        target_agents = workspace_service.resolve_target_agents(
+            git_root=git_root,
+            cwd=cwd,
+            global_scope=global_scope,
+            agents_arg=agents,
+        )
+        if target_agents is None:
+            return
+
+        try:
+            rule_path = rule_service.create_rule_from_doc_url(
+                url=source,
+                name=name,
+                git_root=git_root or cwd,
+                cwd=cwd,
+                target_agents=target_agents,
+                global_scope=global_scope,
+            )
+            if target_agents:
+                logger.info(
+                    f"Installed documentation rule '{rule_path.stem}' to {', '.join(target_agents)}"
+                )
+            else:
+                logger.info(
+                    f"Installed documentation rule '{rule_path.stem}' to {cwd}"
+                )
+            return
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Failed to create documentation rule: {e}")
+            raise typer.Exit(1)
 
     raw_url = resolve_url(source, git_root or cwd)
     url, extracted_path = parse_github_url(raw_url)
@@ -133,6 +175,7 @@ def add(
         raise typer.Exit(1)
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 
 @app.command("list")

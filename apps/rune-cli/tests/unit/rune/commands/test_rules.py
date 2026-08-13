@@ -141,3 +141,32 @@ def test_rule_filtering_edge_cases(tmp_path, mock_git_repo):
         ],
     )
     assert result.exit_code == 0
+
+
+@patch("rune.services.rule_service.create_rule_from_doc_url")
+def test_rules_add_documentation_url(mock_create_doc_rule, tmp_path):
+    os.chdir(tmp_path)
+    runner.invoke(app, ["init"])
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True)
+
+    mock_create_doc_rule.return_value = tmp_path / ".roo" / "rules" / "amazon-sp-api.md"
+
+    result = runner.invoke(
+        app,
+        [
+            "rules",
+            "add",
+            "https://developer-docs.amazon/sp-api/reference/welcome-to-api-references",
+            "amazon-sp-api",
+            "--agent",
+            ".roo",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert mock_create_doc_rule.called
+    kwargs = mock_create_doc_rule.call_args.kwargs
+    assert kwargs["url"] == "https://developer-docs.amazon/sp-api/reference/welcome-to-api-references"
+    assert kwargs["name"] == "amazon-sp-api"
+    assert ".roo" in kwargs["target_agents"]
+
