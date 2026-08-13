@@ -1,7 +1,5 @@
 ## Features
 
-* **Install Documentation Rules via Web URLs**
-  * Added the ability to install rules directly from web documentation URLs alongside traditional git repositories.
-  * Introduced the `is_web_url` utility and a custom `name` parameter to support this functionality.
-  * Updated CLI help text and routing logic to direct requests to `create_rule_from_doc_url`.
-  * Commits: [769bd44](https://github.com/aquiveal/rune/commit/769bd445), [bdd4005](https://github.com/aquiveal/rune/commit/bdd40056)
+- **Environment Variable Substitution for MCP Server Configurations**: Added support for environment variable substitution in MCP server configurations (Commits: [5cd2b719](https://github.com/aquiveal/rune/commit/5cd2b719)).
+- **Global Configuration Checking**: Implemented global configuration checking to validate system states and settings ([aad039e4](https://github.com/aquiveal/rune/commit/aad039e4)).
+- **Secure Workspace Environment References**: Updated workspaces to securely reference and resolve environment variables ([f791741f](https://github.com/aquiveal/rune/commit/f791741f)).
