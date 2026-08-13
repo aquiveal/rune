@@ -5,7 +5,7 @@ from pathlib import Path
 
 from rune.config.exceptions import ConfigError
 from rune.config.main import settings
-from rune.schemas.mcp_schema import McpServerUnion, McpSettings
+from rune.schemas.mcp_schema import McpServerUnion, McpSettings, McpStdioServer
 
 __all__ = [
     "add_server_config",
@@ -164,7 +164,7 @@ def add_server_config(
         new_env = getattr(server_config, "env", None) or {}
         if existing_env or new_env:
             merged_env = {**existing_env, **new_env}
-            if hasattr(server_config, "env"):
+            if isinstance(server_config, McpStdioServer):
                 server_config.env = merged_env
 
         # Preserve disabled and timeout if not explicitly set in server_config

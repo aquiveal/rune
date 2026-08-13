@@ -1,0 +1,24 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.32.5
+    method: GET
+    uri: https://api.github.com/repos/aquiveal/rune
+  response:
+    body:
+      string: '{"id":1134114402,"node_id":"R_kgDOQ5k2Yg","name":"rune","full_name":"aquiveal/rune","private":false,"owner":{"login":"aquiveal","id":34374286,"node_id":"MDQ6VXNlcjM0Mzc0Mjg2","avatar_url":"https://avatars.githubusercontent.com/u/34374286?v=4","gravatar_id":"","url":"https://api.github.com/users/aquiveal","html_url":"https://github.com/aquiveal","followers_url":"https://api.github.com/users/aquiveal/followers","following_url":"https://api.github.com/users/aquiveal/following{/other_user}","gists_url":"https://api.github.com/users/aquiveal/gists{/gist_id}","starred_url":"https://api.github.com/users/aquiveal/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/aquiveal/subscriptions","organizations_url":"https://api.github.com/orgs","repos_url":"https://api.github.com/users/aquiveal/repos","events_url":"https://api.github.com/users/aquiveal/events{/privacy}","received_events_url":"https://api.github.com/users/aquiveal/received_events","type":"User","user_view_type":"public","site_admin":false},"html_url":"https://github.com/aquiveal/rune","description":null,"fork":false,"url":"https://api.github.com/repos/aquiveal/rune"}'
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    status:
+      code: 200
+      message: OK
+version: 1

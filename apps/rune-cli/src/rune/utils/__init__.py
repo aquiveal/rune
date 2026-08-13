@@ -12,8 +12,12 @@ from rune.utils.os import (
     is_admin,
 )
 from rune.utils.url import (
+    is_git_source,
+    is_web_url,
     parse_github_url,
+    resolve_relative_url,
     resolve_url,
+    slugify_url,
 )
 
 __all__ = [
@@ -22,10 +26,15 @@ __all__ = [
     "get_git_root",
     "git",
     "is_admin",
+    "is_git_source",
     "is_github_folder_url",
     "is_github_url",
+    "is_web_url",
     "os",
     "parse_github_url",
+    "resolve_relative_url",
     "resolve_url",
+    "slugify_url",
     "url",
 ]
+
