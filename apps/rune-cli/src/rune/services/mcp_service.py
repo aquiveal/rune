@@ -88,6 +88,7 @@ def add_mcp_server(
     global_scope: bool = False,
     agent_override: list[str] | None = None,
     custom_config: McpServerUnion | None = None,
+    skip_if_global: bool = False,
 ) -> list[Path]:
     working_dir = cwd or Path.cwd()
     base_dir = (Path.home() / ".rune") if global_scope else (git_root or working_dir)
@@ -110,8 +111,10 @@ def add_mcp_server(
         entry = registry[cleaned_source]
         server_name = entry.name
 
-        if not global_scope and mcp_repository.is_server_configured_globally(
-            server_name
+        if (
+            not global_scope
+            and skip_if_global
+            and mcp_repository.is_server_configured_globally(server_name)
         ):
             logger.info(
                 f"MCP server '{server_name}' is already configured in global agent settings. Skipping workspace configuration."
