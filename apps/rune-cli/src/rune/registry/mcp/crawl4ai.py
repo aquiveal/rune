@@ -107,8 +107,10 @@ CRAWL4AI_ENTRY = McpRegistryEntry(
         args=["-y", "mcp-crawl4ai-ts"],
         env={
             "CRAWL4AI_BASE_URL": "http://localhost:11235",
-            "CRAWL4AI_API_KEY": "crawl4ai-token",
-            "CRAWL4AI_API_TOKEN": "crawl4ai-token",
+            "CRAWL4AI_API_KEY": "${CRAWL4AI_API_KEY:-crawl4ai-token}",
+            "CRAWL4AI_API_TOKEN": "${CRAWL4AI_API_TOKEN:-crawl4ai-token}",
+            "GEMINI_API_TOKEN": "${GEMINI_API_TOKEN}",
+            "LLM_PROVIDER": "${LLM_PROVIDER:-gemini/gemini-3.5-flash-lite}",
         },
     ),
     init=init_crawl4ai,

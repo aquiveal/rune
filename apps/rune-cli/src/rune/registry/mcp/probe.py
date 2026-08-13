@@ -22,30 +22,35 @@ PROBE_ENTRY = McpRegistryEntry(
             command="npx",
             args=["-y", "@probelabs/probe@latest", "agent", "--mcp"],
             alwaysAllow=PROBE_ALLOW,
+            env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
         ),
         "cline": McpStdioServer(
             type="stdio",
             command="npx",
             args=["-y", "@probelabs/probe@latest", "agent", "--mcp"],
             alwaysAllow=PROBE_ALLOW,
+            env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
         ),
         "claude": McpStdioServer(
             type="stdio",
             command="npx",
             args=["-y", "@probelabs/probe@latest", "agent", "--mcp"],
             alwaysAllow=PROBE_ALLOW,
+            env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
         ),
         "cursor": McpStdioServer(
             type="stdio",
             command="npx",
             args=["-y", "@probelabs/probe@latest", "mcp"],
             alwaysAllow=PROBE_ALLOW,
+            env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
         ),
         "agents": McpStdioServer(
             type="stdio",
             command="npx",
             args=["-y", "@probelabs/probe@latest", "agent", "--mcp"],
             alwaysAllow=PROBE_ALLOW,
+            env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
         ),
     },
     default_config=McpStdioServer(
@@ -53,5 +58,6 @@ PROBE_ENTRY = McpRegistryEntry(
         command="npx",
         args=["-y", "@probelabs/probe@latest", "agent", "--mcp"],
         alwaysAllow=PROBE_ALLOW,
+        env={"GOOGLE_GENERATIVE_AI_API_KEY": "${GOOGLE_GENERATIVE_AI_API_KEY}"},
     ),
 )
