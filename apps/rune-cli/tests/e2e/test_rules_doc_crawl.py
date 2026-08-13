@@ -51,7 +51,13 @@ def test_rules_doc_crawl_e2e_workflow(tmp_path: Path, monkeypatch):
     mock_resp.status = 200
     mock_resp.read.return_value = html_payload.encode("utf-8")
 
-    with patch("rune.services.rule_service.urllib.request.urlopen") as mock_urlopen:
+    with (
+        patch("rune.services.rule_service.urllib.request.urlopen") as mock_urlopen,
+        patch(
+            "rune.repositories.mcp_repository.is_server_configured_globally",
+            return_value=False,
+        ),
+    ):
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
         # 3. Execute rune rules add <url> <name>
