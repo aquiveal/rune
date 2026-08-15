@@ -10,7 +10,6 @@ from rune.repositories import config_repository, index_repository, mcp_repositor
 from rune.schemas.index_schema import IndexItemSchema
 from rune.services import (
     map_service,
-    mcp_service,
     module_service,
     rule_service,
     skill_service,
@@ -142,11 +141,6 @@ def update_all_submodules(workspace_root: Path, global_scope: bool = False):
             # Probe map inside submodule
             repo_ast = map_service.generate_submodule_map(sub_dir)
             map_service.merge_ast_to_agents_md(sub_dir, repo_ast)
-
-            # Probe MCP inside submodule while preserving key
-            mcp_service.add_mcp_server(
-                "probelabs/probe", git_root=sub_dir, cwd=sub_dir, global_scope=False
-            )
 
             logger.info(f"Successfully updated submodule '{rel_str}'.")
         except Exception as e:  # noqa: BLE001
