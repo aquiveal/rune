@@ -18,8 +18,3 @@ commit = false
 filename = "pyproject.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "apps/rune-cli/pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'

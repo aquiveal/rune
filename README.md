@@ -26,17 +26,17 @@ To install Rune globally on your system so you can use the `rune` command anywhe
 
 ```bash
 # Using uv (extremely fast)
-uv tool install "git+https://github.com/aquiveal/rune.git#subdirectory=apps/rune-cli"
+uv tool install "git+https://github.com/aquiveal/rune.git"
 
 # Using pipx
-pipx install "git+https://github.com/aquiveal/rune.git#subdirectory=apps/rune-cli"
+pipx install "git+https://github.com/aquiveal/rune.git"
 ```
 
 You can also install it from a local clone:
 
 ```bash
 git clone https://github.com/aquiveal/rune.git
-cd rune/apps/rune-cli
+cd rune
 
 uv tool install .
 # or
@@ -51,7 +51,7 @@ If you want to contribute to Rune or run it locally:
 
 ```bash
 git clone https://github.com/aquiveal/rune.git
-cd rune/apps/rune-cli
+cd rune
 pdm install
 
 pdm run rune --help

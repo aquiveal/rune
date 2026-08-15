@@ -1,3 +1,69 @@
 [project]
-name = "rune-workspace"
-version = "3.0.1"
+name = "rune"
+version = "3.0.0"
+description = "Rune CLI"
+authors = [
+    {name = "Aryan Singh", email = "aquiveal@gmail.com"},
+]
+dependencies = [
+    "typer>=0.15.2",
+    "pydantic>=2.10.6",
+    "pyyaml>=6.0.1",
+    "questionary>=2.1.0",
+    "aider-chat>=0.86.2",
+    "pydantic-settings>=2.14.2",
+    "python_logging @ git+https://github.com/aurumorinc/python-logging.git",
+]
+requires-python = "==3.13"
+license = {text = "MIT"}
+
+[project.scripts]
+rune = "rune.main:main"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "--import-mode=importlib"
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
+
+[tool.ruff]
+src = ["src", "tests"]
+exclude = [
+    ".rune",
+    ".agents",
+    "plans",
+    "dist",
+    "build",
+]
+
+[tool.pdm.scripts]
+"lint" = "ruff check src tests"
+"lint:fix" = "ruff check src tests --fix"
+"format" = "ruff format src tests"
+"format:check" = "ruff format --check src tests"
+"typecheck" = "pyrefly check src"
+"test" = "pytest"
+"test:cov" = "pytest --cov=src --cov-report=term-missing"
+"mkinit" = "mkinit src/rune --recursive -w --black"
+"validate" = { composite = ["format:check", "lint", "typecheck", "test"] }
+
+[tool.pdm.scripts.dev]
+composite = ["mkinit"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pyrefly>=1.1.1",
+    "vcrpy>=6.0.0",
+    "ruff>=0.9.0",
+    "mkinit>=1.2.0",
+]
