@@ -309,7 +309,7 @@ def add_mcp_server(
 
         if not discovered:
             # Fallback: scaffold stdio server from repo name
-            repo_name = url.rstrip("/").split("/")[-1].replace(".git", "")
+            repo_name = url.rstrip("/").split("/")[-1].removesuffix(".git")
             discovered = {
                 repo_name: McpStdioServer(
                     type="stdio",
