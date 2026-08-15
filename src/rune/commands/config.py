@@ -1,3 +1,4 @@
+# src/rune/commands/config.py
 from pathlib import Path
 
 import structlog
@@ -36,15 +37,20 @@ def config_cmd(
 
     if value is None:
         if key == "agent.name":
-            for a in settings.agent.names:
-                typer.echo(a)
+            if get_all:
+                values = git_repository.get_config_all(key, config_path)
+                for v in values:
+                    typer.echo(v)
+            else:
+                for a in settings.agent.names:
+                    typer.echo(a)
         elif key == "submodule.path":
             if get_all:
                 values = git_repository.get_config_all(key, config_path)
                 for v in values:
                     typer.echo(v)
             else:
-                for s in settings.submodules:
+                for s in settings.submodule.paths:
                     typer.echo(s)
         elif key.startswith("remote.") and key.endswith(".url"):
             alias = key.split(".")[1]
@@ -70,12 +76,17 @@ def config_cmd(
                     raise typer.Exit(1)
         return
 
-    if add:
+    if key == "submodule.path":
+        from rune.repositories import config_repository
+
+        config_repository.add_submodule_path(root_dir, value)
+    elif key == "agent.name":
+        from rune.repositories import config_repository
+        from rune.services import workspace_service
+
+        config_repository.add_agent_name(root_dir, value)
+        workspace_service.update_gitignore(root_dir)
+    elif add:
         git_repository.add_config(key, value, config_path)
     else:
         git_repository.set_config(key, value, config_path)
-
-    if key == "agent.name":
-        from rune.services import workspace_service
-
-        workspace_service.update_gitignore(root_dir)
