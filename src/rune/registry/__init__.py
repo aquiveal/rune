@@ -15,6 +15,7 @@ from rune.registry.mcp import (
     init_crawl4ai,
     memory,
     probe,
+    registry,
     search_registry,
 )
 
@@ -35,5 +36,6 @@ __all__ = [
     "mcp",
     "memory",
     "probe",
+    "registry",
     "search_registry",
 ]
