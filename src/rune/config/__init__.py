@@ -1,3 +1,4 @@
+# src/rune/config/__init__.py
 """Config package for Rune CLI."""
 
 from rune.config import exceptions, main
@@ -15,6 +16,7 @@ from rune.config.main import (
     RepoMapSettings,
     RuneConfigSource,
     Settings,
+    SubmoduleSettings,
     get_default_agents,
     settings,
 )
@@ -30,6 +32,7 @@ __all__ = [
     "RuneConfigSource",
     "RuneError",
     "Settings",
+    "SubmoduleSettings",
     "ValidationError",
     "exceptions",
     "get_default_agents",

@@ -1,3 +1,4 @@
+# src/rune/config/main.py
 import os
 import subprocess
 import sys
@@ -20,6 +21,7 @@ __all__ = [
     "RepoMapSettings",
     "RuneConfigSource",
     "Settings",
+    "SubmoduleSettings",
     "get_default_agents",
     "settings",
 ]
@@ -27,11 +29,27 @@ __all__ = [
 
 class RepoMapSettings(BaseModel):
     model: str = "gemini/gemini-3.1-flash-lite"
-    max_tokens: int = Field(10000, alias="max-tokens")
+    max_tokens: int = Field(default=10000, alias="max-tokens")
 
 
 class AgentSettings(BaseModel):
-    names: list[str] = Field(default_factory=list)
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: list[str] = Field(default_factory=list, alias="names")
+
+    @property
+    def names(self) -> list[str]:
+        return self.name
+
+
+class SubmoduleSettings(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    path: list[str] = Field(default_factory=list, alias="paths")
+
+    @property
+    def paths(self) -> list[str]:
+        return self.path
 
 
 class AgentPaths(BaseModel):
@@ -192,8 +210,9 @@ class RuneConfigSource(PydanticBaseSettingsSource):
                     repomap[sub_key] = val
 
             if names:
-                d["agent"] = {"names": names}
+                d["agent"] = {"name": names}
             if submodules:
+                d["submodule"] = {"path": submodules}
                 d["submodules"] = submodules
             if remotes:
                 d["remotes"] = remotes
@@ -216,14 +235,23 @@ class Settings(LoggingSettings, BaseSettings):
 
     agent: AgentSettings = Field(default_factory=AgentSettings)
     agent_paths: dict[str, Agent] = Field(default_factory=get_default_agents)
+    submodule: SubmoduleSettings = Field(default_factory=SubmoduleSettings)
     submodules: list[str] = Field(default_factory=list)
     remotes: dict[str, str] = Field(default_factory=dict)
     repomap: RepoMapSettings = Field(default_factory=RepoMapSettings)
 
+    def model_post_init(self, context: Any, /) -> None:
+        super().model_post_init(context)
+        if self.submodule.path and not self.submodules:
+            self.submodules = list(self.submodule.path)
+        elif self.submodules and not self.submodule.path:
+            self.submodule.path = list(self.submodules)
+
     def get_submodule_paths(self, root_dir: Path) -> list[Path]:
         """Return list of existing relative submodule directory paths explicitly configured in submodule.path."""
         paths: list[Path] = []
-        for sub in self.submodules:
+        raw_paths = self.submodule.path or self.submodules
+        for sub in raw_paths:
             clean_sub = sub.strip().replace("\\", "/")
             if not clean_sub:
                 continue
@@ -253,7 +281,8 @@ class Settings(LoggingSettings, BaseSettings):
             skills_path = agent_cfg.workspace.skills
             if skills_path and skills_path not in paths:
                 paths.append(skills_path)
-        for sub in self.submodules:
+        raw_paths = self.submodule.path or self.submodules
+        for sub in raw_paths:
             clean_sub = sub.strip().replace("\\", "/")
             if not clean_sub:
                 continue
@@ -273,7 +302,8 @@ class Settings(LoggingSettings, BaseSettings):
             rules_path = agent_cfg.workspace.rules
             if rules_path and rules_path not in paths:
                 paths.append(rules_path)
-        for sub in self.submodules:
+        raw_paths = self.submodule.path or self.submodules
+        for sub in raw_paths:
             clean_sub = sub.strip().replace("\\", "/")
             if not clean_sub:
                 continue
