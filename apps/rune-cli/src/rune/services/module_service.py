@@ -27,7 +27,7 @@ def add_module(
     base_dir = (Path.home() / ".rune") if global_scope else git_root
     rune_dir = base_dir / ".rune"
 
-    repo_name = url.rstrip("/").split("/")[-1].replace(".git", "")
+    repo_name = url.rstrip("/").split("/")[-1].removesuffix(".git")
     cache_path = rune_dir / "modules" / type / repo_name
 
     # Always use git clone for modules tracked in .runemodules
@@ -59,10 +59,11 @@ def add_module(
             target_paths.append(cwd / type / name)
 
     default_branch = git_repository.get_default_branch(url)
+    clean_base_url = url.rstrip("/").removesuffix(".git")
     specific_url = (
-        f"{url.rstrip('.git')}/tree/{default_branch}/{path}"
+        f"{clean_base_url}/tree/{default_branch}/{path}"
         if path and path != "."
-        else f"{url.rstrip('.git')}/tree/{default_branch}"
+        else f"{clean_base_url}/tree/{default_branch}"
     )
 
     for agent_path in target_paths:
@@ -126,7 +127,7 @@ def get_status(git_root: Path, global_scope: bool = False) -> dict[str, str]:
     status = {}
     for mod in modules:
         mod_status = "OK"
-        repo_name = mod.base_url.rstrip("/").split("/")[-1].replace(".git", "")
+        repo_name = mod.base_url.rstrip("/").split("/")[-1].removesuffix(".git")
         cache_path = (
             base_dir
             / ".rune"
@@ -185,7 +186,7 @@ def update_modules(git_root: Path, type: str | None = None, global_scope: bool =
             continue
 
         try:
-            repo_name = mod.base_url.rstrip("/").split("/")[-1].replace(".git", "")
+            repo_name = mod.base_url.rstrip("/").split("/")[-1].removesuffix(".git")
             cache_path = base_dir / ".rune" / "modules" / mod.inferred_type / repo_name
 
             if cache_path not in updated_repos:

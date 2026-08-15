@@ -179,7 +179,7 @@ def test_update_modules_handles_git_failure_gracefully(
     mock_module_repo.list_modules.return_value = [
         ModuleSchema(
             name=".agents/rules/failing-repo",
-            url="https://github.com/aurumorinc/python-even",
+            url="https://github.com/aurumorinc/python-event",
             path=".agents/rules/failing-repo",
         )
     ]
@@ -190,3 +190,60 @@ def test_update_modules_handles_git_failure_gracefully(
         module_service.update_modules(tmp_path, type="rules")
 
     mock_git_repo.clone.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("input_url", "expected_url"),
+    [
+        (
+            "http://github.com/aurumorcom/python-event",
+            "http://github.com/aurumorcom/python-event/tree/main",
+        ),
+        (
+            "http://github.com/aurumorcom/python-event.git",
+            "http://github.com/aurumorcom/python-event/tree/main",
+        ),
+        (
+            "http://github.com/aurumorcom/python-logging",
+            "http://github.com/aurumorcom/python-logging/tree/main",
+        ),
+        (
+            "http://github.com/aurumorcom/python-logging.git",
+            "http://github.com/aurumorcom/python-logging/tree/main",
+        ),
+    ],
+)
+def test_add_module_preserves_url_ending_with_git_chars(
+    tmp_path, mock_git_repo, mock_module_repo, input_url, expected_url
+):
+    # Arrange
+    root_dir = tmp_path
+    target_skill_dir = root_dir / ".roo" / "skills" / "my-skill"
+    target_skill_dir.mkdir(parents=True, exist_ok=True)
+    path = "."
+    name = "my-module"
+    type = "modules"
+    agents = []
+
+    repo_name = input_url.rstrip("/").split("/")[-1].removesuffix(".git")
+    cache_path = root_dir / ".rune" / "modules" / type / repo_name
+    cache_path.mkdir(parents=True, exist_ok=True)
+
+    mock_git_repo.get_default_branch.return_value = "main"
+
+    with patch("rune.services.module_service.shutil.copytree"):
+        module_service.add_module(
+            git_root=root_dir,
+            cwd=target_skill_dir,
+            url=input_url,
+            path=path,
+            name=name,
+            type=type,
+            agents=agents,
+        )
+
+    # Assert
+    assert mock_module_repo.add_module.call_count == 1
+    added_schema = mock_module_repo.add_module.call_args[0][1]
+    assert added_schema.url == expected_url
+
