@@ -48,3 +48,22 @@ def test_agent_paths_and_search_helpers():
     mcp_paths_global = settings.get_mcp_search_paths(global_scope=True)
     assert "roo" in mcp_paths_global
     assert "agents" in mcp_paths_global
+
+
+def test_submodule_and_agent_array_settings():
+    from rune.config.main import AgentSettings, Settings, SubmoduleSettings
+
+    sub_cfg = SubmoduleSettings(path=["apps/web", "apps/api"])
+    assert sub_cfg.path == ["apps/web", "apps/api"]
+    assert sub_cfg.paths == ["apps/web", "apps/api"]
+
+    agent_cfg = AgentSettings(name=[".roo", ".cursor"])
+    assert agent_cfg.name == [".roo", ".cursor"]
+    assert agent_cfg.names == [".roo", ".cursor"]
+
+    settings = Settings(
+        agent=agent_cfg,
+        submodule=sub_cfg,
+    )
+    assert settings.submodules == ["apps/web", "apps/api"]
+    assert settings.agent.names == [".roo", ".cursor"]

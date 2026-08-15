@@ -7,7 +7,6 @@ import typer
 from rune.repositories import git_repository
 from rune.services import (
     map_service,
-    mcp_service,
     module_service,
     rule_service,
     skill_service,
@@ -103,15 +102,6 @@ def update(global_scope: bool = typer.Option(False, "--global", "-g")):
         logger.info("Successfully updated AGENTS.md with Probe context guidance.")
     except Exception:
         logger.exception("Failed to update AGENTS.md with Probe context guidance.")
-
-    # Step 5: Update MCP configurations
-    try:
-        mcp_service.add_mcp_server(
-            "probelabs/probe", git_root=git_root, cwd=cwd, global_scope=global_scope
-        )
-        logger.info("Successfully updated MCP configurations.")
-    except Exception:
-        logger.exception("Failed to update MCP configurations.")
 
     # Phase 3: Merge Submodules UPWARD into Workspace third
     try:

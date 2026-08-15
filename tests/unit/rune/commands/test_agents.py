@@ -7,7 +7,6 @@ from rune.main import app
 runner = CliRunner()
 
 
-@patch("rune.commands.agents.mcp_service.add_mcp_server")
 @patch("rune.commands.agents.module_service.update_modules")
 @patch("rune.commands.agents.rule_service.discover_rule_dirs")
 @patch("rune.commands.agents.git_repository.update_submodules")
@@ -29,7 +28,6 @@ def test_agents_update_success(
     mock_update_submodules,
     mock_discover_rule_dirs,
     mock_update_modules,
-    mock_add_mcp,
 ):
     # Arrange
     mock_cwd_path = MagicMock()
@@ -66,7 +64,6 @@ def test_agents_update_success(
     mock_merge_ast.assert_called_once_with(mock_cwd_path, "mock_ast")
 
 
-@patch("rune.commands.agents.mcp_service.add_mcp_server")
 @patch("rune.commands.agents.module_service.update_modules")
 @patch("rune.commands.agents.rule_service.discover_rule_dirs")
 @patch("rune.commands.agents.skill_service.discover_skills")
@@ -86,7 +83,6 @@ def test_agents_update_continues_on_rule_failure(
     mock_discover_skills,
     mock_discover_rule_dirs,
     mock_update_modules,
-    mock_add_mcp,
 ):
     # Arrange
     mock_cwd_path = MagicMock()
