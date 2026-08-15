@@ -10,6 +10,7 @@ from rune.repositories import (
 from rune.repositories.config_repository import (
     add_agent_name,
     add_submodule_path,
+    get_agent_names,
     get_submodule_paths,
     set_agent_name,
     set_remote_url,
@@ -65,6 +66,7 @@ __all__ = [
     "clone",
     "config_repository",
     "get_agent_mcp_config_path",
+    "get_agent_names",
     "get_all_agent_mcp_config_paths",
     "get_config",
     "get_config_all",
